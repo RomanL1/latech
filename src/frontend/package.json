@@ -1,12 +1,11 @@
 {
-  "name": "latech",
+  "name": "@latech/frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --open",
     "build": "tsc -b && vite build",
-    "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check",
