@@ -7,6 +7,7 @@
   </p>
 
 [![Frontend Build](https://github.com/RomanL1/latech/actions/workflows/frontend.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/frontend.yml)
+[![API Build](https://github.com/RomanL1/latech/actions/workflows/api.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/api.yml)
 
 </div>
 
