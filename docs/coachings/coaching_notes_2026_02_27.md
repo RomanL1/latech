@@ -1,4 +1,5 @@
 Coaching 2026-02-27
+
 - Vorlagen im Sinn von Button welcher dann den Gewünschte Tag ladet
 - Bilder obligatorisch
   - in Backend hochladen
@@ -18,5 +19,5 @@ Coaching 2026-02-27
 - lauffähig ist das wichtigste am Schluss
 - Aufsetzung-Doku
 - Projektdokumentation 20-25 Seiten
-- 21. März Idee auf einem Poster zeigen. Nicht Notenrelevant. Falls es was gibt gerne Zeigen.
+- 21\. März Idee auf einem Poster zeigen. Nicht Notenrelevant. Falls es was gibt gerne Zeigen.
 - Hosting (railway? / azure?)
