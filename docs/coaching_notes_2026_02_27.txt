@@ -1,0 +1,22 @@
+Coaching 2026-02-27
+- Vorlagen im Sinn von Button welcher dann den Gewünschte Tag ladet
+- Bilder obligatorisch
+  - in Backend hochladen
+- Syntax highlighting eher optionaler als Bild
+- Server rendering
+- undo redo definitiv möglich
+- latex syntax highlighting / kompilationsfehler anzeigen
+- letzter gültiger zustand rendern ("letzte Rendering vor xxx" anzeigen)
+- compiler zum überprüfen im frontend
+- compile on demand, compile on change optional
+- mobile out of scope
+- user simultan limitation kann man einschränken
+- passwortgeschützt
+- ab 2. hälfte semester user feedback einholen
+- automatisierte tests
+- Konzept für Tests allgemein
+- lauffähig ist das wichtigste am Schluss
+- Aufsetzung-Doku
+- Projektdokumentation 20-25 Seiten
+- 21. März Idee auf einem Poster zeigen. Nicht Notenrelevant. Falls es was gibt gerne Zeigen.
+- Hosting (railway? / azure?)
