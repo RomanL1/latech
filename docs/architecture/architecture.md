@@ -1,5 +1,9 @@
 #  Architecture
 
+- [System overview](#system-overview)
+- [Components](#components)
+- [Folder structure](#folder-structure)
+
 ## System overview
 Below is a high-level overview of the system components and how they interact with each other.
 ![](system_overview.png)
