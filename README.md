@@ -22,6 +22,8 @@
 
 LaTeCH is a web-based LaTeX editor which allows multiple users to collaborate on documents in real time.
 
+[Learn more about it's Architecture here](./docs/architecture/architecture.md)
+
 ## Installation
 
 See installation and setup instructions for the following components:
