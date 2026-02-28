@@ -8,6 +8,7 @@
 
 [![Frontend Build](https://github.com/RomanL1/latech/actions/workflows/frontend.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/frontend.yml)
 [![API Build](https://github.com/RomanL1/latech/actions/workflows/api.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/api.yml)
+[![Renderer Build](https://github.com/RomanL1/latech/actions/workflows/renderer.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/renderer.yml)
 
 </div>
 
