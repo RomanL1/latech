@@ -23,7 +23,10 @@
 
 LaTeCH is a web-based LaTeX editor which allows multiple users to collaborate on documents in real time.
 
-[Learn more about it's Architecture here](./docs/architecture/architecture.md)
+Learn more about
+
+- [Architecture](./docs/architecture/architecture.md)
+- [Requirement](./docs/requirements.md)
 
 ## Installation
 
@@ -33,7 +36,7 @@ See installation and setup instructions for the following components:
 
 ## Contributing
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) when contributing to this repository.
+See our [Git Guidelines](./docs/guidelines/git_guidelines.md) for how to contribute to this project.
 
 ## License
 
