@@ -13,9 +13,9 @@
 
 ### **DO** _Name branches like `feature/{NAME}/{DESCRIPTION}`_
 
-where `{NAME}` is your surname and `{DESCRIPTION}` is a short identifier that describes your feature. e.g:
+where `{NAME}` is your firstname and `{DESCRIPTION}` is a short identifier that describes your feature. e.g:
 
-- `feature/ma/my-cool-feature`
+- `feature/marc/my-cool-feature`
 - `feature/gregor/try-out-stuff`
 
 > [!NOTE]
