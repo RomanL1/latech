@@ -22,8 +22,7 @@ where `{NAME}` is your surname and `{DESCRIPTION}` is a short identifier that de
 > Why?
 >
 > - Allows us to distinguish who is working on which features
-> - Is represented by folders in the [Fork](https://fork.dev) git client
->   ![Branch naming in ](./branch_naming.png)
+> - Is represented by folders in the [Fork](https://fork.dev) git client<br/>![Branch naming in ](./branch_naming.png)
 
 ## 📦 Commit Conventions
 
