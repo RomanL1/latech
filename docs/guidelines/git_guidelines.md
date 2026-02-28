@@ -1,6 +1,10 @@
 # Git Guidelines
 
-## 🔀Branching
+- [Branching](#-branching)
+- [Commit Conventions](#-commit-conventions)
+- [Pull requests](#-pull-requests)
+
+## 🔀 Branching
 
 ### **DO** _Develop features in feature branches_
 
