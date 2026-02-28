@@ -7,7 +7,7 @@ plugins {
 
 group = 'com.latech'
 version = '0.0.1-SNAPSHOT'
-description = 'latech-api'
+description = 'api'
 
 java {
     toolchain {
