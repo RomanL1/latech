@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package pdf.v1;
+
+option java_multiple_files = true;
+option java_package = "com.latech.pdf.v1";
+option java_outer_classname = "PdfProto";
+
+service PdfService {
+  rpc CreatePdfJob(CreatePdfJobRequest) returns (CreatePdfJobResponse);
+  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse);
+  rpc GetPdf(GetPdfRequest) returns (stream GetPdfChunk);
+}
+
+message CreatePdfJobRequest {
+  string content = 1;
+}
+
+message CreatePdfJobResponse {
+  string job_id = 1;
+}
+
+message GetJobStatusRequest {
+  string job_id = 1;
+}
+
+message GetJobStatusResponse {
+  string job_id = 1;
+  JobState state = 2;
+  string message = 3;
+}
+
+message GetPdfRequest {
+  string job_id = 1;
+}
+
+message GetPdfChunk {
+  bytes data = 1;
+}
+
+enum JobState {
+  JOB_STATE_UNSPECIFIED = 0;
+  QUEUED = 1;
+  RUNNING = 2;
+  DONE = 3;
+  FAILED = 4;
+}
