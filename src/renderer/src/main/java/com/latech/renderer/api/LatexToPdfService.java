@@ -1,7 +1,7 @@
 package com.latech.renderer.api;
 
 import com.latech.pdf.v1.*;
-import com.latech.renderer.application.JobStore;
+import com.latech.renderer.application.JobCache;
 import com.latech.renderer.application.PdfJobManager;
 import com.latech.renderer.model.Entry;
 import com.latech.renderer.model.QueueFullException;
@@ -15,11 +15,11 @@ import org.springframework.grpc.server.service.GrpcService;
 @Slf4j
 public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
     private final PdfJobManager manager;
-    private final JobStore jobStore;
+    private final JobCache jobCache;
 
-    public LatexToPdfService(PdfJobManager manager, JobStore jobStore) {
+    public LatexToPdfService(PdfJobManager manager, JobCache jobCache) {
         this.manager = manager;
-        this.jobStore = jobStore;
+        this.jobCache = jobCache;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
     @Override
     public void getJobStatus(GetJobStatusRequest req, StreamObserver<GetJobStatusResponse> obs) {
 
-        jobStore.get(req.getJobId())
+        jobCache.get(req.getJobId())
                 .ifPresentOrElse(
                         job -> {
                             obs.onNext(GetJobStatusResponse.newBuilder()
@@ -64,7 +64,7 @@ public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
     @Override
     public void getPdf(GetPdfRequest req, StreamObserver<GetPdfChunk> obs) {
 
-        var jobOptional = jobStore.get(req.getJobId());
+        var jobOptional = jobCache.get(req.getJobId());
         if (jobOptional.isEmpty()){
             obs.onError(Status.NOT_FOUND
                     .withDescription("unknown JobId")
@@ -86,7 +86,7 @@ public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
                         .asRuntimeException());
 
                 //TODO(marc): do we delete the entry here? API needs to handle failed jobs correctly.
-                jobStore.deleteEntry(req.getJobId());
+                jobCache.deleteEntry(req.getJobId());
             }
 
             case State.DONE -> {
@@ -103,7 +103,7 @@ public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
 
                 //TODO(marc): delete pdf from disc if we store only the path in store.
                 // assuming API handles getting the file once and redirects following requests away from renderer.
-                jobStore.deleteEntry(req.getJobId());
+                jobCache.deleteEntry(req.getJobId());
             }
         }
     }

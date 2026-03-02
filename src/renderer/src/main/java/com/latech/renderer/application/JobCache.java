@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class JobStore {
+public class JobCache {
     private final Map<String, Entry> store = new ConcurrentHashMap<>();
 
     public void queued(String id) { store.put(id, new Entry(State.QUEUED, "", null)); }

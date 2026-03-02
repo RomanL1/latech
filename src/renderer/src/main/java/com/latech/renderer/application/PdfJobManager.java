@@ -15,17 +15,17 @@ import java.util.concurrent.*;
 public class PdfJobManager {
     private final BlockingQueue<PdfJob> queue;
     private final ExecutorService workers;
-    private final JobStore store;
+    private final JobCache jobCache;
     //private final PdflatexPdfRenderer renderer;
     private final int workerCount;
 
     public PdfJobManager(
-            JobStore store,
+            JobCache jobCache,
             //PdflatexPdfRenderer renderer,
             @Value("${pdf.workers:4}") int workerCount,
             @Value("${pdf.queueCapacity:200}") int queueCapacity
     ) {
-        this.store = store;
+        this.jobCache = jobCache;
         //this.renderer = renderer;
         this.workerCount = workerCount;
         this.queue = new ArrayBlockingQueue<>(queueCapacity);
@@ -34,10 +34,10 @@ public class PdfJobManager {
 
     public String enqueue(String content) {
         String id = UUID.randomUUID().toString();
-        store.queued(id);
+        jobCache.queued(id);
 
         if (!queue.offer(new PdfJob(id, content))) {
-            store.failed(id, "Queue full");
+            jobCache.failed(id, "Queue full");
             throw new QueueFullException("Queue full");
         }
 
@@ -55,12 +55,12 @@ public class PdfJobManager {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 PdfJob job = queue.take();
-                store.running(job.jobId());
+                jobCache.running(job.jobId());
                 try {
                     //TODO(marc): creation of container and actual compiling of the pdf
                     //store.done(job.jobId(), pdf);
                 } catch (Exception e) {
-                    store.failed(job.jobId(), e.getMessage());
+                    jobCache.failed(job.jobId(), e.getMessage());
                     log.error("Exception during pdf creation: ", e);
                 }
             } catch (InterruptedException ie) {
