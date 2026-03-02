@@ -1,13 +1,17 @@
-package com.latech.renderer;
+package com.latech.renderer.application;
 
+import com.latech.renderer.model.PdfJob;
+import com.latech.renderer.model.QueueFullException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 @Service
+@Slf4j
 public class PdfJobManager {
     private final BlockingQueue<PdfJob> queue;
     private final ExecutorService workers;
@@ -57,6 +61,7 @@ public class PdfJobManager {
                     //store.done(job.jobId(), pdf);
                 } catch (Exception e) {
                     store.failed(job.jobId(), e.getMessage());
+                    log.error("Exception during pdf creation: ", e);
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();

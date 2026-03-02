@@ -1,5 +1,7 @@
-package com.latech.renderer;
+package com.latech.renderer.application;
 
+import com.latech.renderer.model.Entry;
+import com.latech.renderer.model.State;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

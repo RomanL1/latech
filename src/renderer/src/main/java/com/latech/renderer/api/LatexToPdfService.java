@@ -1,12 +1,18 @@
 package com.latech.renderer.api;
 
 import com.latech.pdf.v1.*;
-import com.latech.renderer.*;
+import com.latech.renderer.application.JobStore;
+import com.latech.renderer.application.PdfJobManager;
+import com.latech.renderer.model.Entry;
+import com.latech.renderer.model.QueueFullException;
+import com.latech.renderer.model.State;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.grpc.server.service.GrpcService;
 
 @GrpcService
+@Slf4j
 public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
     private final PdfJobManager manager;
     private final JobStore jobStore;
@@ -26,11 +32,13 @@ public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
             obs.onError(Status.RESOURCE_EXHAUSTED
                     .withDescription(e.getMessage())
                     .asRuntimeException());
+            log.debug("Jobqueue full: ", e);
         } catch (Exception e) {
             obs.onError(Status.INTERNAL
                     .withDescription("Unexpected error")
                     .withCause(e)
                     .asRuntimeException());
+            log.debug("Exception while trying to queue a job: ", e);
         }
     }
 
