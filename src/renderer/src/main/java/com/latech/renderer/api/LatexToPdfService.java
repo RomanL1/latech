@@ -14,18 +14,18 @@ import org.springframework.grpc.server.service.GrpcService;
 @GrpcService
 @Slf4j
 public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
-    private final PdfJobManager manager;
+    private final PdfJobManager pdfJobManager;
     private final JobCache jobCache;
 
-    public LatexToPdfService(PdfJobManager manager, JobCache jobCache) {
-        this.manager = manager;
+    public LatexToPdfService(PdfJobManager pdfJobManager, JobCache jobCache) {
+        this.pdfJobManager = pdfJobManager;
         this.jobCache = jobCache;
     }
 
     @Override
     public void createPdfJob(CreatePdfJobRequest req, StreamObserver<CreatePdfJobResponse> obs) {
         try {
-            String id = this.manager.enqueue(req.getContent());
+            String id = this.pdfJobManager.enqueue(req.getContent());
             obs.onNext(CreatePdfJobResponse.newBuilder().setJobId(id).build());
             obs.onCompleted();
         } catch (QueueFullException e) {
