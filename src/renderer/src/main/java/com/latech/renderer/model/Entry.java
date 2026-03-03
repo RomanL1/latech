@@ -1,4 +1,7 @@
 package com.latech.renderer.model;
 
-public record Entry(State state, String message, byte[] pdfBytes) {}
+import java.nio.file.Path;
+import java.util.Optional;
+
+public record Entry(State state, String message, Optional<Path> pdfPath) {}
 
