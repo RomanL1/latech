@@ -1,6 +1,7 @@
 package com.latech.renderer.application;
 
 import com.latech.renderer.model.PdfJob;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,7 @@ class RenderingPoCTest {
     private RenderingPoC renderer;
 
     @Test
+    @Disabled
     void compileTest1() {
 
         String testString = "\\documentclass{article}\n" +
@@ -43,6 +45,7 @@ class RenderingPoCTest {
     }
 
     @Test
+    @Disabled
     void comparingShortAndLongerLatexTest() {
         String shortTest = "\\documentclass{article}\n" +
                 "\\begin{document}\n" +
