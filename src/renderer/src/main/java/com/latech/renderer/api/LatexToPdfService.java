@@ -11,6 +11,9 @@ import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.grpc.server.service.GrpcService;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
 @GrpcService
 @Slf4j
 public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
@@ -91,7 +94,23 @@ public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
 
             case State.DONE -> {
                 //TODO(marc): maybe don't load entire pdf, instead stream it from disc aswell.
-                byte[] pdf = job.pdfBytes();
+                byte[] pdf = null;
+                if (job.pdfPath().isEmpty()){
+                    log.error("job marked done with empty pdfpath");
+                    return;
+                }
+
+                try {
+                    pdf = Files.readAllBytes(job.pdfPath().get());
+                } catch (IOException e) {
+                    //TODO(marc): figure out more robust error-handling. Do we have to delete job/files here?
+                    log.error("error while trying to read pdf file: ", e);
+                    obs.onError(Status.INTERNAL
+                            .withDescription("Failed to read pdf file.")
+                            .asRuntimeException());
+                    return;
+                }
+
                 int chunkSize = 64 * 1024;
                 for (int i = 0; i < pdf.length; i += chunkSize) {
                     int len = Math.min(chunkSize, pdf.length - i);
@@ -101,7 +120,7 @@ public class LatexToPdfService extends PdfServiceGrpc.PdfServiceImplBase {
                 }
                 obs.onCompleted();
 
-                //TODO(marc): delete pdf from disc if we store only the path in store.
+                //TODO(marc): delete jobfiles and jobfolder from disc.
                 // assuming API handles getting the file once and redirects following requests away from renderer.
                 jobCache.deleteEntry(req.getJobId());
             }
