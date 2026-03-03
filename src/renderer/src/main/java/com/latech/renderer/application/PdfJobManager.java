@@ -7,6 +7,8 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -16,17 +18,17 @@ public class PdfJobManager {
     private final BlockingQueue<PdfJob> queue;
     private final ExecutorService workers;
     private final JobCache jobCache;
-    //private final PdflatexPdfRenderer renderer;
+    private final RenderingPoC renderingPoC;
     private final int workerCount;
 
     public PdfJobManager(
             JobCache jobCache,
-            //PdflatexPdfRenderer renderer,
-            @Value("${pdf.workers:4}") int workerCount,
-            @Value("${pdf.queueCapacity:200}") int queueCapacity
+            RenderingPoC renderingPoC,
+            @Value("${pdfJobManager.workers:4}") int workerCount,
+            @Value("${pdfJobManager.queueCapacity:200}") int queueCapacity
     ) {
         this.jobCache = jobCache;
-        //this.renderer = renderer;
+        this.renderingPoC = renderingPoC;
         this.workerCount = workerCount;
         this.queue = new ArrayBlockingQueue<>(queueCapacity);
         this.workers = Executors.newFixedThreadPool(workerCount); // cap concurrency
@@ -40,7 +42,6 @@ public class PdfJobManager {
             jobCache.failed(id, "Queue full");
             throw new QueueFullException("Queue full");
         }
-
         return id;
     }
 
@@ -57,8 +58,8 @@ public class PdfJobManager {
                 PdfJob job = queue.take();
                 jobCache.running(job.jobId());
                 try {
-                    //TODO(marc): creation of container and actual compiling of the pdf
-                    //store.done(job.jobId(), pdf);
+                    Path finishedPdfPath = renderingPoC.compile(job);
+                    jobCache.done(job.jobId(), finishedPdfPath);
                 } catch (Exception e) {
                     jobCache.failed(job.jobId(), e.getMessage());
                     log.error("Exception during pdf creation: ", e);

@@ -11,3 +11,5 @@
     - `./gradlew bootRun`
 - The renderer should be running on localhost:9090
 - Run `./gradlew generateProto` to generate the grpc code
+- Make sure you have Docker installed
+- navigate to root of project and run `docker build -t tex-renderer-image .`
