@@ -1,15 +1,17 @@
-#  Architecture
+# Architecture
 
 - [System overview](#system-overview)
 - [Components](#components)
 - [Folder structure](#folder-structure)
+- [Design decisions](#design-decisions)
 
 ## System overview
+
 Below is a high-level overview of the system components and how they interact with each other.
 ![](system_overview.png)
 
-
 ## Components
+
 Each of the following components will be published as a docker container.
 
 | Component           | Description                                                                                                                                                                       | Technologies     |
@@ -22,6 +24,7 @@ Each of the following components will be published as a docker container.
 | Database            | Persistence for<br>- Documents & Snapshot-Content<br>- Document templates                                                                                                         | PostgreSQL       |
 
 ## Folder structure
+
 ```
 /docs
 /src
@@ -30,3 +33,11 @@ Each of the following components will be published as a docker container.
 	/renderer
 	/sync-server
 ```
+
+## Design decisions
+
+The following architecture design decisions were made by the team during the development of this project.
+
+| Date | Context | Decision | Affected components |
+| ---- | ------- | -------- | ------------------- |
+|      |         |          |                     |
