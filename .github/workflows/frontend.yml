@@ -37,4 +37,4 @@ jobs:
         run: bun run prettier:check
 
       - name: Build
-        run: bun run build
+        run: bun run build:ci
