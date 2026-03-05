@@ -6,7 +6,7 @@
     Collaborative LaTeX editor
   </p>
 
-[![Continuous Integration Build](https://github.com/RomanL1/latech/actions/workflows/ci.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/ci.yml)
+[![Continuous Integration Build](https://github.com/RomanL1/latech/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/continuous_integration.yml)
 
 </div>
 
