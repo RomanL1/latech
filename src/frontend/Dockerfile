@@ -1,9 +1,9 @@
 FROM oven/bun:latest AS build
 
 WORKDIR /app
-COPY package.json bun.lock bunfig.toml ./
+COPY src/frontend/package.json src/frontend/bun.lock src/frontend/bunfig.toml ./
 RUN bun ci
-COPY . ./
+COPY src/frontend ./
 RUN bun run build
 
 FROM nginx:alpine AS production
