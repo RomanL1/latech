@@ -4,10 +4,12 @@ import java.time.ZoneId;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.springframework.amqp.core.Queue;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.grpc.client.ImportGrpcClients;
 import org.springframework.web.method.HandlerMethod;
@@ -24,7 +26,7 @@ public class LatechApiApplication implements ApplicationListener<ContextRefreshe
 
 	public static void main ( String[] args )
 	{
-		TimeZone.setDefault(TimeZone.getTimeZone( ZoneId.of( "Europe/Paris" ) ));
+		TimeZone.setDefault( TimeZone.getTimeZone( ZoneId.of( "Europe/Paris" ) ) );
 		SpringApplication.run( LatechApiApplication.class, args );
 	}
 
