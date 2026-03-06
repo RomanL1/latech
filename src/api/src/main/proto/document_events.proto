@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package com.latech.api.business;
+
+option java_package = "com.latech.api.business";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+
+message DocumentRecord {
+  // document id (UUID as String)
+  string document_id = 1;
+
+  // String containing entire latex document as string
+  string latex_content = 2;
+
+  // list of string ids for images
+  repeated string image_ids = 3;
+}
+
+message PdfMetadata {
+  // document uuid as String
+  string document_uuid = 1;
+
+  // rendered timestamp ISO 8601 milis
+  google.protobuf.Timestamp rendered_timestamp = 2;
+}

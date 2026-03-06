@@ -38,6 +38,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
     implementation 'org.springframework.grpc:spring-grpc-client-spring-boot-starter'
     implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
@@ -47,6 +48,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-restclient-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.grpc:spring-grpc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-amqp-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'com.h2database:h2'
 }
