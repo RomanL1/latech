@@ -13,8 +13,13 @@ public class RabbitMQConfig
 
 	public static final String LATECH_TOPIC = "latech.topic";
 
-	public static final String ROUTING_KEY_DOCUMENT_EXCHANGE = "document_exchange.#";
-	public static final String ROUTING_KEY_PDF_RENDERED = "pdf_rendered_queue.#";
+	public static final String DOCUMENT_EXCHANGE = "document_exchange";
+	public static final String PDF_RENDERED = "pdf_rendered";
+	public static final String ROUTING_KEY_DOCUMENT_EXCHANGE = DOCUMENT_EXCHANGE + ".#";
+	public static final String ROUTING_KEY_PDF_RENDERED = PDF_RENDERED + ".#";
+
+	public static final String DOCUMENT_EXCHANGE_DLQ = DOCUMENT_EXCHANGE + ".dlq";
+	public static final String DOCUMENT_EXCHANGE_DLX = DOCUMENT_EXCHANGE + ".dlx";
 
 	@Bean
 	public TopicExchange topic ()
@@ -23,15 +28,37 @@ public class RabbitMQConfig
 	}
 
 	@Bean
+	public TopicExchange documentExchangeDlx ()
+	{
+		return new TopicExchange( DOCUMENT_EXCHANGE_DLX );
+	}
+
+	@Bean
+	public Queue documentExchangeDlq ()
+	{
+		return new Queue( DOCUMENT_EXCHANGE_DLQ, true );
+	}
+
+	@Bean
+	public Binding bindingDocumentExchangeDlq ()
+	{
+		return BindingBuilder.bind( documentExchangeDlq() ).to( documentExchangeDlx() )
+				.with( ROUTING_KEY_DOCUMENT_EXCHANGE );
+	}
+
+	@Bean
 	public Queue initiateDocumentExchangeQueue ()
 	{
-		return new Queue( "document_exchange", true );
+		return org.springframework.amqp.core.QueueBuilder.durable( DOCUMENT_EXCHANGE )
+				.withArgument( "x-dead-letter-exchange", DOCUMENT_EXCHANGE_DLX )
+				.withArgument( "x-dead-letter-routing-key", ROUTING_KEY_DOCUMENT_EXCHANGE )
+				.build();
 	}
 
 	@Bean
 	public Queue initiatePDFRenderedQueue ()
 	{
-		return new Queue( "pdf_rendered_queue", true );
+		return new Queue( PDF_RENDERED, true );
 	}
 
 	@Bean
