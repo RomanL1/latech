@@ -1,5 +1,6 @@
 package com.latech.api.business;
 
+import static com.latech.api.config.RabbitMQConfig.DOCUMENT_EXCHANGE;
 import static com.latech.api.config.RabbitMQConfig.LATECH_TOPIC;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -22,7 +23,7 @@ public class DocumentProducer
 	{
 		log.info( "Publishing document ready: " + doc.getDocumentId() );
 		// Send to Topic exchange (arg 1) with a specific routing key (arg 2)
-		rabbitTemplate.convertAndSend( LATECH_TOPIC, "document_exchange", doc );
+		rabbitTemplate.convertAndSend( LATECH_TOPIC, DOCUMENT_EXCHANGE, doc );
 	}
 
 	@EventListener( ApplicationReadyEvent.class )
