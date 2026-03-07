@@ -3,6 +3,8 @@ package com.latech.api.business;
 import static com.latech.api.config.RabbitMQConfig.DOCUMENT_EXCHANGE;
 import static com.latech.api.config.RabbitMQConfig.LATECH_TOPIC;
 
+import java.util.UUID;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -29,10 +31,14 @@ public class DocumentProducer
 	@EventListener( ApplicationReadyEvent.class )
 	public void handleApplicationReady ( ApplicationReadyEvent event )
 	{
-		DocumentRecord.Builder documentRecord = DocumentRecord.newBuilder();
-		documentRecord.setDocumentId( "testDocId" );
-		documentRecord.setLatexContent( "testLatexContent" );
-		documentRecord.addImageIds( "testImgId" );
-		publishDocumentReady( documentRecord.build() );
+		DocumentRecord documentRecord = DocumentRecord.newBuilder()
+				.setRenderId( UUID.randomUUID().toString() )
+				.setDocumentId( UUID.randomUUID().toString() )
+				.setLatexContent( "testLatexContent" )
+				.addImageIds( UUID.randomUUID().toString() )
+				.addImageIds( UUID.randomUUID().toString() )
+				.addImageIds( UUID.randomUUID().toString() )
+				.build();
+		publishDocumentReady( documentRecord );
 	}
 }

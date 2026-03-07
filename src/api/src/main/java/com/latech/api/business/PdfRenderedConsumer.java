@@ -23,8 +23,11 @@ public class PdfRenderedConsumer
 		try
 		{
 			// Process rendered document...
-			log.info( "Pdf rendered: " + payload.getDocumentUuid() );
+			log.info( "Pdf rendered renderId: " + payload.getRenderId() );
+			log.info( "Pdf rendered documentId: " + payload.getDocumentId() );
 			log.info( "Pdf rendered timestamp: " + payload.getRenderedTimestamp() );
+			log.info( "Pdf rendered status: " + payload.getStatus() );
+			log.info( "Pdf rendered error message: " + payload.getErrorMessage() );
 
 			// MANUALLY ACKNOWLEDGE (Success)
 			// 'false' means we only acknowledge this specific message
