@@ -39,6 +39,7 @@ public class PdfJobManager {
         jobCache.queued(id);
 
         if (!queue.offer(new PdfJob(id, content))) {
+            //TODO(marc): Should the job get deleted here, or really moved to failed status? Need to coordinate with API
             jobCache.failed(id, "Queue full");
             throw new QueueFullException("Queue full");
         }
