@@ -16,13 +16,13 @@ services:
     image: 'postgres:latest'
     container_name: postgres
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
+      - 'POSTGRES_DB=latech'
       - 'POSTGRES_USER=myuser'
+      - 'POSTGRES_PASSWORD=secret'
     ports:
       - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     restart: unless-stopped
 
 volumes:
