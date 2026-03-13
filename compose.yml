@@ -11,6 +11,15 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: always
+  socket-server:
+    build: ./src/socket-server
+    container_name: socket-server
+    ports:
+      - 3000:3000
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+    restart: always
 
   postgres:
     image: 'postgres:latest'

@@ -6,13 +6,14 @@ import { PageLayout } from './PageLayout';
 import { CreateDocumentPage } from './pages/create/CreateDocumentPage';
 import { DocumentPage } from './pages/document/DocumentPage';
 import { LandingPage } from './pages/landing/LandingPage';
+import LatexEditor from './shared/components/LatexEditor';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PageLayout />}>
-          <Route index element={<LandingPage />} />
+          <Route index element={<LatexEditor />} />
           <Route path="create" element={<CreateDocumentPage />} />
           <Route path="document/:documentId" element={<DocumentPage />} />
         </Route>
