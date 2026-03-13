@@ -10,4 +10,4 @@ RUN npm install -g @y/websocket-server
 
 EXPOSE 3000
 
-CMD [ "y-wesocket-server" ]
+CMD [ "y-websocket-server" ]
