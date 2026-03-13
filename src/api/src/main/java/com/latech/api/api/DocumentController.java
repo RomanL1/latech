@@ -55,4 +55,17 @@ public class DocumentController
 		return ResponseEntity.ok( response );
 	}
 
+	@PostMapping( "/{docId}/render" )
+	public ResponseEntity<Void> initiateDocumentRender ( @PathVariable String docId )
+	{
+		if ( ObjectUtils.isEmpty( docId ) )
+		{
+			return ResponseEntity.badRequest().build();
+		}
+
+		//todo initiate render via rabbitmq
+
+		return ResponseEntity.accepted().build();
+	}
+
 }
