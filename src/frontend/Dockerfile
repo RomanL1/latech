@@ -1,5 +1,7 @@
 FROM oven/bun:latest AS build
 
+ENV VITE_WS_HOST=""
+
 WORKDIR /app
 COPY src/frontend/package.json src/frontend/bun.lock src/frontend/bunfig.toml ./
 RUN bun ci
