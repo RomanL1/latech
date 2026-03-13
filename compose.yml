@@ -11,6 +11,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: always
+
   socket-server:
     build: ./src/socket-server
     container_name: socket-server

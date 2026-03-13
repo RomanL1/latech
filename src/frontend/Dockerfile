@@ -9,6 +9,8 @@ RUN bun run build
 FROM nginx:alpine AS production
 
 RUN rm -rf /usr/share/nginx/html/*
+
+COPY nginx.conf /etc/nginx/conf.d/nginx.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
