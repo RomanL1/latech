@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   rabbitmq:
     image: rabbitmq:4.0-management
@@ -23,8 +25,24 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio
+    container_name: poc-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
     restart: unless-stopped
 
 volumes:
   rabbitmq_data:
   postgres_data:
+  minio_data:

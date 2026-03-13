@@ -48,6 +48,9 @@ dependencies {
     testImplementation 'org.springframework.grpc:spring-grpc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'com.h2database:h2'
+    implementation 'io.minio:minio:8.6.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'org.postgresql:postgresql:42.7.7'
 }
 
 dependencyManagement {
