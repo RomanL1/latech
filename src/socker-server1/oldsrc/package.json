@@ -1,0 +1,20 @@
+{
+  "name": "socker-server",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "quill": "^2.0.3",
+    "quill-cursors": "^4.1.0",
+    "ws": "^8.19.0",
+    "y-quill": "^1.0.0",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.29"
+  }
+}

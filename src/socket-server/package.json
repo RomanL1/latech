@@ -1,0 +1,40 @@
+{
+  "name": "socket-server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:1": "vite --port 5173",
+    "dev:2": "vite --port 5174",
+    "server": "node server.js",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@codingame/monaco-vscode-api": "^28.0.1",
+    "@codingame/monaco-vscode-latex-default-extension": "^28.0.1",
+    "@monaco-editor/react": "^4.7.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "ws": "^8.19.0",
+    "y-monaco": "^0.1.6",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.29"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vite": "^7.3.1"
+  }
+}
