@@ -1,6 +1,7 @@
 FROM oven/bun:latest AS build
 
-ENV VITE_WS_HOST=""
+ARG WEBSOCKET_SERVER_URL
+ENV VITE_WS_HOST=$WEBSOCKET_SERVER_URL
 
 WORKDIR /app
 COPY src/frontend/package.json src/frontend/bun.lock src/frontend/bunfig.toml ./
