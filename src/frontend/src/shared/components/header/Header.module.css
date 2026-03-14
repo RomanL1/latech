@@ -1,0 +1,20 @@
+.header {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--gray-6);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon {
+  color: var(--accent-10);
+}
+
+.appName {
+  margin: 0;
+}
+
+.documentName {
+  color: var(--gray-11);
+  font-weight: 300;
+}
