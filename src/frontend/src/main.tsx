@@ -11,7 +11,7 @@ import LatexEditor from './shared/components/LatexEditor';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Theme>
+    <Theme appearance="dark" accentColor="red">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<PageLayout />}>
