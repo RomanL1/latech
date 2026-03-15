@@ -19,11 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping( "api/document" )
+@RequestMapping( "api/document/{docId}/image" )
 public class ImageController
 {
 
-	@PostMapping( value = "/{docId}/image/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
+	@PostMapping( value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
 	public ResponseEntity<String> uploadImage (
 			@PathVariable String docId,
 			@RequestParam( "file" ) MultipartFile file,
@@ -43,7 +43,7 @@ public class ImageController
 		return ResponseEntity.ok( "File uploaded: " + file.getOriginalFilename() );
 	}
 
-	@GetMapping( value = "/{docId}/image/{imageId}" )
+	@GetMapping( value = "{imageId}" )
 	public ResponseEntity<byte[]> getDynamicImage ( @PathVariable String docId, @PathVariable String imageId )
 	{
 		if ( ObjectUtils.isEmpty( docId ) )
