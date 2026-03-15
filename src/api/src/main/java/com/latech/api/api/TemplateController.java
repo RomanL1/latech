@@ -26,10 +26,10 @@ public class TemplateController
 	}
 
 	@GetMapping( "/{templateId}" )
-	public ResponseEntity<List<TemplateContentDto>> listAllTemplates ( @PathVariable String templateId )
+	public ResponseEntity<TemplateContentDto> listAllTemplates ( @PathVariable String templateId )
 	{
 		// Todo Logic to get template content by id
-		return ResponseEntity.ok( List.of() );
+		return ResponseEntity.ok( null );
 	}
 
 }
