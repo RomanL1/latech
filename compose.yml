@@ -35,6 +35,60 @@ services:
       - postgres_data:/var/lib/postgresql
     restart: unless-stopped
 
+  api:
+    build:
+      context: ./src/api
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=your_secure_password_here
+      - SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS=static://renderer:9090
+    depends_on:
+      - postgres
+      - rabbitmq
+      - renderer
+    restart: always
+
+  renderer:
+    build:
+      context: ./src/renderer
+      dockerfile: Dockerfile
+    container_name: renderer
+    ports:
+      - "8090:8090"
+      - "9090:9090"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=your_secure_password_here
+    depends_on:
+      - rabbitmq
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: src/frontend/Dockerfile
+      args:
+        WEBSOCKET_SERVER_URL: ws://localhost:3000/ws
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - socket-server
+    restart: always
+
 volumes:
   rabbitmq_data:
   postgres_data:
