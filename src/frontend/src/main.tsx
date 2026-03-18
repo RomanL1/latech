@@ -7,6 +7,7 @@ import { PageLayout } from './PageLayout';
 import { CreateDocumentPage } from './pages/create/CreateDocumentPage';
 import { DocumentPage } from './pages/document/DocumentPage';
 import { LandingPage } from './pages/landing/LandingPage';
+import PreviewPage from './pages/preview/PreviewPage';
 import LatexEditor from './shared/components/LatexEditor';
 
 createRoot(document.getElementById('root')!).render(
@@ -19,6 +20,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="create" element={<CreateDocumentPage />} />
             <Route path="document/:documentId" element={<DocumentPage />} />
             <Route path="editor" element={<LatexEditor />} />
+            <Route path="preview" element={<PreviewPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
