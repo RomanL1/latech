@@ -32,6 +32,15 @@ See installation and setup instructions for the following components:
 
 - [Frontend](./src/frontend/README.md)
 
+## Building and running docker image (DigitalOcean)
+
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose build
+docker save -o latech_complete.tar latech-frontend:latest latech-socket-server:latest latech-api:latest latech-renderer:latest
+scp -i ~/.ssh/id_digitalocean latech_complete.tar compose.prod.yml root@46.101.106.129:/root
+docker load -i latech_complete.tar
+docker compose -f compose.prod.yml up -d
+docker compose -f compose.prod.yml down
+
 ## Contributing
 
 See our [Git Guidelines](./docs/guidelines/git_guidelines.md) for how to contribute to this project.

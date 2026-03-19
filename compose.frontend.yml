@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: src/frontend/Dockerfile
+      args:
+        WEBSOCKET_SERVER_URL: ws://latech.lysser.me:3000
+    container_name: frontend
+    ports:
+      - "80:80"
+    restart: always
