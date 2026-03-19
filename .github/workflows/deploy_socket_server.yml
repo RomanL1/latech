@@ -1,0 +1,25 @@
+name: Deploy Socket Server to Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/socket-server/**'
+      - '.github/workflows/deploy_socket_server.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway (Socket Server)
+        run: railway up --service "websocket-server" --environment staging --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_GITHUB_ACTIONS_DEPLOY }}
+        working-directory: ./src/socket-server
