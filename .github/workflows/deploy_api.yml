@@ -12,15 +12,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: staging
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      SVC_ID: "api"
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_GITHUB_ACTIONS_DEPLOY }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
+      - uses: actions/checkout@v4
       - name: Deploy to Railway (API)
-        run: railway up --service "api" --environment staging --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_GITHUB_ACTIONS_DEPLOY }}
+        run: railway up --service=${{ env.SVC_ID }} --environment=staging --detach
         working-directory: ./src/api
