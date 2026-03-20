@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package com.latech.renderer.api;
+
+option java_package = "com.latech.renderer.api";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+
+message DocumentRecord {
+  // render uuid as String, instantiated by caller
+  string render_id = 1;
+
+  // document uuid as String
+  string document_id = 2;
+
+  // String containing entire latex document as string
+  string latex_content = 3;
+
+  // list of string ids for images
+  repeated string image_ids = 4;
+}
+
+message PdfMetadata {
+  // render uuid as String
+  string render_id = 1;
+
+  // document uuid as String
+  string document_id = 2;
+
+  string file_path = 3;
+
+  // rendered timestamp ISO 8601 milis
+  google.protobuf.Timestamp rendered_timestamp = 4;
+
+  enum Status {
+    SUCCESSFULLY_RENDERED = 0;
+    ERROR_WHILE_RENDERING = 1;
+  }
+
+  Status status = 5;
+
+  string error_message = 6;
+}
