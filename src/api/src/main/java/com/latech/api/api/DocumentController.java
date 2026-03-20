@@ -1,6 +1,7 @@
 package com.latech.api.api;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.latech.api.model.api.DocumentCreateRequestDto;
 import com.latech.api.model.api.DocumentCreateResponseDto;
 import com.latech.api.model.api.DocumentDto;
-import com.latech.api.model.api.DocumentSecuredCreateRequestDto;
 import com.latech.api.model.api.DocumentSecuredRequestDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
@@ -97,15 +97,15 @@ public class DocumentController
 			return ResponseEntity.notFound().build();
 		}
 
-		Document document = documentRepository.findByIdAndPassword( UUID.fromString( docId ),
-				documentSecuredRequestDto.getPassword() ).orElseThrow();
+		Optional<Document> document = documentRepository.findByIdAndPassword( UUID.fromString( docId ),
+				documentSecuredRequestDto.getPassword() );
 
-		if ( ObjectUtils.isEmpty( document ) )
+		if ( document.isEmpty() )
 		{
 			return ResponseEntity.notFound().build();
 		}
 
-		var response = getDocumentDto( document, true );
+		var response = getDocumentDto( document.get(), true );
 		return ResponseEntity.ok( response );
 	}
 
