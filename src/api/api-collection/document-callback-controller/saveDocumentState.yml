@@ -7,16 +7,13 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/document/callback/:docId"
-  params:
-    - name: docId
-      value: ""
-      type: path
+  url: "{{baseUrl}}/api/document/callback"
   body:
     type: json
     data: |-
       {
-        "unknown": ""
+        "room": "6db0aa7a-fc20-48e0-8484-7773b5b59e57",
+        "data": "this is your content"
       }
   auth: inherit
 
