@@ -1,5 +1,6 @@
 package com.latech.api.api;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -10,35 +11,48 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import com.latech.api.model.DocumentCreateRequestDto;
-import com.latech.api.model.DocumentCreateResponseDto;
-import com.latech.api.model.DocumentDto;
-import com.latech.api.model.DocumentSecuredCreateRequestDto;
-import com.latech.api.model.DocumentSecuredRequestDto;
+import com.latech.api.model.api.DocumentCreateRequestDto;
+import com.latech.api.model.api.DocumentCreateResponseDto;
+import com.latech.api.model.api.DocumentDto;
+import com.latech.api.model.api.DocumentSecuredCreateRequestDto;
+import com.latech.api.model.api.DocumentSecuredRequestDto;
+import com.latech.api.model.db.Document;
+import com.latech.api.repository.DocumentRepository;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@RequiredArgsConstructor
 @RestController
 @RequestMapping( "api/document" )
 public class DocumentController
 {
+	private final DocumentRepository documentRepository;
+
 	@PostMapping
 	public ResponseEntity<DocumentCreateResponseDto> createDocument (
-			@RequestBody DocumentCreateRequestDto documentCreateRequestDto )
+			@RequestBody DocumentCreateRequestDto documentCreateRequestDto, UriComponentsBuilder uriBuilder )
 	{
 		if ( ObjectUtils.isEmpty( documentCreateRequestDto ) || ObjectUtils.isEmpty(
 				documentCreateRequestDto.getName() ) )
 		{
 			return ResponseEntity.badRequest().build();
 		}
-		// Todo document creation logic
-		var response = DocumentCreateResponseDto.builder()
-				.uuid( UUID.randomUUID().toString() )
+
+		Document document = Document.builder()
 				.name( documentCreateRequestDto.getName() )
+				.password( documentCreateRequestDto.getPassword() )
 				.build();
-		return ResponseEntity.ok( response );
+
+		Document saved = documentRepository.save( document );
+
+		var response = getDocumentCreateResponseDto( saved );
+
+		URI location = uriBuilder.path( "/api/document/{id}" ).buildAndExpand( saved.getId() ).toUri();
+		return ResponseEntity.created( location ).body( response );
 	}
 
 	@GetMapping( "/{docId}" )
@@ -48,12 +62,50 @@ public class DocumentController
 		{
 			return ResponseEntity.badRequest().build();
 		}
-		//todo load document
-		var response = DocumentDto.builder()
-				.id( docId )
-				.name( "documentname" )
-				.content( "in future your content will be loaded from backend" )
-				.build();
+
+		if ( !documentRepository.existsById( UUID.fromString( docId ) ) )
+		{
+			return ResponseEntity.notFound().build();
+		}
+
+		Document document = documentRepository.findById( UUID.fromString( docId ) ).orElseThrow();
+
+		DocumentDto response;
+		if ( !ObjectUtils.isEmpty( document.getPassword() ) )
+		{
+			response = DocumentDto.builder().id( document.getId().toString() ).secured( true ).build();
+		}
+		else
+		{
+			response = getDocumentDto( document, false );
+		}
+		return ResponseEntity.ok( response );
+	}
+
+	@PostMapping( "secured/{docId}" )
+	public ResponseEntity<DocumentDto> getDocumentSecuredContent ( @PathVariable String docId,
+			@RequestBody DocumentSecuredRequestDto documentSecuredRequestDto )
+	{
+		if ( ObjectUtils.isEmpty( docId ) || ObjectUtils.isEmpty( documentSecuredRequestDto ) || ObjectUtils.isEmpty(
+				documentSecuredRequestDto.getPassword() ) )
+		{
+			return ResponseEntity.badRequest().build();
+		}
+
+		if ( !documentRepository.existsById( UUID.fromString( docId ) ) )
+		{
+			return ResponseEntity.notFound().build();
+		}
+
+		Document document = documentRepository.findByIdAndPassword( UUID.fromString( docId ),
+				documentSecuredRequestDto.getPassword() ).orElseThrow();
+
+		if ( ObjectUtils.isEmpty( document ) )
+		{
+			return ResponseEntity.notFound().build();
+		}
+
+		var response = getDocumentDto( document, true );
 		return ResponseEntity.ok( response );
 	}
 
@@ -70,41 +122,24 @@ public class DocumentController
 		return ResponseEntity.accepted().build();
 	}
 
-	@PostMapping( "secured" )
-	public ResponseEntity<DocumentCreateResponseDto> createDocumentSecured (
-			@RequestBody DocumentSecuredCreateRequestDto documentSecuredCreateRequestDto )
+	private static DocumentCreateResponseDto getDocumentCreateResponseDto ( Document saved )
 	{
-		if ( ObjectUtils.isEmpty( documentSecuredCreateRequestDto ) || ObjectUtils.isEmpty(
-				documentSecuredCreateRequestDto.getName() ) || ObjectUtils.isEmpty(
-				documentSecuredCreateRequestDto.getPassword() ) )
-		{
-			return ResponseEntity.badRequest().build();
-		}
-		// Todo secured document creation logic
-		var response = DocumentCreateResponseDto.builder()
-				.uuid( UUID.randomUUID().toString() )
-				.name( documentSecuredCreateRequestDto.getName() )
+		DocumentCreateResponseDto dto = DocumentCreateResponseDto.builder()
+				.uuid( saved.getId().toString() )
+				.name( saved.getName() )
 				.build();
-		return ResponseEntity.ok( response );
+		return dto;
 	}
 
-	@PostMapping( "secured/{docId}" )
-	public ResponseEntity<DocumentDto> getDocumentSecuredContent ( @PathVariable String docId,
-			@RequestBody DocumentSecuredRequestDto documentSecuredRequestDto )
+	private static DocumentDto getDocumentDto ( Document document, boolean secured )
 	{
-		if ( ObjectUtils.isEmpty( docId ) || ObjectUtils.isEmpty( documentSecuredRequestDto ) || ObjectUtils.isEmpty(
-				documentSecuredRequestDto.getPassword() ) )
-		{
-			return ResponseEntity.badRequest().build();
-		}
-		//todo check password
-		//todo load document
-		var response = DocumentDto.builder()
-				.id( docId )
-				.name( "documentname" )
-				.content( "in future your content will be loaded from backend" )
+		DocumentDto dto = DocumentDto.builder()
+				.id( document.getId().toString() )
+				.name( document.getName() )
+				.content( document.getContent() )
+				.secured( secured )
 				.build();
-		return ResponseEntity.ok( response );
+		return dto;
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.latech.api.model;
+package com.latech.api.model.api;
 
 import lombok.Builder;
 import lombok.Data;
