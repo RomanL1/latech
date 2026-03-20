@@ -11,5 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DocumentCallbackDto
 {
-	private Object unknown;
+	//maps to docId
+	private String room;
+	private String data;
 }
