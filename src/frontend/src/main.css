@@ -20,3 +20,31 @@ video {
   display: block;
   max-width: 100%;
 }
+
+.preview-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 24px;
+  align-items: start;
+}
+
+.pdf-preview-wrapper {
+  background: #ffffff;
+  padding: 12px;
+  overflow: auto;
+  transform: none !important;
+  filter: none !important;
+}
+
+.pdf-preview-canvas {
+  display: block;
+  background: #ffffff !important;
+  border: 1px solid #ccc;
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  transform: none !important;
+  filter: none !important;
+  rotate: none !important;
+}
