@@ -78,7 +78,7 @@ public class TemplateController
 			return ResponseEntity.badRequest().build();
 		}
 
-		if ( templateRepository.existsById( UUID.fromString( templateId ) ) )
+		if ( !templateRepository.existsById( UUID.fromString( templateId ) ) )
 		{
 			return ResponseEntity.notFound().build();
 		}
