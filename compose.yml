@@ -13,15 +13,19 @@ services:
     restart: always
 
   socket-server:
-    build: ./src/socket-server
+    # depends_on:
+    #   api:
+    #     condition: service_healthy
+    build: 
+      context: ./src/socket-server
+    environment:
+      - CALLBACK_URL=http://api:8080/api/document/callback
+      - CALLBACK_OBJECTS={"monaco":"Text"}
     container_name: socket-server
     ports:
       - 3000:3000
-    environment:
-      - HOST=0.0.0.0
-      - PORT=3000
     restart: always
-
+  
   api:
     build: ./src/api
     container_name: api
