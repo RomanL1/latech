@@ -30,8 +30,9 @@ services:
     build: ./src/api
     container_name: api
     ports:
-      - "5001:8080"
+      - "5001:5001"
     environment:
+      - 'PORT=5001'
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
       - 'SPRING_RABBITMQ_HOST=rabbitmq'
       - 'SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS=static://renderer:9090'
