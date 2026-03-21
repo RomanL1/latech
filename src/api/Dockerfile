@@ -2,10 +2,19 @@ FROM eclipse-temurin:25-jdk-jammy AS build
 
 WORKDIR /app
 
-COPY settings.gradle build.gradle gradlew ./
+# Copy wrapper and basic project files
 COPY gradle/ ./gradle/
-COPY src/ ./src/
+COPY gradlew build.gradle settings.gradle ./
 
+# Make gradlew executable and download gradle distribution to cache it
+RUN chmod +x gradlew
+RUN ./gradlew --version
+
+# Download dependencies to cache them
+RUN ./gradlew dependencies --no-daemon || true
+
+# Copy source code and build
+COPY src/ ./src/
 RUN ./gradlew bootJar --no-daemon -x test
 
 FROM eclipse-temurin:25-jre
@@ -13,7 +22,6 @@ WORKDIR /app
 
 # Environment variables from application.properties
 ENV SPRING_APPLICATION_NAME="latech-api"
-ENV SERVER_PORT="${PORT:-8080}"
 ENV SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS="static://localhost:9090"
 ENV SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_NEGOTIATION_TYPE="plaintext"
 
@@ -50,7 +58,9 @@ ENV SPRING_SERVLET_MULTIPART_ENABLED="true"
 ENV SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE="10MB"
 ENV SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE="15MB"
 
-EXPOSE 8080
+EXPOSE ${PORT:-8080}
+
 COPY --from=build /app/build/libs/*.jar app.jar
 
-ENTRYPOINT ["java", "-XX:TieredStopAtLevel=1", "-noverify", "-jar", "/app/app.jar"]
+# Map the dynamically provided PORT environment variable, defaulting to 8080
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -XX:TieredStopAtLevel=1 -noverify -jar /app/app.jar"]
