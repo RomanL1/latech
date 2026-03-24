@@ -1,0 +1,26 @@
+import type { DocumentMetadata } from './document';
+
+const STORAGE_KEY = 'local_documents';
+
+export function getLocalDocuments(): DocumentMetadata[] {
+  const documentsJson = localStorage.getItem(STORAGE_KEY)!;
+  return (JSON.parse(documentsJson) || [
+    { documentId: '123', name: 'Bachelor Thesis', lastEdited: new Date() },
+    { documentId: '456', name: 'Master Thesis', lastEdited: new Date() },
+    { documentId: '789', name: 'Cover Letter', lastEdited: new Date() },
+  ]) as DocumentMetadata[];
+}
+
+export function storeDocument(document: DocumentMetadata) {
+  const localDocuments = getLocalDocuments();
+  const index = localDocuments.findIndex((item) => item.documentId === document.documentId);
+
+  if (index === -1) {
+    localDocuments.push(document);
+  } else {
+    localDocuments[index] = document;
+  }
+
+  const documentsJson = JSON.stringify(localDocuments);
+  localStorage.setItem(STORAGE_KEY, documentsJson);
+}

@@ -1,0 +1,41 @@
+.card {
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 200ms ease;
+}
+
+.card:hover {
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+}
+
+.image {
+  flex: 1;
+  background-color: var(--gray-6);
+}
+
+.infoRow {
+  display: flex;
+  padding: 1rem;
+  gap: 1rem;
+  align-items: center;
+}
+
+.icon {
+  color: var(--accent-10);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 500;
+}
+
+.lastEdited {
+  color: var(--gray-10);
+}
