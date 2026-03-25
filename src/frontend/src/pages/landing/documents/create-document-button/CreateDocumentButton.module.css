@@ -4,7 +4,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: box-shadow 250ms ease;
+  transition: box-shadow 200ms ease;
   gap: 1rem;
 }
 
@@ -14,9 +14,14 @@
 }
 
 .circle {
+  transition: background-color 200ms ease;
   background-color: var(--gray-4);
   border-radius: 50%;
   padding: 1rem;
+}
+
+.card:hover .circle {
+  background-color: var(--gray-5);
 }
 
 .text {

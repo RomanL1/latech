@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import type { DocumentMetadata } from '../../../features/documents/document';
 import styles from './DocumentGrid.module.css';
 import { CreateDocumentButton } from './create-document-button/CreateDocumentButton';
@@ -12,9 +13,9 @@ export function DocumentGrid({ documents }: DocumentGridProps) {
 
   return (
     <ul className={styles.grid}>
-      <li data-testid="createDocumentButton" role="button">
+      <Link to="/create" className={styles.link} data-testid="createDocumentButton" role="button">
         <CreateDocumentButton />
-      </li>
+      </Link>
       <DocumentGridItems documents={orderedDocuments} />
     </ul>
   );
@@ -22,14 +23,15 @@ export function DocumentGrid({ documents }: DocumentGridProps) {
 
 function DocumentGridItems({ documents }: DocumentGridProps) {
   return documents.map((document) => (
-    <li
-      key={document.documentId}
-      className={styles.gridItem}
+    <Link
       role="listitem"
+      key={document.documentId}
+      to={`/document/${document.documentId}`}
+      className={`${styles.gridItem} ${styles.link}`}
       data-testid={`document-${document.documentId}`}
     >
       <DocumentCard document={document} />
-    </li>
+    </Link>
   ));
 }
 
