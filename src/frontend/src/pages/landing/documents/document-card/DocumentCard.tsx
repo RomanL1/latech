@@ -34,6 +34,7 @@ function getLastEditedText(date: Date): string {
   const units = [
     { name: 'year', seconds: 60 * 60 * 24 * 365 },
     { name: 'month', seconds: 60 * 60 * 24 * 30 },
+    { name: 'week', seconds: 60 * 60 * 24 * 7 },
     { name: 'day', seconds: 60 * 60 * 24 },
     { name: 'hour', seconds: 60 * 60 },
     { name: 'minute', seconds: 60 },

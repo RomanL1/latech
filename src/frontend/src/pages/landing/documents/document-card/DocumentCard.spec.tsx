@@ -17,7 +17,7 @@ describe('DocumentCard', () => {
   });
 
   describe('last edited date', () => {
-    const referenceDate = new Date(2020, 3, 12);
+    const referenceDate = new Date(2020, 8, 12);
 
     beforeEach(() => {
       vi.useFakeTimers();
@@ -26,6 +26,14 @@ describe('DocumentCard', () => {
 
     afterEach(() => {
       vi.useRealTimers();
+    });
+
+    it('should display changes made just now', () => {
+      const document = getDocumentEditedInThePast(0, 'seconds');
+
+      render(<DocumentCard document={document} />);
+
+      expect(screen.getByTestId('lastEdited')).toHaveTextContent('Edited just now');
     });
 
     it('should display changes made exactly one second ago', () => {
@@ -92,6 +100,22 @@ describe('DocumentCard', () => {
       expect(screen.getByTestId('lastEdited')).toHaveTextContent('Edited 5 days ago');
     });
 
+    it('should display changes made exactly a week ago', () => {
+      const document = getDocumentEditedInThePast(1, 'weeks');
+
+      render(<DocumentCard document={document} />);
+
+      expect(screen.getByTestId('lastEdited')).toHaveTextContent('Edited 1 week ago');
+    });
+
+    it('should display changes made a few weeks ago', () => {
+      const document = getDocumentEditedInThePast(3, 'weeks');
+      console.log(document.lastEdited);
+      render(<DocumentCard document={document} />);
+
+      expect(screen.getByTestId('lastEdited')).toHaveTextContent('Edited 3 weeks ago');
+    });
+
     it('should display changes made exactly a month ago', () => {
       const document = getDocumentEditedInThePast(1, 'months');
 
@@ -123,18 +147,10 @@ describe('DocumentCard', () => {
 
       expect(screen.getByTestId('lastEdited')).toHaveTextContent('Edited 5 years ago');
     });
-
-    it('should display changes made just now', () => {
-      const document = getDocumentEditedInThePast(0, 'seconds');
-
-      render(<DocumentCard document={document} />);
-
-      expect(screen.getByTestId('lastEdited')).toHaveTextContent('Edited just now');
-    });
   });
 });
 
-type LastEditedDateUnit = 'seconds' | 'minutes' | 'hours' | 'days' | 'months' | 'years';
+type LastEditedDateUnit = 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years';
 function getDocumentEditedInThePast(delta: number, unit: LastEditedDateUnit): DocumentMetadata {
   const lastEdited = new Date();
 
@@ -150,6 +166,9 @@ function getDocumentEditedInThePast(delta: number, unit: LastEditedDateUnit): Do
       break;
     case 'days':
       lastEdited.setDate(lastEdited.getDate() - delta);
+      break;
+    case 'weeks':
+      lastEdited.setDate(lastEdited.getDate() - delta * 7);
       break;
     case 'months':
       lastEdited.setMonth(lastEdited.getMonth() - delta);
