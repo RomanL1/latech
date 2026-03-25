@@ -44,8 +44,8 @@ function getLastEditedText(date: Date): string {
   for (const unit of units) {
     const value = Math.floor(differenceInSeconds / unit.seconds);
     if (value >= 1) {
-      const pluralPrefix = value > 1 ? 's' : '';
-      return `${value} ${unit.name}${pluralPrefix} ago`;
+      const pluralSuffix = value > 1 ? 's' : '';
+      return `${value} ${unit.name}${pluralSuffix} ago`;
     }
   }
 
