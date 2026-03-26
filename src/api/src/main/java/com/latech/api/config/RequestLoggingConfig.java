@@ -13,7 +13,7 @@ public class RequestLoggingConfig
 	{
 		CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
 		filter.setIncludeQueryString( true );
-		filter.setIncludePayload( false );
+		filter.setIncludePayload( true );
 		filter.setMaxPayloadLength( 10000 );
 		filter.setIncludeHeaders( true );
 		filter.setIncludeClientInfo( true );

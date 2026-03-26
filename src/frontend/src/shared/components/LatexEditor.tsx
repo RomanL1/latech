@@ -4,10 +4,15 @@ import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { editor as MonacoEditor, KeyMod, KeyCode, languages } from 'monaco-editor';
+import { useParams } from 'react-router';
+
 
 function LatexEditor() {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const isEditorMount = useRef(false);
+  const { roomId } = useParams()!
+
+  console.log("ROOM ID: ", roomId)
 
   console.log(
     'Language-Support: ',
@@ -32,9 +37,9 @@ function LatexEditor() {
     isEditorMount.current = true;
 
     const ydoc = new Y.Doc();
-    const ytext = ydoc.getText('monaco');
+    const ytext = ydoc.getText('latech');
 
-    const provider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, 'monaco', ydoc);
+    const provider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, roomId!, ydoc);
     provider.on('status', (event) => {
       console.log('Status: ' + event.status);
     });
@@ -55,6 +60,7 @@ function LatexEditor() {
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {
       console.log('Undo command triggered');
+      console.log("current DOC", ydoc.getText('monaco').toString());
       undoManager.undo();
     });
 
@@ -81,7 +87,8 @@ function LatexEditor() {
       provider.destroy();
       undoManager.destroy();
     };
-  }, [editor]);
+  }, [editor, roomId]);
+
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
