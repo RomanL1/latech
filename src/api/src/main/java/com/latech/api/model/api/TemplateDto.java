@@ -1,5 +1,6 @@
-package com.latech.api.model;
+package com.latech.api.model.api;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class TemplateDto
 {
+	@Schema( types = { "string", "null" } )
 	private String id;
 	private String name;
 	private String description;
