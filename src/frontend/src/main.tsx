@@ -10,7 +10,7 @@ import { LandingPage } from './pages/landing/LandingPage';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Theme appearance="dark" accentColor="red">
+    <Theme appearance="dark">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<PageLayout />}>

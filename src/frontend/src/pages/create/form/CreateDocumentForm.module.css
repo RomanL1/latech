@@ -1,0 +1,17 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.documentName,
+.passwordProtection,
+.password {
+  max-width: 30rem;
+}
+
+.passwordProtection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
