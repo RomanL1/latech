@@ -20,7 +20,7 @@ services:
       context: ./src/socket-server
     environment:
       - CALLBACK_URL=http://api:8080/api/document/callback
-      - CALLBACK_OBJECTS={"monaco":"Text"}
+      - CALLBACK_OBJECT_NAME=latech
     container_name: socket-server
     ports:
       - 3000:3000
