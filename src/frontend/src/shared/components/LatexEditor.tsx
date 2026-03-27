@@ -6,13 +6,12 @@ import * as Y from 'yjs';
 import { editor as MonacoEditor, KeyMod, KeyCode, languages } from 'monaco-editor';
 import { useParams } from 'react-router';
 
-
 function LatexEditor() {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const isEditorMount = useRef(false);
-  const { roomId } = useParams()!
+  const { roomId } = useParams()!;
 
-  console.log("ROOM ID: ", roomId)
+  console.log('ROOM ID: ', roomId);
 
   console.log(
     'Language-Support: ',
@@ -60,7 +59,7 @@ function LatexEditor() {
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {
       console.log('Undo command triggered');
-      console.log("current DOC", ydoc.getText('monaco').toString());
+      console.log('current DOC', ydoc.getText('monaco').toString());
       undoManager.undo();
     });
 
@@ -88,7 +87,6 @@ function LatexEditor() {
       undoManager.destroy();
     };
   }, [editor, roomId]);
-
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
