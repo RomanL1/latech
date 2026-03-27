@@ -11,9 +11,12 @@ import org.springframework.util.FileSystemUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import com.latech.renderer.process.ProcessExecutor;
+import com.latech.renderer.process.ProcessResult;
 
 @Service
 @Slf4j
@@ -21,10 +24,12 @@ public class ContainerManager {
 
     private final BlockingQueue<RunningContainer> containerBuffer;
     private final BlockingQueue<RunningContainer> removalQueue;
+    private final ProcessExecutor processExecutor;
     private Thread removalQueueWorker;
     private final static int NUM_CONTAINERS_BUFFERED = 2;
 
-    public ContainerManager(){
+    public ContainerManager(ProcessExecutor processExecutor){
+        this.processExecutor = processExecutor;
         this.removalQueue = new ArrayBlockingQueue<>(NUM_CONTAINERS_BUFFERED);
         this.containerBuffer = new ArrayBlockingQueue<>(NUM_CONTAINERS_BUFFERED);
         for (int i = 0; i < NUM_CONTAINERS_BUFFERED; i++) {
@@ -56,7 +61,7 @@ public class ContainerManager {
         Path workDir = Path.of("output", containerId);
         Files.createDirectories(workDir);
 
-        Process containerProcess =  new ProcessBuilder(
+        Process containerProcess = processExecutor.startInBackground(
                 "docker", "run",
                 "--rm",
                 "--network", "none",
@@ -73,20 +78,34 @@ public class ContainerManager {
                 "--name", containerId,
                 "tex-renderer-image",
                 "sleep", "infinity"       //keep it alive waiting on further instructions
-        )
-                .start();
+        );
 
         //TODO(marc): remove this polling loop once we know how long it takes to spin up containers.
-        while (true) {
-            try {
-                Process probe = new ProcessBuilder("docker", "exec", containerId, "echo", "ok")
-                        .start();
-                int exitCode = probe.waitFor();
+        int maxRetries = 100; // 5 seconds timeout (100 * 50ms)
+        int retries = 0;
 
-                if (exitCode == 0) break;
-                Thread.sleep(5);
+        while (true) {
+            if (!containerProcess.isAlive()) {
+                String errorMsg = new String(containerProcess.getErrorStream().readAllBytes());
+                throw new IOException("Docker container process exited prematurely with code: " + containerProcess.exitValue() + ". Error: " + errorMsg);
+            }
+
+            try {
+                ProcessResult probe = processExecutor.execute(Duration.ofSeconds(1), "docker", "exec", containerId, "echo", "ok");
+                if (probe.isSuccess()) break;
             } catch (Exception e) {
-               log.error("Exception while trying to poll for container startup time: " + e);
+               log.error("Exception while trying to poll for container startup time: " + e.getMessage());
+            }
+
+            if (++retries > maxRetries) {
+                throw new IOException("Timeout waiting for container " + containerId + " to start.");
+            }
+
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Thread interrupted while polling for container startup", e);
             }
         }
 
@@ -106,7 +125,7 @@ public class ContainerManager {
             try{
                 //TODO(marc): Ensure we don't risk losing any processes here.
                 RunningContainer runningContainer = this.removalQueue.take();
-                new ProcessBuilder("docker", "stop", runningContainer.id()).start();
+                processExecutor.startInBackground("docker", "stop", runningContainer.id());
                 this.containerBuffer.put(spinupNewContainer());
             } catch (InterruptedException | IOException e) {
                 throw new RuntimeException(e);
