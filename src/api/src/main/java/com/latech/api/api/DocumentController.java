@@ -20,6 +20,8 @@ import com.latech.api.model.api.DocumentDto;
 import com.latech.api.model.api.DocumentSecuredRequestDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
+import com.latech.api.business.DocumentProducer;
+import com.latech.api.business.DocumentRecord;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DocumentController
 {
 	private final DocumentRepository documentRepository;
+	private final DocumentProducer documentProducer;
 
 	@PostMapping
 	public ResponseEntity<DocumentCreateResponseDto> createDocument (
@@ -117,7 +120,24 @@ public class DocumentController
 			return ResponseEntity.badRequest().build();
 		}
 
-		//todo initiate render via rabbitmq
+		UUID id = UUID.fromString( docId );
+		if ( !documentRepository.existsById( id ) )
+		{
+			return ResponseEntity.notFound().build();
+		}
+
+		Document document = documentRepository.findById( id ).orElseThrow();
+
+		DocumentRecord documentRecord = DocumentRecord.newBuilder()
+				.setRenderId( UUID.randomUUID().toString() )
+				.setDocumentId( document.getId().toString() )
+				.setLatexContent( document.getContent() != null ? document.getContent() : "" )
+				.addImageIds( UUID.randomUUID().toString() )
+				.addImageIds( UUID.randomUUID().toString() )
+				.addImageIds( UUID.randomUUID().toString() )
+				.build();
+
+		documentProducer.publishDocumentReady( documentRecord );
 
 		return ResponseEntity.accepted().build();
 	}
