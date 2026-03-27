@@ -24,8 +24,8 @@ import java.time.Instant;
 @Slf4j
 public class PdfRequestListener
 {
-    private PdfJobWorker pdfJobWorker;
-    private PdfCompiledMessageProducer pdfCompiledMessageProducer;
+    private final PdfJobWorker pdfJobWorker;
+    private final PdfCompiledMessageProducer pdfCompiledMessageProducer;
 
     public PdfRequestListener(PdfJobWorker pdfJobWorker, PdfCompiledMessageProducer pdfCompiledMessageProducer){
         this.pdfJobWorker = pdfJobWorker;
@@ -33,8 +33,10 @@ public class PdfRequestListener
     }
 
     @RabbitListener( queues = DOCUMENT_EXCHANGE )
-    public void handlePdfRequest ( DocumentRecord payload, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag ) throws Exception {
+    public void handlePdfRequest ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag ) throws Exception {
+        DocumentRecord payload = null;
         try{
+            payload = DocumentRecord.parseFrom(payloadBytes);
             log.info("Received payload with documentId: " + payload.getDocumentId());
             Path pdfPath = this.pdfJobWorker.createPdf(payload);
             //do we timestamp here or right after the pdf is compiled?
@@ -69,8 +71,8 @@ public class PdfRequestListener
                     .build();
 
             this.pdfCompiledMessageProducer.handlePdfCompiled(
-                    payload.getRenderId(),
-                    payload.getDocumentId(),
+                    payload != null ? payload.getRenderId() : "",
+                    payload != null ? payload.getDocumentId() : "",
                     "",
                     timestamp,
                     ERROR_WHILE_RENDERING,

@@ -2,6 +2,8 @@ package com.latech.renderer.business;
 
 import com.latech.renderer.api.DocumentRecord;
 import com.latech.renderer.model.RunningContainer;
+import com.latech.renderer.process.ProcessExecutor;
+import com.latech.renderer.process.ProcessResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -10,22 +12,23 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 
 @Component
 @Slf4j
 public class PdfJobWorker {
 
-    private ContainerManager containerManager;
-    private FileWorker fileWorker;
+    private final ContainerManager containerManager;
+    private final FileWorker fileWorker;
+    private final ProcessExecutor processExecutor;
 
     //TODO(marc): figure out reasonable size limits.
     @Value("${PdfJobWorker.maxOutputSizeBytes}")
     private long maxOutputSizeBytes;
 
-    public PdfJobWorker(ContainerManager containerManager, FileWorker fileWorker){
+    public PdfJobWorker(ContainerManager containerManager, FileWorker fileWorker, ProcessExecutor processExecutor){
         this.containerManager = containerManager;
         this.fileWorker = fileWorker;
+        this.processExecutor = processExecutor;
     }
 
     public Path createPdf(DocumentRecord documentRecord) throws IOException, InterruptedException {
@@ -37,7 +40,7 @@ public class PdfJobWorker {
         this.fileWorker.setupFiles(documentRecord, workDir);
 
         long jobStart = System.currentTimeMillis();
-        Process pdfLatexProcess = new ProcessBuilder(
+        ProcessResult processResult = processExecutor.execute(Duration.ofSeconds(10),
                 "docker", "exec",
                 runningContainer.id(),
                 "pdflatex",
@@ -45,20 +48,13 @@ public class PdfJobWorker {
                 "-no-shell-escape",
                 "-halt-on-error",
                 documentRecord.getDocumentId() + ".tex"
-        )
-                .redirectErrorStream(true)
-                .start();
+        );
 
-        // Drain stdout — if you don't, the process can deadlock on a full pipe buffer
-        //TODO: figure out if we need to guard against absurdly big streams here?
-        String output = new String(pdfLatexProcess.getInputStream().readAllBytes());
-        //TODO(marc): tune wait time.
-        boolean exitCode = pdfLatexProcess.waitFor(Duration.of(10, ChronoUnit.SECONDS));
         long jobDuration = System.currentTimeMillis() - jobStart;
         log.info("Compiling {} took {}ms", documentRecord.getDocumentId() + ".pdf", jobDuration);
 
-        if (!exitCode){
-            throw new RuntimeException("pdflatex failed (exitCode: false):\n" + output);
+        if (!processResult.isSuccess()){
+            throw new RuntimeException("pdflatex failed (exitCode: " + processResult.exitCode() + "):\n" + processResult.output() + "\n" + processResult.error());
         }
 
         Path pdfPath = workDir.resolve(documentRecord.getDocumentId() + ".pdf");
