@@ -1,14 +1,17 @@
-.container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  padding: 0 2rem;
-}
-
 .form {
   display: flex;
-  flex-direction: column;
-  gap: 3rem;
+  flex-direction: row;
+  min-height: 0;
+  overflow: hidden;
+  flex: 1;
+}
+
+.sidebar {
+  width: 30rem;
+  border-right: 1px solid var(--gray-6);
+  background-color: var(--gray-2);
+}
+
+.templates {
+  flex: 1;
 }
