@@ -1,0 +1,25 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  height: 100%;
+}
+
+.heading {
+  margin: 0;
+}
+
+.documentName,
+.actions {
+  max-width: 30rem;
+}
+
+.spacer {
+  display: flex;
+  flex: 1;
+}
+
+.createButton {
+  width: 100%;
+}
