@@ -17,11 +17,12 @@ public class PdfRenderedConsumer
 {
 
 	@RabbitListener( queues = PDF_RENDERED )
-	public void handlePdfRendered ( PdfMetadata payload, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag )
+	public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag )
 			throws Exception
 	{
 		try
 		{
+			PdfMetadata payload = PdfMetadata.parseFrom(payloadBytes);
 			// Process rendered document...
 			log.info( "Pdf rendered renderId: " + payload.getRenderId() );
 			log.info( "Pdf rendered documentId: " + payload.getDocumentId() );

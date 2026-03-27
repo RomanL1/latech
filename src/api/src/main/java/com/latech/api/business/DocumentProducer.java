@@ -25,20 +25,6 @@ public class DocumentProducer
 	{
 		log.info( "Publishing document ready: " + doc.getDocumentId() );
 		// Send to Topic exchange (arg 1) with a specific routing key (arg 2)
-		rabbitTemplate.convertAndSend( LATECH_TOPIC, DOCUMENT_EXCHANGE, doc );
-	}
-
-	@EventListener( ApplicationReadyEvent.class )
-	public void handleApplicationReady ( ApplicationReadyEvent event )
-	{
-		DocumentRecord documentRecord = DocumentRecord.newBuilder()
-				.setRenderId( UUID.randomUUID().toString() )
-				.setDocumentId( UUID.randomUUID().toString() )
-				.setLatexContent( "testLatexContent" )
-				.addImageIds( UUID.randomUUID().toString() )
-				.addImageIds( UUID.randomUUID().toString() )
-				.addImageIds( UUID.randomUUID().toString() )
-				.build();
-		publishDocumentReady( documentRecord );
+		rabbitTemplate.convertAndSend( LATECH_TOPIC, DOCUMENT_EXCHANGE, doc.toByteArray() );
 	}
 }
