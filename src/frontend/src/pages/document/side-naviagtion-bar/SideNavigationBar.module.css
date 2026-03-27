@@ -1,0 +1,16 @@
+.container {
+  height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--gray-6);
+  display: flex;
+  align-items: center;
+}
+
+.sidebarTrigger {
+  display: flex;
+  gap: 0.5re;
+}
