@@ -10,7 +10,7 @@ http:
   url: "{{baseUrl}}/api/document/:docId"
   params:
     - name: docId
-      value: fa04b06e-1415-4334-baf5-d0af3e8771ef
+      value: 947a49d2-4c58-4701-8958-9006bd95d921
       type: path
   auth: inherit
 

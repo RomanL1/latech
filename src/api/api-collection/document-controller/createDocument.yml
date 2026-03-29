@@ -12,8 +12,7 @@ http:
     type: json
     data: |-
       {
-        "name": "FirstDocument",
-        "password": "PWS"
+        "name": "FirstDocument"
       }
   auth: inherit
 
