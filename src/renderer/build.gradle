@@ -26,6 +26,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-restclient'
     implementation 'com.google.protobuf:protobuf-java:4.34.1'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
