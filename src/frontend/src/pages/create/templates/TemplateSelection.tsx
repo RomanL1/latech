@@ -18,28 +18,34 @@ const fakeTemplates: DocumentTemplate[] = [
 
 export interface TemplateSelectionProps {
   templates?: DocumentTemplate[];
+  onTemplateSelected: (template: DocumentTemplate) => unknown;
 }
 
-export function TemplateSelection({ templates = fakeTemplates }: TemplateSelectionProps) {
+export function TemplateSelection({ templates = fakeTemplates, onTemplateSelected }: TemplateSelectionProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState(templates[0].templateId);
 
+  function onSelect(templateId: string) {
+    const template = templates.find((template) => template.templateId === templateId)!;
+
+    setSelectedTemplateId(templateId);
+    onTemplateSelected(template);
+  }
+
   return (
-    <RadioCards.Root
-      value={selectedTemplateId}
-      onValueChange={(id) => setSelectedTemplateId(id)}
-      columns={{ sm: '2', md: '3', lg: '4' }}
-    >
-      {templates.map((template) => (
-        <RadioCards.Item value={template.templateId} className={styles.card} key={template.templateId}>
-          <Inset className={styles.template} clip="padding-box">
-            <div className={styles.previewImage}></div>
-            <div className={styles.templateInfo}>
-              <span className={styles.name}>{template.name}</span>
-              <span className={styles.description}>{template.description}</span>
-            </div>
-          </Inset>
-        </RadioCards.Item>
-      ))}
+    <RadioCards.Root asChild value={selectedTemplateId} onValueChange={(id) => onSelect(id)}>
+      <div className={styles.grid}>
+        {templates.map((template) => (
+          <RadioCards.Item value={template.templateId} className={styles.card} key={template.templateId}>
+            <Inset className={styles.template}>
+              <div className={styles.previewImage}></div>
+              <div className={styles.templateInfo}>
+                <span className={styles.name}>{template.name}</span>
+                <span className={styles.description}>{template.description}</span>
+              </div>
+            </Inset>
+          </RadioCards.Item>
+        ))}
+      </div>
     </RadioCards.Root>
   );
 }

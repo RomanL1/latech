@@ -1,4 +1,9 @@
-.card {
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 24rem));
+  grid-auto-rows: 16rem;
+  gap: 2rem;
+  padding: 2rem;
 }
 
 .template {
