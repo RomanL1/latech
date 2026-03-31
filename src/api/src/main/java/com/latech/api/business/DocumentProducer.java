@@ -5,6 +5,7 @@ import static com.latech.api.config.RabbitMQConfig.LATECH_TOPIC;
 
 import java.util.UUID;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;

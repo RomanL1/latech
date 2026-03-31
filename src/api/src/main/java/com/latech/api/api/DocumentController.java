@@ -43,6 +43,11 @@ public class DocumentController
 	private final DocumentRepository documentRepository;
 	private final DocumentProducer documentProducer;
 
+	public static String getDownloadPath ( String docId )
+	{
+		return "api/document/" + docId + "/render";
+	}
+
 	@PostMapping
 	public ResponseEntity<DocumentCreateResponseDto> createDocument (
 			@RequestBody DocumentCreateRequestDto documentCreateRequestDto, UriComponentsBuilder uriBuilder )

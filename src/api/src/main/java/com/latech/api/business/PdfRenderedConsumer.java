@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.latech.api.api.DocumentController;
+import com.latech.api.model.api.PDFReadyMessageDto;
 import com.rabbitmq.client.Channel;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +25,15 @@ import lombok.extern.slf4j.Slf4j;
 public class PdfRenderedConsumer
 {
 
+	private final RenderedPDFTopicService renderedPdfTopicService;
+
 	@Value( "${latech.renderer.url}" )
 	private String rendererUrl;
+
+	public PdfRenderedConsumer ( RenderedPDFTopicService renderedPdfTopicService )
+	{
+		this.renderedPdfTopicService = renderedPdfTopicService;
+	}
 
 	@RabbitListener( queues = PDF_RENDERED )
 	public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag )
@@ -55,6 +64,7 @@ public class PdfRenderedConsumer
 				if ( pdfBytes != null )
 				{
 					log.info( "Successfully downloaded PDF, size: {} bytes", pdfBytes.length );
+
 					// TODO: process the downloaded pdfBytes (e.g. save to DB, MinIO, etc.)
 					Path dataDir = Path.of( "data" );
 					Files.createDirectories( dataDir );
@@ -64,7 +74,19 @@ public class PdfRenderedConsumer
 						Files.delete( destination );
 					}
 					Files.write( destination, pdfBytes );
-					log.info("PDF location: {}", destination.toAbsolutePath() );
+
+					log.info( "PDF saved to location: {}", destination.toAbsolutePath() );
+
+					String downloadUri = DocumentController.getDownloadPath( payload.getDocumentId() );
+
+					PDFReadyMessageDto pdfReadyMessage = PDFReadyMessageDto.builder()
+							.docId( payload.getDocumentId() )
+							.downloadPath( downloadUri )
+							.timestampUTC( System.currentTimeMillis() )
+							.build();
+
+					renderedPdfTopicService.notifyAll( payload.getDocumentId(), pdfReadyMessage );
+					log.info( "Notified topic: {}",  payload.getDocumentId() );
 				}
 				else
 				{
