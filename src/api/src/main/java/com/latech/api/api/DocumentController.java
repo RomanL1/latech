@@ -1,9 +1,17 @@
 package com.latech.api.api;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,14 +22,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.latech.api.business.DocumentProducer;
+import com.latech.api.business.DocumentRecord;
 import com.latech.api.model.api.DocumentCreateRequestDto;
 import com.latech.api.model.api.DocumentCreateResponseDto;
 import com.latech.api.model.api.DocumentDto;
 import com.latech.api.model.api.DocumentSecuredRequestDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
-import com.latech.api.business.DocumentProducer;
-import com.latech.api.business.DocumentRecord;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -140,6 +148,28 @@ public class DocumentController
 		documentProducer.publishDocumentReady( documentRecord );
 
 		return ResponseEntity.accepted().build();
+	}
+
+	@GetMapping( "/{docId}/render" )
+	public ResponseEntity<Resource> getRenderedDocument ( @PathVariable String docId ) throws MalformedURLException
+	{
+		if ( ObjectUtils.isEmpty( docId ) )
+		{
+			return ResponseEntity.badRequest().build();
+		}
+
+		Path pdfLocation = Paths.get( "data/" + docId + ".pdf" );
+		if ( !Files.exists( pdfLocation ) )
+		{
+			return ResponseEntity.notFound().build();
+		}
+
+		Resource resource = new UrlResource( pdfLocation.toUri() );
+
+		return ResponseEntity.ok()
+				.contentType( MediaType.APPLICATION_PDF )
+				.header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"" )
+				.body( resource );
 	}
 
 	private static DocumentCreateResponseDto getDocumentCreateResponseDto ( Document saved )

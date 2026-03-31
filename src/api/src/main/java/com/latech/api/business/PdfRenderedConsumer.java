@@ -2,6 +2,10 @@ package com.latech.api.business;
 
 import static com.latech.api.config.RabbitMQConfig.PDF_RENDERED;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PdfRenderedConsumer
 {
 
-	@Value("${latech.renderer.url}")
+	@Value( "${latech.renderer.url}" )
 	private String rendererUrl;
 
 	@RabbitListener( queues = PDF_RENDERED )
@@ -28,7 +32,7 @@ public class PdfRenderedConsumer
 	{
 		try
 		{
-			PdfMetadata payload = PdfMetadata.parseFrom(payloadBytes);
+			PdfMetadata payload = PdfMetadata.parseFrom( payloadBytes );
 			// Process rendered document...
 			log.info( "Pdf rendered renderId: " + payload.getRenderId() );
 			log.info( "Pdf rendered documentId: " + payload.getDocumentId() );
@@ -37,24 +41,39 @@ public class PdfRenderedConsumer
 			log.info( "Pdf rendered error message: " + payload.getErrorMessage() );
 
 			// Download the PDF from the renderer
-			try {
+			try
+			{
 				RestTemplate restTemplate = new RestTemplate();
-				String downloadUrl = UriComponentsBuilder.fromUriString(rendererUrl)
-						.path("/renderer/pdf")
-						.queryParam("filePath", payload.getFilePath())
+				String downloadUrl = UriComponentsBuilder.fromUriString( rendererUrl )
+						.path( "/renderer/pdf" )
+						.queryParam( "filePath", payload.getFilePath() )
 						.toUriString();
 
-				log.info("Downloading PDF from renderer at: {}", downloadUrl);
-				byte[] pdfBytes = restTemplate.getForObject(downloadUrl, byte[].class);
+				log.info( "Downloading PDF from renderer at: {}", downloadUrl );
+				byte[] pdfBytes = restTemplate.getForObject( downloadUrl, byte[].class );
 
-				if (pdfBytes != null) {
-					log.info("Successfully downloaded PDF, size: {} bytes", pdfBytes.length);
+				if ( pdfBytes != null )
+				{
+					log.info( "Successfully downloaded PDF, size: {} bytes", pdfBytes.length );
 					// TODO: process the downloaded pdfBytes (e.g. save to DB, MinIO, etc.)
-				} else {
-					log.error("Failed to download PDF: received null bytes");
+					Path dataDir = Path.of( "data" );
+					Files.createDirectories( dataDir );
+					Path destination = Paths.get( "data", payload.getDocumentId() + ".pdf" );
+					if ( Files.exists( destination ) )
+					{
+						Files.delete( destination );
+					}
+					Files.write( destination, pdfBytes );
+					log.info("PDF location: {}", destination.toAbsolutePath() );
 				}
-			} catch (Exception e) {
-				log.error("Error downloading PDF from renderer: {}", e.getMessage(), e);
+				else
+				{
+					log.error( "Failed to download PDF: received null bytes" );
+				}
+			}
+			catch ( Exception e )
+			{
+				log.error( "Error downloading PDF from renderer: {}", e.getMessage(), e );
 			}
 
 			// MANUALLY ACKNOWLEDGE (Success)
