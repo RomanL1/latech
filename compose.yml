@@ -3,7 +3,7 @@ services:
     image: rabbitmq:4.0-management
     container_name: rabbitmq-server
     ports:
-      - "5672:5672"   # AMQP protocol port
+      - "5672:5672" # AMQP protocol port
       - "15672:15672" # Management UI port
     environment:
       - RABBITMQ_DEFAULT_USER=admin
@@ -13,13 +13,18 @@ services:
     restart: always
 
   socket-server:
-    build: ./src/socket-server
+    # TODO: add healtcheck to ensure api is up before starting socket-server
+    # depends_on:
+    #   api:
+    #     condition: service_healthy
+    build:
+      context: ./src/socket-server
+    environment:
+      - CALLBACK_URL=http://api:5001/api/document/callback
+      - CALLBACK_OBJECT_NAME=latech
     container_name: socket-server
     ports:
       - 3000:3000
-    environment:
-      - HOST=0.0.0.0
-      - PORT=3000
     restart: always
 
   api:
@@ -28,25 +33,24 @@ services:
     ports:
       - "5001:5001"
     environment:
-      - 'PORT=5001'
-      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
-      - 'SPRING_RABBITMQ_HOST=rabbitmq'
-      - 'SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS=static://renderer:9090'
+      - "PORT=5001"
+      - "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech"
+      - "SPRING_RABBITMQ_HOST=rabbitmq"
+      - "SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS=static://renderer:9090"
     depends_on:
       - postgres
       - rabbitmq
     restart: always
 
-
   postgres:
-    image: 'postgres:latest'
+    image: "postgres:latest"
     container_name: postgres
     environment:
-      - 'POSTGRES_DB=latech'
-      - 'POSTGRES_USER=myuser'
-      - 'POSTGRES_PASSWORD=secret'
+      - "POSTGRES_DB=latech"
+      - "POSTGRES_USER=myuser"
+      - "POSTGRES_PASSWORD=secret"
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     restart: unless-stopped

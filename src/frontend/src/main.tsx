@@ -18,7 +18,7 @@ createRoot(document.getElementById('root')!).render(
             <Route index element={<LandingPage />} />
             <Route path="create" element={<CreateDocumentPage />} />
             <Route path="document/:documentId" element={<DocumentPage />} />
-            <Route path="editor" element={<LatexEditor />} />
+            <Route path="editor/:roomId" element={<LatexEditor />} />
           </Route>
         </Routes>
       </BrowserRouter>
