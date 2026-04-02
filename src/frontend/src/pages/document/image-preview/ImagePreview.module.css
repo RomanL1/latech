@@ -1,0 +1,7 @@
+.container img {
+  /* object-fit: contain; */
+}
+
+.container {
+  padding: 0.75rem 1rem;
+}

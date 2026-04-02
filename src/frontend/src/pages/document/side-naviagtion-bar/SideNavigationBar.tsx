@@ -1,4 +1,4 @@
-import { Flex, Tabs } from '@radix-ui/themes';
+import { Tabs } from '@radix-ui/themes';
 import { LucideFile, LucideSettings } from 'lucide-react';
 import styles from './SideNavigationBar.module.css';
 import FileTree from '../file-tree/FileTree';
@@ -17,29 +17,25 @@ const SideNavigationBar = ({ selectedFile, setSeledtedFile }: SideNavigationBarP
     <Tabs.Root
       defaultValue="file"
       orientation="vertical"
-      className={styles.container}
       value={selectedTab}
       onValueChange={setSelectedTab}
+      className={styles.tabsRoot}
     >
-      <Flex className={styles.container}>
-        <Tabs.List className={styles.sidebar}>
-          <Tabs.Trigger value="file">
-            <LucideFile />
-          </Tabs.Trigger>
-          <Tabs.Trigger value="settings">
-            <LucideSettings />
-          </Tabs.Trigger>
-        </Tabs.List>
-        <Tabs.Content value="file" className={styles.content}>
-          <FileTree selectedFile={selectedFile} setSelectedFile={setSeledtedFile} setSelectedTab={setSelectedTab} />
-        </Tabs.Content>
-        <Tabs.Content value="settings" className={styles.content}>
-          <Flex align="center" gap="2">
-            <LucideSettings />
-            Settings content
-          </Flex>
-        </Tabs.Content>
-      </Flex>
+      <Tabs.List className={styles.tabsList}>
+        <Tabs.Trigger value="file">
+          <LucideFile />
+        </Tabs.Trigger>
+        <Tabs.Trigger value="settings">
+          <LucideSettings />
+        </Tabs.Trigger>
+      </Tabs.List>
+      <Tabs.Content value="file" className={styles.tabsContent}>
+        <FileTree selectedFile={selectedFile} setSelectedFile={setSeledtedFile} setSelectedTab={setSelectedTab} />
+      </Tabs.Content>
+      <Tabs.Content value="settings" className={styles.tabsContent}>
+        <LucideSettings />
+        Settings content
+      </Tabs.Content>
     </Tabs.Root>
   );
 };

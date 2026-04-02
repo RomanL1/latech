@@ -1,5 +1,5 @@
 import type { ImageFile } from '../sampleData';
-import styles from './ImagePrevie.module.css';
+import styles from './ImagePreview.module.css';
 
 interface ImagePreviewProps {
   selectedFile?: ImageFile;

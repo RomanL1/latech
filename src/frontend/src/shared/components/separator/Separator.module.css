@@ -1,0 +1,43 @@
+[data-separator] {
+  position: relative;
+  width: 1px;
+  background: var(--gray-6);
+  cursor: col-resize;
+}
+
+/* larger invisible hit area */
+[data-separator]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 10px;
+  height: 100%;
+}
+
+/* hover state */
+[data-separator]:hover {
+  background: var(--accent-9);
+}
+
+/* center grip */
+[data-separator]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 0.3rem;
+  height: 2.5rem;
+  border-radius: var(--radius-2);
+
+  background: var(--accent-9);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* show grip on hover */
+[data-separator]:hover::after {
+  opacity: 1;
+}

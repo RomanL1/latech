@@ -1,9 +1,10 @@
-import Editor from '@monaco-editor/react';
-import { useEffect, useRef, useState } from 'react';
+import Editor, { useMonaco } from '@monaco-editor/react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
+import { ThemeContext } from '@radix-ui/themes';
 
 interface LatexEditorProps {
   texFile: string;
@@ -12,8 +13,25 @@ interface LatexEditorProps {
 function LatexEditor({ texFile }: LatexEditorProps) {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const isEditorMount = useRef(false);
+  const monaco = useMonaco();
+  const context = useContext(ThemeContext);
 
   useEffect(() => {
+    if (monaco) {
+      const theme = context?.appearance === 'dark' ? 'vs-dark' : 'vs-light';
+      monaco.editor.setTheme(theme);
+      monaco.languages.register({ id: 'latex' });
+      monaco.languages.setMonarchTokensProvider('latex', {
+        tokenizer: {
+          root: [
+            [/%.*$/, 'comment'],
+            [/\\[a-zA-Z]+/, 'keyword'],
+            [/\$[^$]*\$/, 'string'],
+          ],
+        },
+      });
+    }
+
     if (!editor) return;
 
     const model = editor.getModel();
@@ -86,19 +104,13 @@ function LatexEditor({ texFile }: LatexEditorProps) {
       provider.destroy();
       undoManager.destroy();
     };
-  }, [editor, texFile]);
+  }, [editor, texFile, monaco, context]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
-
-    console.log('Editor mounted: ', editor);
   };
 
-  return (
-    <>
-      <Editor defaultValue={texFile} height="50vh" defaultLanguage="latex" onMount={handleMount} />;
-    </>
-  );
+  return <Editor height="100vh" defaultValue={texFile} defaultLanguage="latex" onMount={handleMount} />;
 }
 
 export default LatexEditor;
