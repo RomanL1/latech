@@ -1,32 +1,35 @@
 import { Button, Flex, Text } from '@radix-ui/themes';
-import { LucideDroplets, LucideEllipsisVertical, LucideFolder, Upload } from 'lucide-react';
+import { FileCodeCorner, LucideFile, Upload } from 'lucide-react';
 import styles from './FileTree.module.css';
-import { sampleData } from '../sampleData';
+import { sampleData, type SampleFile } from '../sampleData';
+import FileTreeItem from './item/FileTreeItem';
 
-const FileTree = () => {
+interface FileTreeProps {
+  setSelectedFile: (file: SampleFile) => void;
+  selectedFile?: SampleFile;
+}
+
+const FileTree = ({ selectedFile, setSelectedFile }: FileTreeProps) => {
   return (
-    <Flex direction="column" gap="2">
-      <Flex direction="row" gap="3">
+    <Flex direction="column" gap="3">
+      <div className={styles.header}>
         <Text size="5" wrap="nowrap">
           File Tree
         </Text>
         <Button className={styles.headerButton}>
-          <Upload />
+          <Upload size={20} />
           Upload Image
         </Button>
-        <Button className={styles.headerButton}>
-          <LucideFolder />
-          New Folder
-        </Button>
-      </Flex>
+      </div>
       <div className={styles.imageList}>
         {sampleData.map((item) => (
-          <div className={styles.imageItem} key={item.id}>
-            <Text size="3" wrap="nowrap" className={styles.imageItem}>
-              {item.name}
-            </Text>
-            <LucideEllipsisVertical className={styles.dotMenu} />
-          </div>
+          <FileTreeItem
+            key={item.id}
+            file={item}
+            onClick={() => setSelectedFile(item)}
+            icon={item.type == 'image/jpeg' ? <LucideFile size={20} /> : <FileCodeCorner size={20} />}
+            isSelected={selectedFile?.id === item.id}
+          />
         ))}
       </div>
     </Flex>

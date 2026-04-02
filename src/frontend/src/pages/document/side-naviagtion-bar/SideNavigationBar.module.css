@@ -14,3 +14,8 @@
   display: flex;
   gap: 0.5re;
 }
+
+.content {
+  width: 100%;
+  padding: 0.5rem 1rem;
+}

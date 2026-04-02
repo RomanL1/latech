@@ -1,31 +1,16 @@
-.headerButton {
+.headerButton:first-of-type {
   margin-left: auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 0.25rem;
 }
 
 .imageList {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-
-.imageItem:hover {
-  background-color: var(--accent-9);
-  border-radius: var(--radius-2);
-
-  .dotMenu {
-    display: initial;
-  }
-}
-
-.imageItem {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 0.25rem;
-}
-
-.dotMenu {
-  display: none;
-  margin-left: auto;
-  cursor: pointer;
 }

@@ -1,23 +1,30 @@
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import LatexEditor from '../../shared/components/LatexEditor';
 import SideNavigationBar from './side-naviagtion-bar/SideNavigationBar';
+import { useState } from 'react';
+import ImagePreview from './image-preview/ImagePreview';
+import type { SampleFile } from './sampleData';
 
 export function DocumentPage() {
+  const [selectedFile, setSelectedFile] = useState<SampleFile>();
+
   return (
-    <Group>
-      <Panel collapsible minSize="20%">
-        <SideNavigationBar />
-      </Panel>
-      <Separator
-        className="
-    bg-slate-600
-    [&[data-separator='hover']]:bg-slate-500
-    [&[data-separator='active']]:bg-slate-400
-  "
-      />
-      <Panel>
-        <LatexEditor />
-      </Panel>
-    </Group>
+    <>
+      <SideNavigationBar selectedFile={selectedFile} setSeledtedFile={setSelectedFile} />
+      <Group>
+        <Panel collapsible minSize={20}>
+          Hallo
+        </Panel>
+        <Separator />
+        <Panel>
+          {selectedFile &&
+            (selectedFile.type === 'image/jpeg' ? (
+              <ImagePreview selectedFile={selectedFile} />
+            ) : (
+              <LatexEditor texFile={selectedFile.content} />
+            ))}
+        </Panel>
+      </Group>
+    </>
   );
 }

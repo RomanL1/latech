@@ -2,9 +2,15 @@ import { Flex, Tabs } from '@radix-ui/themes';
 import { LucideFile, LucideSettings } from 'lucide-react';
 import styles from './SideNavigationBar.module.css';
 import FileTree from '../file-tree/FileTree';
+import type { SampleFile } from '../sampleData';
 
-const SideNavigationBar = () => (
-  <Tabs.Root defaultValue="file" orientation="vertical">
+interface SideNavigationBarProps {
+  selectedFile?: SampleFile;
+  setSeledtedFile: (file: SampleFile) => void;
+}
+
+const SideNavigationBar = ({ selectedFile, setSeledtedFile }: SideNavigationBarProps) => (
+  <Tabs.Root defaultValue="file" orientation="vertical" className={styles.container}>
     <Flex className={styles.container}>
       <Tabs.List className={styles.sidebar}>
         <Tabs.Trigger value="file">
@@ -14,12 +20,10 @@ const SideNavigationBar = () => (
           <LucideSettings />
         </Tabs.Trigger>
       </Tabs.List>
-      <Tabs.Content value="file">
-        <Flex align="center" gap="2" p="3">
-          <FileTree />
-        </Flex>
+      <Tabs.Content value="file" className={styles.content}>
+        <FileTree selectedFile={selectedFile} setSelectedFile={setSeledtedFile} />
       </Tabs.Content>
-      <Tabs.Content value="settings">
+      <Tabs.Content value="settings" className={styles.content}>
         <Flex align="center" gap="2">
           <LucideSettings />
           Settings content

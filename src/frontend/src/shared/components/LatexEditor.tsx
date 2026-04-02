@@ -3,16 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import { editor as MonacoEditor, KeyMod, KeyCode, languages } from 'monaco-editor';
+import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
 
-function LatexEditor() {
+interface LatexEditorProps {
+  texFile: string;
+}
+
+function LatexEditor({ texFile }: LatexEditorProps) {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const isEditorMount = useRef(false);
-
-  console.log(
-    'Language-Support: ',
-    languages.getLanguages().map((l) => l.id),
-  );
 
   useEffect(() => {
     if (!editor) return;
@@ -33,6 +32,12 @@ function LatexEditor() {
 
     const ydoc = new Y.Doc();
     const ytext = ydoc.getText('monaco');
+
+    console.log('YTEXT', ytext);
+
+    if (ytext.length === 0) {
+      ytext.insert(0, texFile);
+    }
 
     const provider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, 'monaco', ydoc);
     provider.on('status', (event) => {
@@ -81,7 +86,7 @@ function LatexEditor() {
       provider.destroy();
       undoManager.destroy();
     };
-  }, [editor]);
+  }, [editor, texFile]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
@@ -91,7 +96,7 @@ function LatexEditor() {
 
   return (
     <>
-      <Editor path="file:///document.tex" height="50vh" defaultLanguage="latex" onMount={handleMount} />;
+      <Editor defaultValue={texFile} height="50vh" defaultLanguage="latex" onMount={handleMount} />;
     </>
   );
 }
