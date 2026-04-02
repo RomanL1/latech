@@ -1,15 +1,9 @@
 import { TextField } from '@radix-ui/themes';
-import { useDebouncedCallback } from '../../../../shared/hooks/debounce';
+import { useDocumentCreationFormContext } from '../../form';
 import styles from './DocumentNameField.module.css';
 
-interface DocumentNameFieldProps {
-  onDocumentNameChange: (documentName: string) => unknown;
-}
-
-export function DocumentNameField({ onDocumentNameChange }: DocumentNameFieldProps) {
-  const debouncedChangeHandler = useDebouncedCallback((newDocumentName: string) => {
-    onDocumentNameChange(newDocumentName);
-  }, 200);
+export function DocumentNameField() {
+  const form = useDocumentCreationFormContext();
 
   return (
     <div className={styles.documentName}>
@@ -18,9 +12,8 @@ export function DocumentNameField({ onDocumentNameChange }: DocumentNameFieldPro
         id="name"
         size="3"
         placeholder="Untitled document"
-        onChange={(event) => debouncedChangeHandler(event.target.value)}
         data-testid="documentNameField"
-        required
+        {...form.register('documentName')}
       />
     </div>
   );

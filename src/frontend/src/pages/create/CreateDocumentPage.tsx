@@ -1,19 +1,21 @@
 import { useState } from 'react';
+import { FormProvider } from 'react-hook-form';
 import type { DocumentCreation } from '../../features/documents/document';
 import type { DocumentTemplate } from '../../features/templates/template';
 import styles from './CreateDocumentPage.module.css';
+import { useDocumentCreationForm } from './form';
 import { CreateDocumentSidebar } from './sidebar/CreateDocumentSidebar';
-import type { DocumentCredentials } from './sidebar/credentials';
 import { TemplateSelection } from './templates/TemplateSelection';
 
 export function CreateDocumentPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
+  const form = useDocumentCreationForm();
 
-  function handleSubmit({ name, password }: DocumentCredentials) {
+  function handleSubmit() {
     const document: DocumentCreation = {
-      name,
-      password,
-      templateId: selectedTemplate!.templateId,
+      name: form.getValues('documentName'),
+      password: form.getValues('password'),
+      templateId: form.getValues('templateId')!,
     };
 
     console.log(document);
@@ -24,16 +26,15 @@ export function CreateDocumentPage() {
   }
 
   return (
-    <form className={styles.form}>
-      <div className={styles.sidebar}>
-        <CreateDocumentSidebar
-          selectedTemplate={selectedTemplate}
-          onSubmit={(credentials) => handleSubmit(credentials)}
-        />
-      </div>
-      <div className={styles.templates}>
-        <TemplateSelection onTemplateSelected={(template) => handleTemplateSelect(template)} />
-      </div>
-    </form>
+    <FormProvider {...form}>
+      <form className={styles.form}>
+        <div className={styles.sidebar}>
+          <CreateDocumentSidebar selectedTemplate={selectedTemplate} onSubmit={() => handleSubmit()} />
+        </div>
+        <div className={styles.templates}>
+          <TemplateSelection onTemplateSelected={(template) => handleTemplateSelect(template)} />
+        </div>
+      </form>
+    </FormProvider>
   );
 }

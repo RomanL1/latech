@@ -1,34 +1,33 @@
 import { Checkbox, IconButton, TextField } from '@radix-ui/themes';
 import { EyeIcon, LockIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useDocumentCreationFormContext } from '../../form';
 import styles from './PasswordProtection.module.css';
-import { useDebouncedCallback } from '../../../../shared/hooks/debounce';
 
 type PasswordFieldType = 'password' | 'text';
 
-interface PasswordProtectionProps {
-  onPasswordChange: (password: string | null) => unknown;
-}
+export function PasswordProtection() {
+  const form = useDocumentCreationFormContext();
 
-export function PasswordProtection({ onPasswordChange }: PasswordProtectionProps) {
-  const [password, setPassword] = useState<string | null>(null);
+  const password = form.watch('password');
   const [usePasswordProtection, setUsePasswordProtection] = useState(false);
   const [passwordFieldType, setPasswordFieldType] = useState<PasswordFieldType>('password');
 
-  const debouncedChangeHandler = useDebouncedCallback((newPassword: string | null) => {
-    onPasswordChange(newPassword);
-  }, 200);
-
-  function handlePasswordChange(newPassword: string) {
-    setPassword(newPassword || null);
-    debouncedChangeHandler(newPassword || null);
-  }
-
-  function togglePasswordVisibility() {
+  function togglePasswordReveal() {
     if (passwordFieldType === 'password') {
       setPasswordFieldType('text');
     } else {
       setPasswordFieldType('password');
+    }
+  }
+
+  function setPasswordProtectionCheckbox(checked: boolean) {
+    setUsePasswordProtection(checked);
+
+    if (checked) {
+      form.setValue('password', '');
+    } else {
+      form.resetField('password');
     }
   }
 
@@ -39,7 +38,7 @@ export function PasswordProtection({ onPasswordChange }: PasswordProtectionProps
           id="passwordProtection"
           size="3"
           checked={usePasswordProtection}
-          onCheckedChange={(checked) => setUsePasswordProtection(Boolean(checked))}
+          onCheckedChange={(checked) => setPasswordProtectionCheckbox(Boolean(checked))}
           data-testid="passwordProtectionCheckbox"
         />
         <label htmlFor="passwordProtection">Use password protection</label>
@@ -54,11 +53,8 @@ export function PasswordProtection({ onPasswordChange }: PasswordProtectionProps
             type={passwordFieldType}
             placeholder="My secret password"
             autoComplete="off"
-            onChange={(event) => handlePasswordChange(event.target.value)}
             data-testid="passwordField"
-            required
-            minLength={8}
-            pattern="^(?=.*[^A-Za-z0-9]).{8,}$"
+            {...form.register('password')}
           >
             <TextField.Slot>
               <LockIcon />
@@ -68,7 +64,7 @@ export function PasswordProtection({ onPasswordChange }: PasswordProtectionProps
               <IconButton
                 variant="ghost"
                 type="button"
-                onClick={() => togglePasswordVisibility()}
+                onClick={() => togglePasswordReveal()}
                 data-testid="revealPasswordButton"
               >
                 <EyeIcon />

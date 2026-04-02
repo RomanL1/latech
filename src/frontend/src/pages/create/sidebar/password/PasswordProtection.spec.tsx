@@ -1,12 +1,23 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { FormProvider } from 'react-hook-form';
+import { describe, expect, it } from 'vitest';
+import { useDocumentCreationForm } from '../../form';
 import { PasswordProtection } from './PasswordProtection';
+
+function ComponentUnderTest() {
+  const form = useDocumentCreationForm();
+  return (
+    <FormProvider {...form}>
+      <PasswordProtection />
+    </FormProvider>
+  );
+}
 
 describe('PasswordProtection', () => {
   describe('Checkbox', () => {
     it('should be disabled by default', () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const checkbox = screen.getByTestId('passwordProtectionCheckbox');
 
@@ -14,42 +25,9 @@ describe('PasswordProtection', () => {
     });
   });
 
-  describe('Password change handler', () => {
-    it('should be called with changes and accord for debouncing', async () => {
-      const callback = vi.fn();
-      render(<PasswordProtection onPasswordChange={callback} />);
-
-      const checkbox = screen.getByTestId('passwordProtectionCheckbox');
-      await userEvent.click(checkbox);
-      const passwordField = screen.getByTestId('passwordField');
-      await userEvent.type(passwordField, 'my secret password');
-
-      // Account for debouncing
-      await waitFor(() => {
-        expect(callback).toHaveBeenCalledExactlyOnceWith('my secret password');
-      });
-    });
-
-    it('should be called with null when the password is empty', async () => {
-      const callback = vi.fn();
-      render(<PasswordProtection onPasswordChange={callback} />);
-
-      const checkbox = screen.getByTestId('passwordProtectionCheckbox');
-      await userEvent.click(checkbox);
-      const passwordField = screen.getByTestId('passwordField');
-      await userEvent.type(passwordField, 'my secret password');
-      await userEvent.clear(passwordField);
-
-      // Account for debouncing
-      await waitFor(() => {
-        expect(callback).toHaveBeenCalledExactlyOnceWith(null);
-      });
-    });
-  });
-
   describe('Password field', () => {
     it('should be hidden when password protection is disabled', () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const passwordField = screen.queryByTestId('passwordField');
 
@@ -57,7 +35,7 @@ describe('PasswordProtection', () => {
     });
 
     it('should be visible when password protection is enabled', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const checkbox = screen.getByTestId('passwordProtectionCheckbox');
       await userEvent.click(checkbox);
@@ -65,11 +43,9 @@ describe('PasswordProtection', () => {
       const passwordField = screen.getByTestId('passwordField');
       expect(passwordField).toBeInTheDocument();
     });
-  });
 
-  describe('Password field', () => {
     it('should hide password reveal button when password field is empty', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const checkbox = screen.getByTestId('passwordProtectionCheckbox');
       await userEvent.click(checkbox);
@@ -79,7 +55,7 @@ describe('PasswordProtection', () => {
     });
 
     it('should show password reveal button when password field is filled', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const checkbox = screen.getByTestId('passwordProtectionCheckbox');
       await userEvent.click(checkbox);
@@ -92,7 +68,7 @@ describe('PasswordProtection', () => {
     });
 
     it('should hide password by default', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const checkbox = screen.getByTestId('passwordProtectionCheckbox');
       await userEvent.click(checkbox);
@@ -104,7 +80,7 @@ describe('PasswordProtection', () => {
     });
 
     it('should show password when password reveal button is clicked', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const checkbox = screen.getByTestId('passwordProtectionCheckbox');
       await userEvent.click(checkbox);
@@ -119,7 +95,7 @@ describe('PasswordProtection', () => {
     });
 
     it('should be invalid when the password is empty', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
+      render(<ComponentUnderTest />);
 
       const checkbox = screen.getByTestId('passwordProtectionCheckbox');
       await userEvent.click(checkbox);
@@ -128,48 +104,6 @@ describe('PasswordProtection', () => {
 
       waitFor(() => {
         expect(passwordField.checkValidity()).toBe(false);
-      });
-    });
-
-    it('should be invalid when the password is not at least 8 characters long', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
-
-      const checkbox = screen.getByTestId('passwordProtectionCheckbox');
-      await userEvent.click(checkbox);
-
-      const passwordField = screen.getByTestId<HTMLInputElement>('passwordField');
-      await userEvent.type(passwordField, 'mypa$$');
-
-      waitFor(() => {
-        expect(passwordField.checkValidity()).toBe(false);
-      });
-    });
-
-    it('should be invalid when the password does not contain special characters', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
-
-      const checkbox = screen.getByTestId('passwordProtectionCheckbox');
-      await userEvent.click(checkbox);
-
-      const passwordField = screen.getByTestId<HTMLInputElement>('passwordField');
-      await userEvent.type(passwordField, 'password');
-
-      waitFor(() => {
-        expect(passwordField.checkValidity()).toBe(false);
-      });
-    });
-
-    it('should be valid when the password is at least 8 characters long and contains special characters', async () => {
-      render(<PasswordProtection onPasswordChange={() => {}} />);
-
-      const checkbox = screen.getByTestId('passwordProtectionCheckbox');
-      await userEvent.click(checkbox);
-
-      const passwordField = screen.getByTestId<HTMLInputElement>('passwordField');
-      await userEvent.type(passwordField, 'pa$$word');
-
-      waitFor(() => {
-        expect(passwordField.checkValidity()).toBe(true);
       });
     });
   });
