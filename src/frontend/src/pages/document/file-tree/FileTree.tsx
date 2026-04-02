@@ -1,15 +1,20 @@
-import { Button, Flex, Text } from '@radix-ui/themes';
-import { FileCodeCorner, LucideFile, Upload } from 'lucide-react';
+import { Button, Flex, IconButton, Text } from '@radix-ui/themes';
+import { FileCodeCorner, LucideFile, LucideX, Upload } from 'lucide-react';
 import styles from './FileTree.module.css';
 import { sampleData, type SampleFile } from '../sampleData';
 import FileTreeItem from './item/FileTreeItem';
 
 interface FileTreeProps {
-  setSelectedFile: (file: SampleFile) => void;
+  setSelectedFile: (file?: SampleFile) => void;
+  setSelectedTab: (tab: string) => void;
   selectedFile?: SampleFile;
 }
 
-const FileTree = ({ selectedFile, setSelectedFile }: FileTreeProps) => {
+const FileTree = ({ selectedFile, setSelectedFile, setSelectedTab }: FileTreeProps) => {
+  const handleCloseClick = () => {
+    setSelectedTab('');
+  };
+
   return (
     <Flex direction="column" gap="3">
       <div className={styles.header}>
@@ -20,6 +25,9 @@ const FileTree = ({ selectedFile, setSelectedFile }: FileTreeProps) => {
           <Upload size={20} />
           Upload Image
         </Button>
+        <IconButton className={styles.headerButton} onClick={handleCloseClick}>
+          <LucideX size={16} />
+        </IconButton>
       </div>
       <div className={styles.imageList}>
         {sampleData.map((item) => (
