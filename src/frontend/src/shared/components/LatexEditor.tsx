@@ -110,7 +110,7 @@ function LatexEditor({ texFile }: LatexEditorProps) {
     setEditor(editor);
   };
 
-  return <Editor height="100vh" defaultValue={texFile} defaultLanguage="latex" onMount={handleMount} />;
+  return <Editor height="100%" defaultValue={texFile} defaultLanguage="latex" onMount={handleMount} />;
 }
 
 export default LatexEditor;

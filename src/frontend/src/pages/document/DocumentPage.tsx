@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ImagePreview from './image-preview/ImagePreview';
 import type { SampleFile } from './sampleData';
 import EditorView from './editor-view/EditorView';
+import styles from './DocumentPage.module.css';
 import ResizeSeparator from '../../shared/components/separator/Separator';
 
 export function DocumentPage() {
@@ -15,20 +16,34 @@ export function DocumentPage() {
   console.log('Selected file:', selectedFile);
 
   return (
-    <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged}>
-      <Panel collapsible minSize="20%">
-        <SideNavigationBar selectedFile={selectedFile} setSeledtedFile={setSelectedFile} />
+    <div className={styles.container}>
+      <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged}>
+        <Panel collapsible minSize="20%">
+          <SideNavigationBar selectedFile={selectedFile} setSeledtedFile={setSelectedFile} />
+          <ResizeSeparator />
+        </Panel>
         <ResizeSeparator />
-      </Panel>
-      <ResizeSeparator />
-      <Panel>
-        {selectedFile &&
-          (selectedFile.type === 'image/jpeg' ? (
-            <ImagePreview selectedFile={selectedFile} />
-          ) : (
-            <EditorView selectedFile={selectedFile} />
-          ))}
-      </Panel>
-    </Group>
+        <Panel>
+          {selectedFile &&
+            (selectedFile.type === 'image/jpeg' ? (
+              <ImagePreview selectedFile={selectedFile} />
+            ) : (
+              <EditorView selectedFile={selectedFile} />
+            ))}
+        </Panel>
+      </Group>
+    </div>
+  );
+
+  return (
+    <div className={styles.container}>
+      <SideNavigationBar selectedFile={selectedFile} setSeledtedFile={setSelectedFile} />
+      {selectedFile &&
+        (selectedFile.type === 'image/jpeg' ? (
+          <ImagePreview selectedFile={selectedFile} />
+        ) : (
+          <EditorView selectedFile={selectedFile} />
+        ))}
+    </div>
   );
 }
