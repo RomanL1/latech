@@ -6,15 +6,11 @@ import FileTreeItem from './item/FileTreeItem';
 
 interface FileTreeProps {
   setSelectedFile: (file?: SampleFile) => void;
-  setSelectedTab: (tab: string) => void;
   selectedFile?: SampleFile;
+  onClose?: () => void;
 }
 
-const FileTree = ({ selectedFile, setSelectedFile, setSelectedTab }: FileTreeProps) => {
-  const handleCloseClick = () => {
-    setSelectedTab('');
-  };
-
+const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => {
   return (
     <Flex direction="column" gap="3">
       <div className={styles.header}>
@@ -25,7 +21,7 @@ const FileTree = ({ selectedFile, setSelectedFile, setSelectedTab }: FileTreePro
           <Upload size={20} />
           Upload Image
         </Button>
-        <IconButton className={styles.headerButton} onClick={handleCloseClick}>
+        <IconButton className={styles.headerButton} onClick={onClose}>
           <LucideX size={16} />
         </IconButton>
       </div>

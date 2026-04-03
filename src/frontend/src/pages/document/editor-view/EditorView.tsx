@@ -1,9 +1,9 @@
-import { Group, Panel, Separator } from 'react-resizable-panels';
+import { Group, Panel } from 'react-resizable-panels';
 import LatexEditor from '../../../shared/components/LatexEditor';
 import type { LatexFile } from '../sampleData';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';
-import ResizeSeparator from '../../../shared/components/separator/Separator';
+import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
 
 interface EditorViewProps {
   selectedFile: LatexFile;
@@ -12,7 +12,7 @@ interface EditorViewProps {
 const EditorView = ({ selectedFile }: EditorViewProps) => {
   return (
     <Group>
-      <Panel collapsible defaultSize="50%" className={styles.panel}>
+      <Panel minSize="30%" defaultSize="50%" className={styles.panel}>
         <LatexEditor texFile={selectedFile.content} />
       </Panel>
       <ResizeSeparator />

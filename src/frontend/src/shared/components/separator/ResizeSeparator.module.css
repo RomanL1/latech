@@ -2,7 +2,6 @@
   position: relative;
   width: 1px;
   background: var(--gray-6);
-  cursor: col-resize;
 }
 
 /* larger invisible hit area */
@@ -21,7 +20,7 @@
 }
 
 /* center grip */
-[data-separator]::after {
+.centerGrip {
   content: '';
   position: absolute;
   top: 50%;
@@ -38,6 +37,6 @@
 }
 
 /* show grip on hover */
-[data-separator]:hover::after {
+[data-separator]:hover .centerGrip {
   opacity: 1;
 }
