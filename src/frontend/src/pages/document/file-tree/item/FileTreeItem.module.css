@@ -1,9 +1,5 @@
 .container:hover {
   background-color: var(--gray-3);
-
-  .dotMenu {
-    display: initial;
-  }
 }
 
 .container {
@@ -15,8 +11,16 @@
   border-radius: var(--radius-2);
 }
 
+.textField {
+  flex: 1;
+}
+
 .container[data-selected='true'] {
   background: var(--accent-9);
+
+  .dotMenu {
+    display: initial;
+  }
 }
 
 .dotMenu {

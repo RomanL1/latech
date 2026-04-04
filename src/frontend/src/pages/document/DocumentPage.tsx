@@ -1,5 +1,5 @@
 import { Group, Panel, useDefaultLayout, useGroupRef } from 'react-resizable-panels';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import ImagePreview from './image-preview/ImagePreview';
 import type { SampleFile } from './sampleData';
 import EditorView from './editor-view/EditorView';

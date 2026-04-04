@@ -1,0 +1,27 @@
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.dialogContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 750px;
+}
+
+.uploadedFiles {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.fileCard {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
