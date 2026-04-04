@@ -19,9 +19,16 @@
 }
 
 .fileCard {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
+.deleteButton {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  transition: opacity 0.2s ease;
+}
