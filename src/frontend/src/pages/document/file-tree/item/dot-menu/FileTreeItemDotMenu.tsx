@@ -16,16 +16,15 @@ const FileTreeItemDotMenu = ({ className, onRename, onDownload, onDelete }: File
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         <DropdownMenu.Item
-          onSelect={(e) => {
-            e.stopPropagation();
+          onSelect={() => {
             onRename?.();
           }}
+          shortcut="Enter"
         >
           Rename
         </DropdownMenu.Item>
         <DropdownMenu.Item
-          onSelect={(e) => {
-            e.stopPropagation();
+          onSelect={() => {
             onDownload?.();
           }}
         >
@@ -33,8 +32,7 @@ const FileTreeItemDotMenu = ({ className, onRename, onDownload, onDelete }: File
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item
-          onSelect={(e) => {
-            e.stopPropagation();
+          onSelect={() => {
             onDelete?.();
           }}
           color="red"

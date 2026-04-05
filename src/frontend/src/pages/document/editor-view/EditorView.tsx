@@ -16,7 +16,7 @@ const EditorView = ({ selectedFile }: EditorViewProps) => {
         <LatexEditor texFile={selectedFile.content} />
       </Panel>
       <ResizeSeparator />
-      <Panel collapsible className={styles.panel}>
+      <Panel collapsible className={styles.panel} minSize="20%">
         <PDFPreview />
       </Panel>
     </Group>

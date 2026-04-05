@@ -4,16 +4,6 @@
   background: var(--gray-6);
 }
 
-/* larger invisible hit area */
-[data-separator]::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -4px;
-  width: 10px;
-  height: 100%;
-}
-
 /* hover state */
 [data-separator]:hover {
   background: var(--accent-9);

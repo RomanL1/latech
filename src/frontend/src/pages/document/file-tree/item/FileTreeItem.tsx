@@ -6,25 +6,33 @@ import { useEffect, useRef, useState } from 'react';
 
 interface FileTreeItemProps {
   file: SampleFile;
-  onClick: () => void;
   icon: React.ReactNode;
   isSelected: boolean;
+  onClick: () => void;
+  onRename?: (newName: string) => void;
 }
 
-const FileTreeItem = ({ file, onClick, icon, isSelected }: FileTreeItemProps) => {
+const FileTreeItem = ({ file, icon, isSelected, onClick, onRename }: FileTreeItemProps) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const textFieldRef = useRef<HTMLInputElement>(null);
   const [textFieldValue, setTextFieldValue] = useState(file.name);
+  const fileTreeItemRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log('isRenaming changed', isRenaming);
     if (isRenaming) {
-      textFieldRef.current?.focus();
-      textFieldRef.current?.select();
-      console.log(textFieldRef.current);
-      console.log('FOCUS');
+      requestAnimationFrame(() => {
+        textFieldRef.current?.focus();
+        textFieldRef.current?.select();
+        console.log(textFieldRef.current);
+      });
     }
   }, [isRenaming]);
+
+  useEffect(() => {
+    if (isSelected && !isRenaming) {
+      fileTreeItemRef.current?.focus();
+    }
+  });
 
   const handleOnRename = () => {
     console.log('Rename', file);
@@ -40,10 +48,19 @@ const FileTreeItem = ({ file, onClick, icon, isSelected }: FileTreeItemProps) =>
   };
 
   const handleOnKeyUp = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      console.log('Enter pressed');
-      setIsRenaming(false);
+    console.log('KEY UP', e.key);
+    if (e.key !== 'Enter') return;
+
+    if (isRenaming) {
+      onRename?.(textFieldValue);
     }
+
+    setIsRenaming(!isRenaming);
+  };
+
+  const handleOnBlur = () => {
+    setIsRenaming(false);
+    onRename?.(textFieldValue);
   };
 
   return (
@@ -51,10 +68,13 @@ const FileTreeItem = ({ file, onClick, icon, isSelected }: FileTreeItemProps) =>
       className={styles.container}
       key={file.id}
       onClick={() => {
-        console.log('Clicked on file', file);
         onClick();
       }}
+      onFocus={onClick}
+      onKeyUp={handleOnKeyUp}
       data-selected={isSelected}
+      tabIndex={0}
+      ref={fileTreeItemRef}
     >
       {icon}
       {isRenaming ? (
@@ -63,15 +83,14 @@ const FileTreeItem = ({ file, onClick, icon, isSelected }: FileTreeItemProps) =>
           size="1"
           value={textFieldValue}
           onChange={(e) => setTextFieldValue(e.target.value)}
-          onBlur={() => {
-            console.log('Blur');
-            setIsRenaming(false);
-          }}
+          onBlur={handleOnBlur}
           onFocus={() => console.log('FOCUS')}
           ref={textFieldRef}
-          autoFocus={true}
-          onClick={(e) => e.stopPropagation()}
-          onKeyUp={handleOnKeyUp}
+          onKeyUp={(e) => {
+            e.stopPropagation();
+            handleOnKeyUp(e);
+          }}
+          autoFocus
         />
       ) : (
         <Text size="1" wrap="nowrap">

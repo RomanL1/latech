@@ -25,7 +25,7 @@ const UploadImageDialog = ({ className, onUpload }: UploadImageDialogProps) => {
       <Dialog.Trigger>
         <Button className={className}>
           <Upload size={20} />
-          Upload Imagee
+          Upload Image
         </Button>
       </Dialog.Trigger>
       <Dialog.Content className={styles.dialogContent}>
