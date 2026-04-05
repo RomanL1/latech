@@ -1,20 +1,37 @@
-import Editor from '@monaco-editor/react';
-import { useEffect, useRef, useState } from 'react';
+import Editor, { useMonaco } from '@monaco-editor/react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import { editor as MonacoEditor, KeyMod, KeyCode, languages } from 'monaco-editor';
+import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
+import { ThemeContext } from '@radix-ui/themes';
 
-function LatexEditor() {
+interface LatexEditorProps {
+  texFile: string;
+}
+
+function LatexEditor({ texFile }: LatexEditorProps) {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const isEditorMount = useRef(false);
-
-  console.log(
-    'Language-Support: ',
-    languages.getLanguages().map((l) => l.id),
-  );
+  const monaco = useMonaco();
+  const context = useContext(ThemeContext);
 
   useEffect(() => {
+    if (monaco) {
+      const theme = context?.appearance === 'dark' ? 'vs-dark' : 'vs-light';
+      monaco.editor.setTheme(theme);
+      monaco.languages.register({ id: 'latex' });
+      monaco.languages.setMonarchTokensProvider('latex', {
+        tokenizer: {
+          root: [
+            [/%.*$/, 'comment'],
+            [/\\[a-zA-Z]+/, 'keyword'],
+            [/\$[^$]*\$/, 'string'],
+          ],
+        },
+      });
+    }
+
     if (!editor) return;
 
     const model = editor.getModel();
@@ -33,6 +50,12 @@ function LatexEditor() {
 
     const ydoc = new Y.Doc();
     const ytext = ydoc.getText('monaco');
+
+    console.log('YTEXT', ytext);
+
+    if (ytext.length === 0) {
+      ytext.insert(0, texFile);
+    }
 
     const provider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, 'monaco', ydoc);
     provider.on('status', (event) => {
@@ -81,19 +104,13 @@ function LatexEditor() {
       provider.destroy();
       undoManager.destroy();
     };
-  }, [editor]);
+  }, [editor, texFile, monaco, context]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
-
-    console.log('Editor mounted: ', editor);
   };
 
-  return (
-    <>
-      <Editor path="file:///document.tex" height="50vh" defaultLanguage="latex" onMount={handleMount} />;
-    </>
-  );
+  return <Editor height="100%" defaultValue={texFile} defaultLanguage="latex" onMount={handleMount} />;
 }
 
 export default LatexEditor;

@@ -1,0 +1,15 @@
+.headerButton:first-of-type {
+  margin-left: auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.imageList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
