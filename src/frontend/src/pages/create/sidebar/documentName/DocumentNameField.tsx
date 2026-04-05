@@ -1,12 +1,11 @@
 import { TextField } from '@radix-ui/themes';
 import { useDocumentCreationFormContext } from '../../form';
-import styles from './DocumentNameField.module.css';
 
 export function DocumentNameField() {
   const form = useDocumentCreationFormContext();
 
   return (
-    <div className={styles.documentName}>
+    <div>
       <label htmlFor="name">Document Name</label>
       <TextField.Root
         id="name"
