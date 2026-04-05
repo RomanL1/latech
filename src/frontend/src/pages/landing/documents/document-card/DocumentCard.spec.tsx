@@ -110,7 +110,7 @@ describe('DocumentCard', () => {
 
     it('should display changes made a few weeks ago', () => {
       const document = getDocumentEditedInThePast(3, 'weeks');
-      console.log(document.lastEdited);
+
       render(<DocumentCard document={document} />);
 
       expect(screen.getByTestId('lastEdited')).toHaveTextContent('Edited 3 weeks ago');
