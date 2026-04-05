@@ -51,9 +51,7 @@ const UploadImageDialog = ({ className, onUpload }: UploadImageDialogProps) => {
                     }}
                   />
                 </Inset>
-                <Text size="1">
-                  {file.name}
-                </Text>
+                <Text size="1">{file.name}</Text>
               </Card>
             ))}
           </div>

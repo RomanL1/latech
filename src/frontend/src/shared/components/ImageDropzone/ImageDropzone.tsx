@@ -31,12 +31,12 @@ const ImageDropzone = ({ onDrop }: ImageDropzoneProps) => {
       <input {...getInputProps()} />
       <div className={styles.content}>
         <LucideFile size={35} />
-          <div className={styles.textContent}>
-            <Text>{dropZoneText}</Text>
-            <Text color="gray" size="1" style={isDragActive ? { visibility: 'hidden' } : {}}>
-              or click to browse
-            </Text>
-          </div>
+        <div className={styles.textContent}>
+          <Text>{dropZoneText}</Text>
+          <Text color="gray" size="1" style={isDragActive ? { visibility: 'hidden' } : {}}>
+            or click to browse
+          </Text>
+        </div>
       </div>
     </div>
   );
