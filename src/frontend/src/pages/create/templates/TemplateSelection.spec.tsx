@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { FormProvider } from 'react-hook-form';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import * as templateApi from '../../../features/templates/api';
 import type { DocumentTemplate } from '../../../features/templates/template';
 import { useDocumentCreationForm } from '../form';
 import { TemplateSelection } from './TemplateSelection';
-import userEvent from '@testing-library/user-event';
 
 describe('Template Selection', () => {
   beforeAll(() => mockTemplateApi());
@@ -69,23 +69,54 @@ describe('Template Selection', () => {
   it('should switch selection when other template is clicked', async () => {
     vi.useFakeTimers();
 
-    const user = userEvent.setup({
-      advanceTimers: vi.advanceTimersByTime,
-    });
-
     render(<ComponentUnderTest />);
-    vi.advanceTimersByTime(3_000);
+    await vi.advanceTimersByTimeAsync(3_000);
+
+    vi.useRealTimers();
 
     const templateCards = screen.getAllByTestId('templateCard');
-    await user.click(templateCards[1]);
+    await userEvent.click(templateCards[1]);
 
     await waitFor(() => {
       expect(templateCards[0]).not.toBeChecked();
       expect(templateCards[1]).toBeChecked();
       expect(templateCards[2]).not.toBeChecked();
     });
+  });
+
+  it('should call onTemplateSelected with default template', async () => {
+    vi.useFakeTimers();
+
+    const callback: (template: DocumentTemplate) => unknown = vi.fn();
+    render(<ComponentUnderTest onTemplateSelected={callback} />);
+    await vi.advanceTimersByTimeAsync(3_000);
 
     vi.useRealTimers();
+
+    expect(callback).toHaveBeenCalledExactlyOnceWith({
+      templateId: '123',
+      name: 'One',
+      description: 'Template one',
+    } as DocumentTemplate);
+  });
+
+  it('should call onTemplateSelected when template is clicked', async () => {
+    vi.useFakeTimers();
+
+    const callback: (template: DocumentTemplate) => unknown = vi.fn();
+    render(<ComponentUnderTest onTemplateSelected={callback} />);
+    await vi.advanceTimersByTimeAsync(3_000);
+
+    vi.useRealTimers();
+
+    const templateCards = screen.getAllByTestId('templateCard');
+    await userEvent.click(templateCards[1]);
+
+    expect(callback).toHaveBeenLastCalledWith({
+      templateId: '456',
+      name: 'Two',
+      description: 'Template two',
+    } as DocumentTemplate);
   });
 });
 
