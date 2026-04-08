@@ -1,0 +1,26 @@
+.container {
+  position: relative;
+}
+
+.container > * {
+  position: relative;
+}
+
+.container :first-child {
+  z-index: 10;
+}
+
+.avatar {
+  position: relative;
+  border: 2px solid var(--gray-2);
+}
+
+.avatar:not(:first-child) {
+  margin-left: -0.75rem;
+  z-index: 9;
+}
+
+.avatar {
+  top: 0;
+  left: 0;
+}
