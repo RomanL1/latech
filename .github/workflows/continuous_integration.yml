@@ -115,3 +115,23 @@ jobs:
 
       - name: Build
         run: bun run build:ci
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - api
+      - renderer
+      - frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
