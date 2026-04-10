@@ -2,6 +2,8 @@ FROM oven/bun:latest AS build
 
 ARG WEBSOCKET_SERVER_URL
 ENV VITE_WS_HOST=$WEBSOCKET_SERVER_URL
+ARG VITE_API_HOST
+ENV VITE_API_HOST=$VITE_API_HOST
 
 WORKDIR /app
 COPY src/frontend/package.json src/frontend/bun.lock src/frontend/bunfig.toml ./
