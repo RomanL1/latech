@@ -178,14 +178,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Copy compose.yml to Droplet
+      - name: Copy deploy.prod.yml to Droplet
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
           source: "deploy.prod.yml"
-          target: "/opt/latech/compose.yml"
+          target: "/opt/latech"
 
       - name: Deploy to DigitalOcean Droplet via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -199,8 +199,8 @@ jobs:
             # If your GHCR images are private, uncomment the next line:
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose -f deploy.prod.yml pull
+            docker compose -f deploy.prod.yml up -d --remove-orphans
             docker system prune -af
 
       
