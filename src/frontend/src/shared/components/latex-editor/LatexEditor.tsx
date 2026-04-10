@@ -1,5 +1,5 @@
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { useContext, useEffect useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
