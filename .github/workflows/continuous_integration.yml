@@ -197,7 +197,7 @@ jobs:
             cd /opt/latech
             
             # If your GHCR images are private, uncomment the next line:
-            # echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             docker compose pull
             docker compose up -d --remove-orphans
