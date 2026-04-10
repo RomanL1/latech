@@ -129,6 +129,9 @@ jobs:
       - api
       - renderer
       - frontend
+    strategy:
+      matrix:
+        component: [api, renderer, frontend, socket-server]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -149,26 +152,12 @@ jobs:
         run: |
           echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
-      - name: Build and push API image
+      - name: Build and push ${{ matrix.component }} image
         uses: docker/build-push-action@v6
         with:
-          context: ./src/api
+          context: ./src/${{ matrix.component }}
           push: true
-          tags: ghcr.io/${{ env.REPO }}/api:latest
-
-      - name: Build and push Renderer image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./src/renderer
-          push: true
-          tags: ghcr.io/${{ env.REPO }}/renderer:latest
-
-      - name: Build and push Frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./src/frontend
-          push: true
-          tags: ghcr.io/${{ env.REPO }}/frontend:latest
+          tags: ghcr.io/${{ env.REPO }}/${{ matrix.component }}:latest
   
   deploy:
     runs-on: ubuntu-latest
