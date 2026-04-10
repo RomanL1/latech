@@ -1,5 +1,6 @@
 package com.latech.renderer.api;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -17,24 +18,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Slf4j
 @RestController
 public class PdfDeliveryController {
 
     @GetMapping("/renderer/pdf")
     public ResponseEntity<Resource> downloadPdf(@RequestParam("filePath") String filePath) {
         try {
-            Path path = Paths.get(filePath);
 
+            log.info("Received request for pdf {}", filePath);
+            Path path = Paths.get(filePath);
             // Ensure the file path is within the allowed output directory to prevent path
             // traversal
             Path normalizedPath = path.normalize().toAbsolutePath();
             Path baseOutputDir = Paths.get("output").normalize().toAbsolutePath();
 
             if (!normalizedPath.startsWith(baseOutputDir)) {
+                log.error("requested filepath doesn't start with {}", baseOutputDir);
                 return ResponseEntity.status(403).build();
             }
 
             if (!Files.exists(normalizedPath)) {
+                log.error("requested file {} doesn't exist", normalizedPath);
                 return ResponseEntity.notFound().build();
             }
 
