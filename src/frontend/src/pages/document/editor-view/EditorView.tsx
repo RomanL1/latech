@@ -1,5 +1,5 @@
 import { Group, Panel } from 'react-resizable-panels';
-import LatexEditor from '../../../shared/components/LatexEditor';
+import LatexEditor from '../../../shared/components/latex-editor/LatexEditor';
 import type { LatexFile } from '../sampleData';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';

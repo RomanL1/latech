@@ -20,6 +20,7 @@ const CurrentEditors = ({ className = '', editors }: CurrentEditorProps) => {
           radius="full"
           className={styles.avatar}
           variant="solid"
+          // TODO: umbauen
           color={editor.color}
         />
       ))}
