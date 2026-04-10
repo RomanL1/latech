@@ -1,0 +1,4 @@
+name: DO
+variables:
+  - name: baseUrl
+    value: http://latech.lysser.me:5001
