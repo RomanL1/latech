@@ -1,5 +1,5 @@
-import { Group, Panel, useDefaultLayout, useGroupRef } from 'react-resizable-panels';
-import { useState } from 'react';
+import { Group, Panel, useDefaultLayout, useGroupRef, type PanelImperativeHandle } from 'react-resizable-panels';
+import { useRef, useState } from 'react';
 import ImagePreview from './image-preview/ImagePreview';
 import type { SampleFile } from './sampleData';
 import EditorView from './editor-view/EditorView';
@@ -15,6 +15,18 @@ export function DocumentPage() {
     id: 'document-page-layout',
     storage: localStorage,
   });
+  const leftPanelRef = useRef<PanelImperativeHandle | null>(null);
+
+  const handleSeparatorClick = () => {
+    const panel = leftPanelRef.current;
+    if (!panel) return;
+
+    if (panel.isCollapsed()) {
+      panel.expand();
+    } else {
+      panel.collapse();
+    }
+  };
 
   const [selectedTab, setSelectedTab] = useState('file');
   const groupRef = useGroupRef();
@@ -52,7 +64,7 @@ export function DocumentPage() {
       </Tabs.List>
 
       <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
-        <Panel id="navigation" collapsible minSize="20%">
+        <Panel id="navigation" collapsible minSize="20%" panelRef={leftPanelRef}>
           <Tabs.Content value="file" className={styles.tabsContent}>
             <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
           </Tabs.Content>
@@ -60,9 +72,8 @@ export function DocumentPage() {
             <LucideSettings />
             Settings content
           </Tabs.Content>
-          <ResizeSeparator />
         </Panel>
-        <ResizeSeparator />
+        <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel id="main" minSize="20%">
           {selectedFile &&
             (selectedFile.type === 'image/jpeg' ? (
