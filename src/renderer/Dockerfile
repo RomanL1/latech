@@ -32,4 +32,4 @@ ENV RABBITMQ_PASSWORD="your_secure_password_here"
 EXPOSE ${PORT:-8090}
 COPY --from=build /app/build/libs/*.jar app.jar
 
-ENTRYPOINT ["java", "-Dserver.port=${PORT:-8090} -XX:TieredStopAtLevel=1", "-noverify", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-Dserver.port=${PORT:-8090}", "-XX:TieredStopAtLevel=1", "-noverify", "-jar", "/app/app.jar"]
