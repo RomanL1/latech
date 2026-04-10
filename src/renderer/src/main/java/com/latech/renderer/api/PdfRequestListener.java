@@ -5,8 +5,8 @@ import static com.latech.renderer.api.PdfMetadata.Status.SUCCESSFULLY_RENDERED;
 import static com.latech.renderer.config.RabbitMQConfig.DOCUMENT_EXCHANGE;
 
 import com.google.protobuf.Timestamp;
+import com.latech.renderer.business.NaivePDFJobWorker;
 import com.latech.renderer.business.PdfCompiledMessageProducer;
-import com.latech.renderer.business.PdfJobWorker;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -24,11 +24,9 @@ import java.time.Instant;
 @Slf4j
 public class PdfRequestListener
 {
-    private final PdfJobWorker pdfJobWorker;
     private final PdfCompiledMessageProducer pdfCompiledMessageProducer;
 
-    public PdfRequestListener(PdfJobWorker pdfJobWorker, PdfCompiledMessageProducer pdfCompiledMessageProducer){
-        this.pdfJobWorker = pdfJobWorker;
+    public PdfRequestListener(PdfCompiledMessageProducer pdfCompiledMessageProducer){
         this.pdfCompiledMessageProducer = pdfCompiledMessageProducer;
     }
 
@@ -38,7 +36,7 @@ public class PdfRequestListener
         try{
             payload = DocumentRecord.parseFrom(payloadBytes);
             log.info("Received payload with documentId: " + payload.getDocumentId());
-            Path pdfPath = this.pdfJobWorker.createPdf(payload);
+            Path pdfPath = NaivePDFJobWorker.compile(payload);
             //do we timestamp here or right after the pdf is compiled?
             Timestamp timestamp = Timestamp.newBuilder()
                     .setSeconds(Instant.now().getEpochSecond())

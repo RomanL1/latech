@@ -8,8 +8,16 @@ COPY src/ ./src/
 
 RUN ./gradlew bootJar --no-daemon -x test
 
-FROM eclipse-temurin:25-jre
+
+FROM eclipse-temurin:25-jre-jammy
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-science \
+    && rm -rf /var/lib/apt/lists/*
 
 # Environment variables from application.properties
 ENV SPRING_APPLICATION_NAME="latech-renderer"
