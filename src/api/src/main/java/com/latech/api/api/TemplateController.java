@@ -86,7 +86,7 @@ public class TemplateController
 		Template template = templateRepository.findById( UUID.fromString( templateId ) ).orElseThrow();
 
 		TemplateContentDto contentDto = TemplateContentDto.builder()
-				.id( template.getId().toString() )
+				.templateId( template.getId() )
 				.name( template.getName() )
 				.description( template.getDescription() )
 				.content( template.getContent() )
@@ -98,7 +98,7 @@ public class TemplateController
 	private static TemplateDto getTemplateDto ( Template template )
 	{
 		return TemplateDto.builder()
-				.id( template.getId().toString() )
+				.templateId( template.getId() )
 				.name( template.getName() )
 				.description( template.getDescription() )
 				.build();
