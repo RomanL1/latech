@@ -32,7 +32,11 @@ class PdfDeliveryControllerTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        tempDir = Files.createTempDirectory(Paths.get("output").toAbsolutePath(), "test-");
+        Path outputDir = Paths.get("output").toAbsolutePath();
+        if (!Files.exists(outputDir)) {
+            Files.createDirectories(outputDir);
+        }
+        tempDir = Files.createTempDirectory(outputDir, "test-");
         tempFile = Files.createTempFile(tempDir, "test-", ".pdf");
         Files.write(tempFile, "PDF content".getBytes());
     }
