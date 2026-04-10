@@ -8,15 +8,26 @@ COPY src/ ./src/
 
 RUN ./gradlew bootJar --no-daemon -x test
 
-FROM eclipse-temurin:25-jre
+
+FROM eclipse-temurin:25-jre-jammy
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-science \
+    && rm -rf /var/lib/apt/lists/*
 
 # Environment variables from application.properties
 ENV SPRING_APPLICATION_NAME="latech-renderer"
-ENV SPRING_DOCKER_COMPOSE_ENABLED="false"
-ENV SPRING_GRPC_SERVER_PORT="${PORT:-9090}"
-# Easily enable the reflection service for tools like grpcurl
-ENV SPRING_GRPC_SERVER_REFLECTION_ENABLED="true"
+
+# RabbitMQ Configuration
+ENV RABBITMQ_HOST="localhost"
+ENV RABBITMQ_PORT="5672"
+ENV RABBITMQ_USERNAME="admin"
+ENV RABBITMQ_PASSWORD="your_secure_password_here"
+
 
 EXPOSE 8090
 COPY --from=build /app/build/libs/*.jar app.jar
