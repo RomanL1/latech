@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   # API application
   api:
@@ -116,7 +120,7 @@ jobs:
       - name: Build
         run: bun run build:ci
 
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     needs:
       - api
@@ -135,3 +139,66 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Downcase REPO
+        run: |
+          echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/api
+          push: true
+          tags: ghcr.io/${{ env.REPO }}/api:latest
+
+      - name: Build and push Renderer image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/renderer
+          push: true
+          tags: ghcr.io/${{ env.REPO }}/renderer:latest
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/frontend
+          push: true
+          tags: ghcr.io/${{ env.REPO }}/frontend:latest
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-push
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Copy compose.yml to Droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          source: "compose.yml"
+          target: "/opt/latech"
+
+      - name: Deploy to DigitalOcean Droplet via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            cd /opt/latech
+            
+            # If your GHCR images are private, uncomment the next line:
+            # echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker system prune -af
+
+      
+    
