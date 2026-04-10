@@ -23,6 +23,7 @@ WORKDIR /app
 # Environment variables from application.properties
 ENV SPRING_APPLICATION_NAME="latech-api"
 ENV RENDERER_URL="http://renderer:8090"
+ENV FRONTEND_URL="http://localhost:5173"
 ENV SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS="static://localhost:9090"
 ENV SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_NEGOTIATION_TYPE="plaintext"
 
