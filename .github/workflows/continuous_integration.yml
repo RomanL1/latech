@@ -184,8 +184,8 @@ jobs:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
-          source: "compose.yml"
-          target: "/opt/latech"
+          source: "deploy.prod.yml"
+          target: "/opt/latech/compose.yml"
 
       - name: Deploy to DigitalOcean Droplet via SSH
         uses: appleboy/ssh-action@v1.0.3
