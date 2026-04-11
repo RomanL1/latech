@@ -31,12 +31,25 @@ services:
       - 'PORT=5001'
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
       - 'SPRING_RABBITMQ_HOST=rabbitmq'
-      - 'SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS=static://renderer:9090'
     depends_on:
       - postgres
       - rabbitmq
     restart: always
 
+  renderer:
+    build: ./src/renderer
+    container_name: renderer
+    ports:
+      - "8090:8090"
+    environment:
+      - PORT=8090
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=admin
+      - RABBITMQ_PASSWORD=your_secure_password_here
+    depends_on:
+      - rabbitmq
+    restart: always
 
   postgres:
     image: 'postgres:latest'
