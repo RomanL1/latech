@@ -1,4 +1,4 @@
-name: Generated server url
+name: localhost
 variables:
   - name: baseUrl
-    value: http://localhost:8080
+    value: http://localhost:5001
