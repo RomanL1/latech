@@ -63,6 +63,7 @@ public class RenderedPDFTopicService
 							.name( "pdf-ready" )
 							.data( pdfReadyMessage, MediaType.APPLICATION_JSON )
 							.build() );
+					emitter.complete();
 				}
 				catch ( Exception e )
 				{
