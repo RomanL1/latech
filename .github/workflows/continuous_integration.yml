@@ -189,15 +189,16 @@ jobs:
               - 'src/frontend/**'
               - 'src/socket-server/**'
               - 'deploy.prod.yml'
+              - 'Caddyfile'
 
-      - name: Copy deploy.prod.yml to Droplet
+      - name: Copy deploy files to Droplet
         if: steps.filter.outputs.changed == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
-          source: "deploy.prod.yml"
+          source: "deploy.prod.yml,Caddyfile"
           target: "/opt/latech"
 
       - name: Deploy to DigitalOcean Droplet via SSH
