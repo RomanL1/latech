@@ -29,8 +29,12 @@ services:
       - "5001:5001"
     environment:
       - 'PORT=5001'
+      - 'RABBITMQ_HOST=rabbitmq'
+      - 'RABBITMQ_PASSWORD=your_secure_password_here'
+      - 'RABBITMQ_PORT=5672'
+      - 'RABBITMQ_USERNAME=admin'
+      - 'RENDERER_URL=http://renderer:8090'
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
-      - 'SPRING_RABBITMQ_HOST=rabbitmq'
     depends_on:
       - postgres
       - rabbitmq
