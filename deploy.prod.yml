@@ -1,12 +1,28 @@
 services:
+  caddy:
+    image: caddy:alpine
+    container_name: caddy-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - frontend
+      - api
+      - socket-server
+    restart: unless-stopped
+
   frontend:
     image: ghcr.io/romanl1/latech/frontend:latest
     container_name: frontend
-    ports:
-      - "80:80"
     environment:
-      - VITE_API_HOST=http://latech.lysser.me:5001/api
-      - WEBSOCKET_SERVER_URL=http://latech.lysser.me:3000
+      - VITE_API_HOST=https://latech.app/api
+      - WEBSOCKET_SERVER_URL=wss://latech.app/ws
     restart: always
 
   renderer:
@@ -35,8 +51,6 @@ services:
   socket-server:
     image: ghcr.io/romanl1/latech/socket-server:latest
     container_name: socket-server
-    ports:
-      - 3000:3000
     environment:
       - HOST=0.0.0.0
       - PORT=3000
@@ -45,8 +59,6 @@ services:
   api:
     image: ghcr.io/romanl1/latech/api:latest
     container_name: api
-    ports:
-      - "5001:5001"
     environment:
       - 'PORT=5001'
       - 'RABBITMQ_HOST=rabbitmq'
@@ -55,7 +67,7 @@ services:
       - 'RABBITMQ_USERNAME=admin'
       - 'RENDERER_URL=http://renderer:8090'
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
-      - 'FRONTEND_URL=http://latech.lysser.me'
+      - 'FRONTEND_URL=https://latech.app'
     depends_on:
       - postgres
       - rabbitmq
@@ -76,3 +88,5 @@ services:
 volumes:
   rabbitmq_data:
   postgres_data:
+  caddy_data:
+  caddy_config:
