@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { DocumentTemplate } from './template';
 
-const apiHost = import.meta.env.VITE_API_HOST;
+const apiHost = window.ENV.VITE_API_HOST;
 const templateUrl = `${apiHost}/template`;
 
 export function getTemplates(): Promise<DocumentTemplate[]> {

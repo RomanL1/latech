@@ -57,7 +57,7 @@ function LatexEditor({ texFile }: LatexEditorProps) {
       ytext.insert(0, texFile);
     }
 
-    const provider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, 'monaco', ydoc);
+    const provider = new WebsocketProvider(window.ENV.VITE_WS_HOST, 'monaco', ydoc);
     provider.on('status', (event) => {
       console.log('Status: ' + event.status);
     });
