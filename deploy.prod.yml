@@ -55,6 +55,7 @@ services:
       - 'RABBITMQ_USERNAME=admin'
       - 'RENDERER_URL=http://renderer:8090'
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
+      - 'FRONTEND_URL=http://latech.lysser.me'
     depends_on:
       - postgres
       - rabbitmq
