@@ -12,6 +12,11 @@ services:
   renderer:
     image: ghcr.io/romanl1/latech/renderer:latest
     container_name: renderer
+    environment:
+      - 'RABBITMQ_HOST=rabbitmq'
+      - 'RABBITMQ_PASSWORD=your_secure_password_here'
+      - 'RABBITMQ_PORT=5672'
+      - 'RABBITMQ_USERNAME=admin'
     restart: always
 
   rabbitmq:
