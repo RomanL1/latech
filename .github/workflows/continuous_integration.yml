@@ -170,6 +170,7 @@ jobs:
   
   deploy:
     runs-on: ubuntu-latest
+    environment: prod
     needs:
       - build-and-push
     steps:
@@ -210,6 +211,12 @@ jobs:
           key: ${{ secrets.DO_SSH_KEY }}
           script: |
             cd /opt/latech
+            
+            # Create .env dynamically from GitHub Secrets
+            echo "RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}" > .env
+            echo "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}" >> .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
             
             # If your GHCR images are private, uncomment the next line:
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin

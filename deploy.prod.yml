@@ -31,9 +31,9 @@ services:
     environment:
       - 'PORT=8090'
       - 'RABBITMQ_HOST=rabbitmq'
-      - 'RABBITMQ_PASSWORD=your_secure_password_here'
+      - 'RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}'
       - 'RABBITMQ_PORT=5672'
-      - 'RABBITMQ_USERNAME=admin'
+      - 'RABBITMQ_USERNAME=${RABBITMQ_USER}'
     restart: always
 
   rabbitmq:
@@ -42,8 +42,8 @@ services:
     ports:
       - "15672:15672" # Management UI port
     environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=your_secure_password_here
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: always
@@ -62,11 +62,13 @@ services:
     environment:
       - 'PORT=5001'
       - 'RABBITMQ_HOST=rabbitmq'
-      - 'RABBITMQ_PASSWORD=your_secure_password_here'
+      - 'RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}'
       - 'RABBITMQ_PORT=5672'
-      - 'RABBITMQ_USERNAME=admin'
+      - 'RABBITMQ_USERNAME=${RABBITMQ_USER}'
       - 'RENDERER_URL=http://renderer:8090'
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
+      - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
+      - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
       - 'FRONTEND_URL=https://latech.app'
     depends_on:
       - postgres
@@ -79,8 +81,8 @@ services:
     container_name: postgres
     environment:
       - 'POSTGRES_DB=latech'
-      - 'POSTGRES_USER=myuser'
-      - 'POSTGRES_PASSWORD=secret'
+      - 'POSTGRES_USER=${POSTGRES_USER}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
     volumes:
       - postgres_data:/var/lib/postgresql
     restart: unless-stopped
