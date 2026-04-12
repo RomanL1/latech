@@ -59,9 +59,7 @@ public class PdfRequestListener
                     .build();
             log.info("pdfPath: " + pdfPath);
 
-            String payloadS3Key = payload.getDocumentId() +
-                    "/" +
-                    payload.getRenderId();
+            String payloadS3Key = payload.getDocumentId() + ".pdf";
 
             s3.putObject(
                     b -> b.bucket(S3_BUCKET_NAME).key(payloadS3Key),

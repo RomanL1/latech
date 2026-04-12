@@ -27,8 +27,6 @@ public class PdfRenderedConsumer
 
 	private final RenderedPDFTopicService renderedPdfTopicService;
 
-	@Value( "${latech.renderer.url}" )
-	private String rendererUrl;
 
 	public PdfRenderedConsumer ( RenderedPDFTopicService renderedPdfTopicService )
 	{
@@ -46,57 +44,26 @@ public class PdfRenderedConsumer
 			log.info( "Pdf rendered renderId: " + payload.getRenderId() );
 			log.info( "Pdf rendered documentId: " + payload.getDocumentId() );
 			log.info( "Pdf rendered timestamp: " + payload.getRenderedTimestamp() );
+			log.info( "Pdf rendered seaweedfs-key: " + payload.getFilePath());
 			log.info( "Pdf rendered status: " + payload.getStatus() );
 			log.info( "Pdf rendered error message: " + payload.getErrorMessage() );
 
-			// Download the PDF from the renderer
-			try
-			{
-				RestTemplate restTemplate = new RestTemplate();
-				String downloadUrl = UriComponentsBuilder.fromUriString( rendererUrl )
-						.path( "/renderer/pdf" )
-						.queryParam( "filePath", payload.getFilePath() )
-						.toUriString();
-
-				log.info( "Downloading PDF from renderer at: {}", downloadUrl );
-				byte[] pdfBytes = restTemplate.getForObject( downloadUrl, byte[].class );
-
-				if ( pdfBytes != null )
-				{
-					log.info( "Successfully downloaded PDF, size: {} bytes", pdfBytes.length );
-
-					// TODO: process the downloaded pdfBytes (e.g. save to DB, MinIO, etc.)
-					Path dataDir = Path.of( "data" );
-					Files.createDirectories( dataDir );
-					Path destination = Paths.get( "data", payload.getDocumentId() + ".pdf" );
-					if ( Files.exists( destination ) )
-					{
-						Files.delete( destination );
-					}
-					Files.write( destination, pdfBytes );
-
-					log.info( "PDF saved to location: {}", destination.toAbsolutePath() );
-
-					String downloadUri = DocumentController.getDownloadPath( payload.getDocumentId() );
-
-					PDFReadyMessageDto pdfReadyMessage = PDFReadyMessageDto.builder()
-							.docId( payload.getDocumentId() )
-							.downloadPath( downloadUri )
-							.timestampUTC( System.currentTimeMillis() )
-							.build();
-
-					renderedPdfTopicService.notifyAll( payload.getDocumentId(), pdfReadyMessage );
-					log.info( "Notified topic: {}",  payload.getDocumentId() );
-				}
-				else
-				{
-					log.error( "Failed to download PDF: received null bytes" );
-				}
+			if (payload.getFilePath().isEmpty()){
+				log.error("Pdf not saved: received empty path");
+				throw new RuntimeException("Received empty pdf-path for render-id: " + payload.getRenderId() + "." +
+											"Can't distribute pdf of document: " + payload.getDocumentId());
 			}
-			catch ( Exception e )
-			{
-				log.error( "Error downloading PDF from renderer: {}", e.getMessage(), e );
-			}
+
+			String downloadUri = DocumentController.getDownloadPath( payload.getDocumentId() );
+
+			PDFReadyMessageDto pdfReadyMessage = PDFReadyMessageDto.builder()
+					.docId( payload.getDocumentId() )
+					.downloadPath( downloadUri )
+					.timestampUTC( System.currentTimeMillis() )
+					.build();
+
+			renderedPdfTopicService.notifyAll( payload.getDocumentId(), pdfReadyMessage );
+			log.info( "Notified topic: {}",  payload.getDocumentId() );
 
 			// MANUALLY ACKNOWLEDGE (Success)
 			// 'false' means we only acknowledge this specific message
@@ -105,11 +72,8 @@ public class PdfRenderedConsumer
 		}
 		catch ( Exception e )
 		{
-			// MANUALLY REJECT (Failure)
-			// 'false' (multiple) -> reject only this message
-			// 'false' (requeue) -> don't requeue, send to DLQ (because we configured a DLQ)
+			//don't manually reject here, spring handles this for us since we throw.
 			log.error( e.getMessage() );
-			channel.basicReject( tag, false );
 			throw e;
 		}
 	}

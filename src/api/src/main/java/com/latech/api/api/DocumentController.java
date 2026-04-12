@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +34,10 @@ import com.latech.api.repository.DocumentRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,6 +47,7 @@ public class DocumentController
 {
 	private final DocumentRepository documentRepository;
 	private final DocumentProducer documentProducer;
+	private final S3Client s3Client;
 
 	public static String getDownloadPath ( String docId )
 	{
@@ -163,18 +169,23 @@ public class DocumentController
 			return ResponseEntity.badRequest().build();
 		}
 
-		Path pdfLocation = Paths.get( "data/" + docId + ".pdf" );
-		if ( !Files.exists( pdfLocation ) )
-		{
+		String pdfKey = docId + ".pdf";
+		try {
+			ResponseInputStream<GetObjectResponse> s3Stream = s3Client.getObject(
+					b -> b.bucket("renderer").key(pdfKey)
+			);
+
+			GetObjectResponse metadata = s3Stream.response();
+
+			return ResponseEntity.ok()
+					.contentType(MediaType.APPLICATION_PDF)
+					.contentLength(metadata.contentLength())
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdfKey + "\"")
+					.body(new InputStreamResource(s3Stream));
+
+		}catch (NoSuchKeyException e){
 			return ResponseEntity.notFound().build();
 		}
-
-		Resource resource = new UrlResource( pdfLocation.toUri() );
-
-		return ResponseEntity.ok()
-				.contentType( MediaType.APPLICATION_PDF )
-				.header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"" )
-				.body( resource );
 	}
 
 	private static DocumentCreateResponseDto getDocumentCreateResponseDto ( Document saved )
