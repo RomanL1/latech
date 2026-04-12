@@ -80,6 +80,43 @@ services:
       - postgres_data:/var/lib/postgresql
     restart: unless-stopped
 
+  seaweedfs-master:
+    image: chrislusf/seaweedfs
+    command: master -ip=seaweedfs-master -port=9333
+    volumes:
+      - seaweedfs-master-data:/data
+    restart: unless-stopped
+
+  seaweedfs-volume:
+    image: chrislusf/seaweedfs
+    command: volume -mserver=seaweedfs-master:9333 -port=8080 -dir=/data -max=50
+    volumes:
+      - seaweedfs-volume-data:/data
+    depends_on:
+      - seaweedfs-master
+    restart: unless-stopped
+
+  seaweedfs-filer:
+    image: chrislusf/seaweedfs
+    command: filer -master=seaweedfs-master:9333 -port=8888 -s3 -s3.port=8333
+    volumes:
+      - seaweedfs-filer-data:/data
+
+    environment:
+    - SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}
+    - SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}
+    entrypoint: >
+      sh -c "mkdir -p /etc/seaweedfs &&
+      echo '{\"identities\":[{\"name\":\"admin\",\"credentials\":[{\"accessKey\":\"'$$SEAWEEDFS_ACCESS_KEY'\",\"secretKey\":\"'$$SEAWEEDFS_SECRET_KEY'\"}],\"actions\":[\"Admin\",\"Read\",\"Write\"]}]}' > /etc/seaweedfs/s3.json &&
+      weed filer -master=seaweedfs-master:9333 -port=8888 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json"
+    depends_on:
+      - seaweedfs-master
+      - seaweedfs-volume
+    restart: unless-stopped
+
 volumes:
   rabbitmq_data:
   postgres_data:
+  seaweedfs-master-data:
+  seaweedfs-volume-data:
+  seaweedfs-filer-data:
