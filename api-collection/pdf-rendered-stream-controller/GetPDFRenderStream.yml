@@ -13,7 +13,7 @@ http:
       value: no-cache
   params:
     - name: docId
-      value: 947a49d2-4c58-4701-8958-9006bd95d921
+      value: "{{docId}}"
       type: path
   auth: inherit
 

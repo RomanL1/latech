@@ -1,24 +1,25 @@
 info:
-  name: getDocumentSecuredContent
+  name: createDocument
   type: http
-  seq: 3
+  seq: 1
   tags:
     - document-controller
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/document/secured/:docId"
-  params:
-    - name: docId
-      value: fa04b06e-1415-4334-baf5-d0af3e8771ef
-      type: path
+  url: "{{baseUrl}}/api/document"
   body:
     type: json
     data: |-
       {
-        "password": "PWS"
+        "name": "FirstDocument"
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: bru.setEnvVar('docId', res('uuid'))
 
 settings:
   encodeUrl: true
@@ -30,16 +31,13 @@ examples:
   - name: 200 Response
     description: OK
     request:
-      url: "{{baseUrl}}/api/document/secured/:docId"
+      url: "{{baseUrl}}/api/document"
       method: POST
-      params:
-        - name: docId
-          value: ""
-          type: path
       body:
         type: json
         data: |-
           {
+            "name": "",
             "password": ""
           }
     response:
@@ -52,8 +50,6 @@ examples:
         type: text
         data: |-
           {
-            "id": "",
-            "name": "",
-            "secured": false,
-            "content": ""
+            "uuid": "",
+            "name": ""
           }

@@ -12,7 +12,7 @@ http:
     type: json
     data: |-
       {
-        "room": "947a49d2-4c58-4701-8958-9006bd95d921",
+        "room": "{{docId}}",
         "data": " \\documentclass[12pt, a4paper]{article}   \\usepackage[utf8]{inputenc}  \\usepackage{amsmath}  \\usepackage{graphicx}  \\usepackage{geometry}  \\geometry{margin=1in}   \\title{My First LaTeX Document}  \\author{Jane Doe}  \\date{ \\today}   \\begin{document}   \\maketitle   \\section{Introduction} Welcome to the world of  \\LaTeX! This is a professional typesetting system used for scientific and technical documents. Unlike a standard word processor, you focus on the content while  \\LaTeX \\ handles the formatting.   \\section{Formatting Basics} You can easily emphasize text in several ways:  \\begin{itemize}      \\item  \\textbf{Bold text} for strong emphasis.      \\item  \\textit{Italicized text} for emphasis or titles.      \\item  \\underline{Underlined text} (though italics are usually preferred).  \\end{itemize}   \\section{Mathematics} One of  \\LaTeX's greatest strengths is how it handles math. You can write equations inline, like $E = mc^2$, or in a numbered block for better visibility:   \\begin{equation}     f(x) =  \\int_{a}^{b}  \\frac{1}{x}  \\, dx =  \\ln|b| -  \\ln|a|  \\end{equation}   \\section{Conclusion} This is just the tip of the iceberg. You can create tables, bibliographies, and even complex diagrams directly within the code.   \\end{document}"
       }
   auth: inherit
