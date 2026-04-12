@@ -1,4 +1,4 @@
-package com.latech.renderer.api;
+package com.latech.renderer.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
