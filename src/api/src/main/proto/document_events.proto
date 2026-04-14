@@ -17,8 +17,8 @@ message DocumentRecord {
   // String containing entire latex document as string
   string latex_content = 3;
 
-  // list of string ids for images
-  repeated string image_ids = 4;
+  // s3-key uuid -> raw .tex-name and user supplied name
+  map<string, string> images = 4;
 }
 
 message PdfMetadata {

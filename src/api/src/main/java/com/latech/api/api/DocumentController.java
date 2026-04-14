@@ -5,9 +5,13 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.latech.api.business.DocumentImageMappingService;
+import com.latech.api.business.ImageService;
+import com.latech.api.model.db.DocumentImage;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -48,6 +52,7 @@ public class DocumentController
 	private final DocumentRepository documentRepository;
 	private final DocumentProducer documentProducer;
 	private final S3Client s3Client;
+	private final DocumentImageMappingService documentImageMappingService;
 
 	public static String getDownloadPath ( String docId )
 	{
@@ -139,22 +144,24 @@ public class DocumentController
 			return ResponseEntity.badRequest().build();
 		}
 
-		UUID id = UUID.fromString( docId );
-		if ( !documentRepository.existsById( id ) )
+		UUID documentId = UUID.fromString( docId );
+		if ( !documentRepository.existsById( documentId ) )
 		{
 			return ResponseEntity.notFound().build();
 		}
 
-		Document document = documentRepository.findById( id ).orElseThrow();
+		Document document = documentRepository.findById( documentId ).orElseThrow();
+		List<DocumentImage> documentImages = this.documentImageMappingService.getPicturesForDocument(documentId);
 
-		DocumentRecord documentRecord = DocumentRecord.newBuilder()
+		DocumentRecord.Builder documentRecordBuilder = DocumentRecord.newBuilder()
 				.setRenderId( UUID.randomUUID().toString() )
 				.setDocumentId( document.getId().toString() )
-				.setLatexContent( document.getContent() != null ? document.getContent() : "" )
-				.addImageIds( UUID.randomUUID().toString() )
-				.addImageIds( UUID.randomUUID().toString() )
-				.addImageIds( UUID.randomUUID().toString() )
-				.build();
+				.setLatexContent( document.getContent() != null ? document.getContent() : "" );
+
+		for (DocumentImage image : documentImages){
+			documentRecordBuilder.putImages(String.valueOf(image.getImageId()), image.getUserSuppliedName());
+		}
+		DocumentRecord documentRecord = documentRecordBuilder.build();
 
 		documentProducer.publishDocumentReady( documentRecord );
 
@@ -162,8 +169,7 @@ public class DocumentController
 	}
 
 	@GetMapping( "/{docId}/render" )
-	public ResponseEntity<Resource> getRenderedDocument ( @PathVariable String docId ) throws MalformedURLException
-	{
+	public ResponseEntity<Resource> getRenderedDocument ( @PathVariable String docId ) {
 		if ( ObjectUtils.isEmpty( docId ) )
 		{
 			return ResponseEntity.badRequest().build();

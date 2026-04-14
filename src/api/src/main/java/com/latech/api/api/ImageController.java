@@ -1,7 +1,10 @@
 package com.latech.api.api;
 
+import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.latech.api.business.ImageService;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,8 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping( "api/document/{docId}/image" )
 public class ImageController
 {
+	private final ImageService imageService;
 
-	@PostMapping( value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
+    public ImageController(ImageService imageService) {
+        this.imageService = imageService;
+    }
+
+    @PostMapping( value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
 	public ResponseEntity<String> uploadImage (
 			@PathVariable String docId,
 			@RequestParam( "file" ) MultipartFile file,
@@ -39,8 +47,22 @@ public class ImageController
 			return ResponseEntity.badRequest().body( "Please select a file to upload." );
 		}
 
-		// Todo Logic to save file to minio: file.getInputStream() or file.transferTo()
-		return ResponseEntity.ok( "File uploaded: " + file.getOriginalFilename() );
+		if (name.isEmpty())
+		{
+			return ResponseEntity.badRequest().body( " Filename is empty ");
+		}
+
+		//TODO: Check filetype in a way the user can't spoof and reject anything but images.
+		// and probably implement a file-size-limit.
+
+		try {
+			this.imageService.uploadImage(UUID.fromString(docId), name, file);
+		} catch (IOException e) {
+            log.error("Exception while uploading file: {}", String.valueOf(e));
+			return ResponseEntity.internalServerError().body( "Error while uploading file");
+		}
+
+		return ResponseEntity.ok("File uploaded: " + file.getOriginalFilename());
 	}
 
 	@GetMapping( value = "{imageId}" )
@@ -55,8 +77,8 @@ public class ImageController
 		{
 			return ResponseEntity.badRequest().body( null );
 		}
-		// Todo Logic to get file bytes from minio
-		byte[] imageBytes = new byte[1000];
+
+		byte[] imageBytes = this.imageService.downloadImage(UUID.fromString(docId), imageId);
 
 		if ( imageBytes == null || imageBytes.length == 0 )
 		{

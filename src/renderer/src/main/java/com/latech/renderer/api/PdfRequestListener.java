@@ -57,13 +57,13 @@ public class PdfRequestListener
                     .setSeconds(Instant.now().getEpochSecond())
                     .setNanos(Instant.now().getNano())
                     .build();
-            log.info("pdfPath: " + pdfPath);
 
             String payloadS3Key = payload.getDocumentId() + ".pdf";
 
             s3.putObject(
                     b -> b.bucket(S3_BUCKET_NAME).key(payloadS3Key),
                     pdfPath);
+            log.info("Saved document {} to s3 with key: {}.", pdfPath, payloadS3Key);
 
             this.pdfCompiledMessageProducer.handlePdfCompiled(
                     payload.getRenderId(),
