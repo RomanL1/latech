@@ -17,7 +17,7 @@ message DocumentRecord {
   // String containing entire latex document as string
   string latex_content = 3;
 
-  // s3-key uuid -> raw .tex-name and user supplied name
+  // s3-key uuid -> raw .tex-name (i.e. the user supplied name)
   map<string, string> images = 4;
 }
 
