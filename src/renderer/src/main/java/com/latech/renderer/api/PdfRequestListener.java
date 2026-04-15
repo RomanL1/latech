@@ -79,11 +79,6 @@ public class PdfRequestListener
             } catch (IOException e) {
                 log.error("Could not delete directory: {}.", parent, e);
             }
-            //MANUALLY ACKNOWLEDGE (Success)
-            // 'false' means we only acknowledge this specific message
-            channel.basicAck( tag, false );
-
-
         }catch (Exception e){
             log.error( e.getMessage() );
 

@@ -64,11 +64,6 @@ public class PdfRenderedConsumer
 
 			renderedPdfTopicService.notifyAll( payload.getDocumentId(), pdfReadyMessage );
 			log.info( "Notified topic: {}",  payload.getDocumentId() );
-
-			// MANUALLY ACKNOWLEDGE (Success)
-			// 'false' means we only acknowledge this specific message
-			channel.basicAck( tag, false );
-
 		}
 		catch ( Exception e )
 		{
