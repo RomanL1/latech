@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,21 +13,21 @@ import java.util.UUID;
 @Service
 public class ImageService {
 
-    private final DocumentImageMappingService documentImageMappingService;
+    private final DocumentImageService documentImageService;
     private final S3StorageService s3StorageService;
 
-    public ImageService(DocumentImageMappingService documentImageMappingService, S3StorageService s3StorageService) {
-        this.documentImageMappingService = documentImageMappingService;
+    public ImageService(DocumentImageService documentImageService, S3StorageService s3StorageService) {
+        this.documentImageService = documentImageService;
         this.s3StorageService = s3StorageService;
     }
 
     public void uploadImage(UUID documentId, String name, MultipartFile file) throws IOException {
-        DocumentImage entry = this.documentImageMappingService.registerPicture(documentId, name);
+        DocumentImage entry = this.documentImageService.registerPicture(documentId, name);
         this.s3StorageService.upload(documentId, entry.getImageId(), file.getInputStream(), file.getSize());
     }
 
     public byte[] downloadImage(UUID documentId, String name){
-        Optional<DocumentImage> entry = this.documentImageMappingService
+        Optional<DocumentImage> entry = this.documentImageService
                                             .getPictureFromDocumentIdAndImageName(documentId, name);
         if (entry.isPresent()){
             return this.s3StorageService.download(documentId, entry.get().getImageId());

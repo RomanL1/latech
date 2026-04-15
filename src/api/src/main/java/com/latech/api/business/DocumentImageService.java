@@ -9,11 +9,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class DocumentImageMappingService {
+public class DocumentImageService {
 
     private final DocumentImagesRepository repository;
 
-    public DocumentImageMappingService(DocumentImagesRepository repository) {
+    public DocumentImageService(DocumentImagesRepository repository) {
         this.repository = repository;
     }
 

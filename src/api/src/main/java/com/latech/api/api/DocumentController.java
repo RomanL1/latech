@@ -1,20 +1,14 @@
 package com.latech.api.api;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.latech.api.business.DocumentImageMappingService;
-import com.latech.api.business.ImageService;
+import com.latech.api.business.DocumentImageService;
 import com.latech.api.model.db.DocumentImage;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +46,7 @@ public class DocumentController
 	private final DocumentRepository documentRepository;
 	private final DocumentProducer documentProducer;
 	private final S3Client s3Client;
-	private final DocumentImageMappingService documentImageMappingService;
+	private final DocumentImageService documentImageService;
 
 	public static String getDownloadPath ( String docId )
 	{
@@ -151,7 +145,7 @@ public class DocumentController
 		}
 
 		Document document = documentRepository.findById( documentId ).orElseThrow();
-		List<DocumentImage> documentImages = this.documentImageMappingService.getPicturesForDocument(documentId);
+		List<DocumentImage> documentImages = this.documentImageService.getPicturesForDocument(documentId);
 
 		DocumentRecord.Builder documentRecordBuilder = DocumentRecord.newBuilder()
 				.setRenderId( UUID.randomUUID().toString() )
