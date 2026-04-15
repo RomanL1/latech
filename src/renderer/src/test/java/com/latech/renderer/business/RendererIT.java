@@ -4,15 +4,19 @@ import com.latech.renderer.api.DocumentRecord;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 import static com.latech.renderer.config.RabbitMQConfig.*;
 
-public class ManualTrigger {
+public class RendererIT {
 
-    public static void main(String[] args) {
+    @Test
+    @Disabled
+    void fromMessageToSavedPDFIT() {
         DocumentRecord payload = DocumentRecord.newBuilder()
                 .setRenderId("render-" + java.util.UUID.randomUUID())
                 .setDocumentId("doc-" + java.util.UUID.randomUUID())
