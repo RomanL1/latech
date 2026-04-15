@@ -1,6 +1,7 @@
 package com.latech.api.business;
 
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,10 @@ public class S3StorageService {
 
     public S3StorageService(S3Client s3Client) {
         this.s3Client = s3Client;
+    }
 
+    @PostConstruct
+    void init(){
         try {
             s3Client.createBucket(b -> b.bucket(this.bucket));
         } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e) {
