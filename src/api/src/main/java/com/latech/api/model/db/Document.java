@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,4 +37,12 @@ public class Document
 
     @Column(name = "password")
     private String password;
+
+    private Instant lastChange;
+
+    private Instant lastCompile;
+
+    private String pdfPath;
+
+    private Instant compileAbandonedAt;
 }

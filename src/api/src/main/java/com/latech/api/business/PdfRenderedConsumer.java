@@ -2,36 +2,30 @@ package com.latech.api.business;
 
 import static com.latech.api.config.RabbitMQConfig.PDF_RENDERED;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import com.latech.api.model.db.Document;
+import com.latech.api.repository.DocumentRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.latech.api.api.DocumentController;
-import com.latech.api.model.api.PDFReadyMessageDto;
 import com.rabbitmq.client.Channel;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Instant;
+import java.util.UUID;
+
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class PdfRenderedConsumer
 {
 
-	private final RenderedPDFTopicService renderedPdfTopicService;
-
-
-	public PdfRenderedConsumer ( RenderedPDFTopicService renderedPdfTopicService )
-	{
-		this.renderedPdfTopicService = renderedPdfTopicService;
-	}
+	private final PdfRenderedNotifier pdfRenderedNotifier;
+	private final DocumentRepository documentRepository;
+	private final OngoingCompileTracker ongoingCompileTracker;
 
 	@RabbitListener( queues = PDF_RENDERED )
 	public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag )
@@ -49,20 +43,19 @@ public class PdfRenderedConsumer
 			log.info( "Pdf rendered error message: " + payload.getErrorMessage() );
 
 			if (payload.getFilePath().isEmpty()){
-				log.error("Pdf not saved: received empty path");
-				throw new RuntimeException("Received empty pdf-path for render-id: " + payload.getRenderId() + "." +
-											"Can't distribute pdf of document: " + payload.getDocumentId());
+				log.error("Received empty pdf-path for render-id: " + payload.getRenderId() + "." +
+						"Can't distribute pdf of document: " + payload.getDocumentId());
+				//don't notify user, don't delete job from ongoingCompileTracker: We get here while Spring handles reboots
+				//DocumentExchangeDlqListener should be doing that, since that's after spring has given up on retries.
 			}
-
-			String downloadUri = DocumentController.getDownloadPath( payload.getDocumentId() );
-
-			PDFReadyMessageDto pdfReadyMessage = PDFReadyMessageDto.builder()
-					.docId( payload.getDocumentId() )
-					.downloadPath( downloadUri )
-					.timestampUTC( System.currentTimeMillis() )
-					.build();
-
-			renderedPdfTopicService.notifyAll( payload.getDocumentId(), pdfReadyMessage );
+			Document document = documentRepository.findById(UUID.fromString(payload.getDocumentId())).orElseThrow();
+			document.setPdfPath(payload.getFilePath());
+			Instant compiledAtTimestamp = Instant.ofEpochSecond(payload.getRenderedTimestamp().getSeconds(), payload.getRenderedTimestamp().getNanos());
+			document.setLastCompile(compiledAtTimestamp);
+			document.setCompileAbandonedAt(null);
+			this.documentRepository.save(document);
+			this.ongoingCompileTracker.jobFinished(document.getId());
+			this.pdfRenderedNotifier.publish(payload.getDocumentId(), payload.getFilePath(), true, "");
 			log.info( "Notified topic: {}",  payload.getDocumentId() );
 		}
 		catch ( Exception e )
