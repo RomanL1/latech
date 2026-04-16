@@ -14,6 +14,7 @@ import org.springframework.messaging.handler.annotation.Header;
 
 import com.rabbitmq.client.Channel;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
@@ -31,19 +32,21 @@ import java.time.Instant;
 public class PdfRequestListener
 {
     private final PdfCompiledMessageProducer pdfCompiledMessageProducer;
-    private final S3Client s3;
+    private final S3Client s3Client;
 
     @Value("${seaweedfs.bucket}")
     private String bucket;
 
     public PdfRequestListener(PdfCompiledMessageProducer pdfCompiledMessageProducer, S3Client s3Client){
         this.pdfCompiledMessageProducer = pdfCompiledMessageProducer;
-        this.s3 = s3Client;
+        this.s3Client = s3Client;
+    }
 
+    @PostConstruct
+    void init(){
         try {
-            s3.createBucket(b -> b.bucket(this.bucket));
+            s3Client.createBucket(b -> b.bucket(this.bucket));
         } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e) {
-            // already exists, that's fine
             log.info("Bucket already exists, that's fine.");
         }
     }
@@ -63,8 +66,8 @@ public class PdfRequestListener
 
             String payloadS3Key = payload.getDocumentId() + ".pdf";
 
-            s3.putObject(
-                    b -> b.bucket(S3_BUCKET_NAME).key(payloadS3Key),
+            s3Client.putObject(
+                    b -> b.bucket(this.bucket).key(payloadS3Key),
                     pdfPath);
             log.info("Saved document {} to s3 with key: {}.", pdfPath, payloadS3Key);
 
