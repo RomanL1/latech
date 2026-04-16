@@ -66,6 +66,13 @@ ENV RABBITMQ_PORT="5672"
 ENV RABBITMQ_USERNAME="admin"
 ENV RABBITMQ_PASSWORD="your_secure_password_here"
 
+# SeaweedFS Configuration
+ENV SEAWEEDFS_HOST="localhost"
+ENV SEAWEEDFS_PORT="8333"
+ENV SEAWEEDFS_ACCESS_KEY="changeme"
+ENV SEAWEEDFS_SECRET_KEY="changeme"
+ENV SEAWEEDFS_BUCKET="renderer"
+
 EXPOSE ${PORT:-8080}
 
 COPY --from=build /app/build/libs/*.jar app.jar
