@@ -32,8 +32,7 @@ public class PdfRenderedStreamController
 			return null;
 		}
 
-		//timeout 2 minutes, frontend has to detect if stream is down and recreate it
-		final SseEmitter emitter = new SseEmitter( 30_000L );
+		final SseEmitter emitter = new SseEmitter( Long.MAX_VALUE );
 
 		renderedPdfTopicService.subscribeTo(  docId, emitter );
 
