@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import com.latech.api.business.*;
 import com.latech.api.model.db.DocumentImage;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +49,9 @@ public class DocumentController
 	private final DocumentImageService documentImageService;
 	private final PdfRenderedNotifier pdfRenderedNotifier;
 	private final OngoingCompileTracker ongoingCompileTracker;
+
+	@Value("${seaweedfs.bucket}")
+	private String bucket;
 
 	public static String getDownloadPath ( String docId )
 	{
@@ -193,7 +198,7 @@ public class DocumentController
 		String pdfKey = docId + ".pdf";
 		try {
 			ResponseInputStream<GetObjectResponse> s3Stream = s3Client.getObject(
-					b -> b.bucket("renderer").key(pdfKey)
+					b -> b.bucket(this.bucket).key(pdfKey)
 			);
 
 			GetObjectResponse metadata = s3Stream.response();
