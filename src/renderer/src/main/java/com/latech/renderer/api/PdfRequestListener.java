@@ -10,24 +10,39 @@ import com.latech.renderer.business.PdfCompiledMessageProducer;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.stereotype.Component;
 
 import com.rabbitmq.client.Channel;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 
 
-@Component
+@Service
 @Slf4j
 public class PdfRequestListener
 {
     private final PdfCompiledMessageProducer pdfCompiledMessageProducer;
+    private final S3Client s3;
+    private static final String S3_BUCKET_NAME = "renderer";
 
-    public PdfRequestListener(PdfCompiledMessageProducer pdfCompiledMessageProducer){
+    public PdfRequestListener(PdfCompiledMessageProducer pdfCompiledMessageProducer, S3Client s3Client){
         this.pdfCompiledMessageProducer = pdfCompiledMessageProducer;
+        this.s3 = s3Client;
+
+        try {
+            s3.createBucket(b -> b.bucket(S3_BUCKET_NAME));
+        } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e) {
+            // already exists, that's fine
+            log.info("Bucket already exists, that's fine.");
+        }
     }
 
     @RabbitListener( queues = DOCUMENT_EXCHANGE )
@@ -37,29 +52,33 @@ public class PdfRequestListener
             payload = DocumentRecord.parseFrom(payloadBytes);
             log.info("Received payload with documentId: " + payload.getDocumentId());
             Path pdfPath = NaivePDFJobWorker.compile(payload);
-            //do we timestamp here or right after the pdf is compiled?
+
             Timestamp timestamp = Timestamp.newBuilder()
                     .setSeconds(Instant.now().getEpochSecond())
                     .setNanos(Instant.now().getNano())
                     .build();
-            log.info("pdfPath: " + pdfPath);
-            //TODO(marc): save pdf with minIO here.
 
+            String payloadS3Key = payload.getDocumentId() + ".pdf";
+
+            s3.putObject(
+                    b -> b.bucket(S3_BUCKET_NAME).key(payloadS3Key),
+                    pdfPath);
+            log.info("Saved document {} to s3 with key: {}.", pdfPath, payloadS3Key);
 
             this.pdfCompiledMessageProducer.handlePdfCompiled(
                     payload.getRenderId(),
                     payload.getDocumentId(),
-                    String.valueOf(pdfPath),
+                    payloadS3Key,
                     timestamp,
                     SUCCESSFULLY_RENDERED,
                     "");
 
-
-            //MANUALLY ACKNOWLEDGE (Success)
-            // 'false' means we only acknowledge this specific message
-            channel.basicAck( tag, false );
-
-
+            Path parent = pdfPath.getParent();
+            try {
+                FileSystemUtils.deleteRecursively(parent);
+            } catch (IOException e) {
+                log.error("Could not delete directory: {}.", parent, e);
+            }
         }catch (Exception e){
             log.error( e.getMessage() );
 
@@ -76,10 +95,7 @@ public class PdfRequestListener
                     ERROR_WHILE_RENDERING,
                     e.getMessage());
 
-            // MANUALLY REJECT (Failure)
-            // 'false' (multiple) -> reject only this message
-            // 'false' (requeue) -> don't requeue, send to DLQ (because we configured a DLQ)
-            channel.basicReject( tag, false );
+            // DON'T MANUALLY REJECT here, spring handles this.
             throw e;
         }
     }

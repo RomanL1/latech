@@ -1,6 +1,13 @@
 package com.latech.api.api;
 
+import java.io.IOException;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import com.latech.api.business.DocumentImageService;
+import com.latech.api.business.ImageService;
+import com.latech.api.model.db.DocumentImage;
 
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -22,8 +29,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping( "api/document/{docId}/image" )
 public class ImageController
 {
+	private final ImageService imageService;
+	private final DocumentImageService documentImageService;
 
-	@PostMapping( value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
+	public ImageController(ImageService imageService, DocumentImageService documentImageService ) {
+        this.imageService = imageService;
+		this.documentImageService = documentImageService;
+	}
+
+    @PostMapping( value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
 	public ResponseEntity<String> uploadImage (
 			@PathVariable String docId,
 			@RequestParam( "file" ) MultipartFile file,
@@ -39,32 +53,60 @@ public class ImageController
 			return ResponseEntity.badRequest().body( "Please select a file to upload." );
 		}
 
-		// Todo Logic to save file to minio: file.getInputStream() or file.transferTo()
-		return ResponseEntity.ok( "File uploaded: " + file.getOriginalFilename() );
+		if (name.isEmpty())
+		{
+			return ResponseEntity.badRequest().body( " Filename is empty ");
+		}
+
+		String contentType = file.getContentType();
+		if ( contentType != null && !(contentType.equals( MediaType.IMAGE_PNG_VALUE ) || contentType.equals(
+				MediaType.IMAGE_JPEG_VALUE ) ) )
+		{
+			return ResponseEntity.badRequest().body( "Only PNG and JPEG images are allowed." );
+		}
+
+		try {
+			this.imageService.uploadImage(UUID.fromString(docId), name, file);
+		} catch (IOException e) {
+            log.error("Exception while uploading file: {}", String.valueOf(e));
+			return ResponseEntity.internalServerError().body( "Error while uploading file");
+		}
+
+		return ResponseEntity.ok("File uploaded: " + file.getOriginalFilename());
 	}
 
-	@GetMapping( value = "{imageId}" )
-	public ResponseEntity<byte[]> getDynamicImage ( @PathVariable String docId, @PathVariable String imageId )
+	@GetMapping( value = "{imageName}" )
+	public ResponseEntity<byte[]> getDynamicImage ( @PathVariable String docId, @PathVariable String imageName )
 	{
 		if ( ObjectUtils.isEmpty( docId ) )
 		{
 			return ResponseEntity.badRequest().body( null );
 		}
 
-		if ( ObjectUtils.isEmpty( imageId ) )
+		if ( ObjectUtils.isEmpty( imageName ) )
 		{
 			return ResponseEntity.badRequest().body( null );
 		}
-		// Todo Logic to get file bytes from minio
-		byte[] imageBytes = new byte[1000];
+
+		Optional<DocumentImage> picture = documentImageService.getPictureFromDocumentIdAndImageName(
+				UUID.fromString( docId ), imageName );
+
+		if ( picture.isEmpty() )
+		{
+			return ResponseEntity.notFound().build();
+		}
+
+		byte[] imageBytes = this.imageService.downloadImage(UUID.fromString(docId), imageName );
 
 		if ( imageBytes == null || imageBytes.length == 0 )
 		{
-			return ResponseEntity.status( HttpStatus.NOT_FOUND ).build();
+			return ResponseEntity.notFound().build();
 		}
 
+		MediaType mediaType = MediaType.parseMediaType( picture.get().getMimeType() );
+
 		return ResponseEntity.ok()
-				.contentType( MediaType.IMAGE_JPEG )
+				.contentType( mediaType )
 				.contentLength( imageBytes.length )
 				.cacheControl( CacheControl.maxAge( 1, TimeUnit.HOURS ).cachePublic() )
 				.body( imageBytes );

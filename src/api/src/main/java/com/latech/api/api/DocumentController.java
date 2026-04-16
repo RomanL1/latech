@@ -1,15 +1,14 @@
 package com.latech.api.api;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.latech.api.business.*;
+import com.latech.api.model.db.DocumentImage;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.latech.api.business.DocumentProducer;
-import com.latech.api.business.DocumentRecord;
 import com.latech.api.model.api.DocumentCreateRequestDto;
 import com.latech.api.model.api.DocumentCreateResponseDto;
 import com.latech.api.model.api.DocumentDto;
@@ -33,6 +30,10 @@ import com.latech.api.repository.DocumentRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,6 +43,10 @@ public class DocumentController
 {
 	private final DocumentRepository documentRepository;
 	private final DocumentProducer documentProducer;
+	private final S3Client s3Client;
+	private final DocumentImageService documentImageService;
+	private final PdfRenderedNotifier pdfRenderedNotifier;
+	private final OngoingCompileTracker ongoingCompileTracker;
 
 	public static String getDownloadPath ( String docId )
 	{
@@ -133,48 +138,75 @@ public class DocumentController
 			return ResponseEntity.badRequest().build();
 		}
 
-		UUID id = UUID.fromString( docId );
-		if ( !documentRepository.existsById( id ) )
+		UUID documentId = UUID.fromString( docId );
+		if ( !documentRepository.existsById( documentId ) )
 		{
 			return ResponseEntity.notFound().build();
 		}
 
-		Document document = documentRepository.findById( id ).orElseThrow();
+		Document document = documentRepository.findById( documentId ).orElseThrow();
 
-		DocumentRecord documentRecord = DocumentRecord.newBuilder()
+		//if there have been no changes since last compile
+		if (document.getLastCompile() != null &&
+				document.getLastChange() != null &&
+                document.getPdfPath() != null &&
+		    document.getLastCompile().isAfter(document.getLastChange())){
+			this.pdfRenderedNotifier.publish(docId, document.getPdfPath(), true, "");
+			return ResponseEntity.accepted().build();
+		}
+
+		//if we already queued a document for compilation
+		if (!this.ongoingCompileTracker.tryStartJob(documentId)){
+			return ResponseEntity.accepted().build();
+		}
+
+		//if a previous request was unable to be compiled 3 times, and there have been no changes since.
+		if (document.getCompileAbandonedAt() != null &&
+			document.getCompileAbandonedAt().isAfter(document.getLastChange())){
+			return ResponseEntity.unprocessableContent().build();
+		}
+
+		List<DocumentImage> documentImages = this.documentImageService.getPicturesForDocument(documentId);
+
+		DocumentRecord.Builder documentRecordBuilder = DocumentRecord.newBuilder()
 				.setRenderId( UUID.randomUUID().toString() )
 				.setDocumentId( document.getId().toString() )
-				.setLatexContent( document.getContent() != null ? document.getContent() : "" )
-				.addImageIds( UUID.randomUUID().toString() )
-				.addImageIds( UUID.randomUUID().toString() )
-				.addImageIds( UUID.randomUUID().toString() )
-				.build();
+				.setLatexContent( document.getContent() != null ? document.getContent() : "" );
 
-		documentProducer.publishDocumentReady( documentRecord );
+		for (DocumentImage image : documentImages){
+			documentRecordBuilder.putImages(String.valueOf(image.getImageId()), image.getUserSuppliedName());
+		}
+		DocumentRecord documentRecord = documentRecordBuilder.build();
+
+		documentProducer.publishDocumentReadyToRender( documentRecord );
 
 		return ResponseEntity.accepted().build();
 	}
 
 	@GetMapping( "/{docId}/render" )
-	public ResponseEntity<Resource> getRenderedDocument ( @PathVariable String docId ) throws MalformedURLException
-	{
+	public ResponseEntity<Resource> getRenderedDocument ( @PathVariable String docId ) {
 		if ( ObjectUtils.isEmpty( docId ) )
 		{
 			return ResponseEntity.badRequest().build();
 		}
 
-		Path pdfLocation = Paths.get( "data/" + docId + ".pdf" );
-		if ( !Files.exists( pdfLocation ) )
-		{
+		String pdfKey = docId + ".pdf";
+		try {
+			ResponseInputStream<GetObjectResponse> s3Stream = s3Client.getObject(
+					b -> b.bucket("renderer").key(pdfKey)
+			);
+
+			GetObjectResponse metadata = s3Stream.response();
+
+			return ResponseEntity.ok()
+					.contentType(MediaType.APPLICATION_PDF)
+					.contentLength(metadata.contentLength())
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + pdfKey + "\"")
+					.body(new InputStreamResource(s3Stream));
+
+		}catch (NoSuchKeyException e){
 			return ResponseEntity.notFound().build();
 		}
-
-		Resource resource = new UrlResource( pdfLocation.toUri() );
-
-		return ResponseEntity.ok()
-				.contentType( MediaType.APPLICATION_PDF )
-				.header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"" )
-				.body( resource );
 	}
 
 	private static DocumentCreateResponseDto getDocumentCreateResponseDto ( Document saved )

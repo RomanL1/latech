@@ -41,6 +41,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    implementation("software.amazon.awssdk:s3:2.42.32")
+    implementation platform('software.amazon.awssdk:bom:2.42.32')
 }
 
 protobuf {
