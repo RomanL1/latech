@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "documentimages")
+@Table(name = "documentimage")
 @Getter
 @Setter
 public class DocumentImage {
