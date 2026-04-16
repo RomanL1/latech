@@ -1,7 +1,7 @@
 package com.latech.api.business;
 
 import com.latech.api.model.db.DocumentImage;
-import com.latech.api.repository.DocumentImagesRepository;
+import com.latech.api.repository.DocumentImageRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,9 +11,9 @@ import java.util.UUID;
 @Service
 public class DocumentImageService {
 
-    private final DocumentImagesRepository repository;
+    private final DocumentImageRepository repository;
 
-    public DocumentImageService(DocumentImagesRepository repository) {
+    public DocumentImageService(DocumentImageRepository repository) {
         this.repository = repository;
     }
 
