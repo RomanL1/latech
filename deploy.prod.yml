@@ -34,6 +34,14 @@ services:
       - 'RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}'
       - 'RABBITMQ_PORT=5672'
       - 'RABBITMQ_USERNAME=${RABBITMQ_USER}'
+      - 'SEAWEEDFS_HOST=seaweedfs'
+      - 'SEAWEEDFS_PORT=8333'
+      - 'SEAWEEDFS_BUCKET=latech'
+      - 'SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}'
+      - 'SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}'
+    depends_on:
+      - rabbitmq
+      - seaweedfs
     restart: always
 
   rabbitmq:
@@ -70,11 +78,16 @@ services:
       - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
       - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
       - 'FRONTEND_URL=https://latech.app'
+      - 'SEAWEEDFS_HOST=seaweedfs'
+      - 'SEAWEEDFS_PORT=8333'
+      - 'SEAWEEDFS_BUCKET=latech'
+      - 'SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}'
+      - 'SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}'
     depends_on:
       - postgres
       - rabbitmq
+      - seaweedfs
     restart: always
-
 
   postgres:
     image: 'postgres:latest'
@@ -85,6 +98,19 @@ services:
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
     volumes:
       - postgres_data:/var/lib/postgresql
+    restart: unless-stopped
+
+  seaweedfs:
+    image: chrislusf/seaweedfs
+    environment:
+      - SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}
+      - SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}
+    volumes:
+      - seaweedfs-data:/data
+    entrypoint: >
+      sh -c "mkdir -p /etc/seaweedfs &&
+      echo '{\"identities\":[{\"name\":\"admin\",\"credentials\":[{\"accessKey\":\"'$$SEAWEEDFS_ACCESS_KEY'\",\"secretKey\":\"'$$SEAWEEDFS_SECRET_KEY'\"}],\"actions\":[\"Admin\",\"Read\",\"Write\"]}]}' > /etc/seaweedfs/s3.json &&
+      weed server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json"
     restart: unless-stopped
 
 volumes:
