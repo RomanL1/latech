@@ -4,11 +4,10 @@ import { Flex, Button, Text, Box } from '@radix-ui/themes';
 import { PDFViewer } from '@embedpdf/react-pdf-viewer';
 
 interface PDFPreviewProps {
-  pdocId: string;
+  docId: string;
 }
 
-const PDFPreview = ({ pdocId }: PDFPreviewProps) => {
-  const docId = pdocId || '13d76659-ff26-4f18-add5-04186a84a2a7'; // Default docId for testing
+const PDFPreview = ({ docId }: PDFPreviewProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
 

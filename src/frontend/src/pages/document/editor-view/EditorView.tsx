@@ -17,7 +17,7 @@ const EditorView = ({ selectedFile }: EditorViewProps) => {
       </Panel>
       <ResizeSeparator />
       <Panel collapsible className={styles.panel} minSize="20%">
-        <PDFPreview />
+        <PDFPreview docId="13d76659-ff26-4f18-add5-04186a84a2a7" />
       </Panel>
     </Group>
   );

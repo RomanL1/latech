@@ -15,10 +15,10 @@ export function getRenderedPDF(docId: string): Promise<Blob> {
   return fetch(`${documentUrl}${docId}/render`).then((res) => res.blob());
 }
 
-export function usePDFRenderQuery() {
+export function usePDFRenderQuery(docId: string) {
   return useQuery({
-    queryKey: ['pdfrender'],
-    queryFn: requestPDFRender,
+    queryKey: ['pdfrender', docId],
+    queryFn: () => requestPDFRender(docId),
   });
 }
 
