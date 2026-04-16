@@ -9,6 +9,7 @@ import com.latech.renderer.business.NaivePDFJobWorker;
 import com.latech.renderer.business.PdfCompiledMessageProducer;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 
 import com.rabbitmq.client.Channel;
@@ -31,14 +32,16 @@ public class PdfRequestListener
 {
     private final PdfCompiledMessageProducer pdfCompiledMessageProducer;
     private final S3Client s3;
-    private static final String S3_BUCKET_NAME = "renderer";
+
+    @Value("${seaweedfs.bucket}")
+    private String bucket;
 
     public PdfRequestListener(PdfCompiledMessageProducer pdfCompiledMessageProducer, S3Client s3Client){
         this.pdfCompiledMessageProducer = pdfCompiledMessageProducer;
         this.s3 = s3Client;
 
         try {
-            s3.createBucket(b -> b.bucket(S3_BUCKET_NAME));
+            s3.createBucket(b -> b.bucket(this.bucket));
         } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e) {
             // already exists, that's fine
             log.info("Bucket already exists, that's fine.");
