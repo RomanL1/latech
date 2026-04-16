@@ -1,5 +1,4 @@
-ALTER TABLE document
-    ADD COLUMN last_change  TIMESTAMPTZ,
-    ADD COLUMN last_compile TIMESTAMPTZ,
-    ADD COLUMN pdf_path TEXT,
-    ADD COLUMN compile_abandoned_at TIMESTAMPTZ;
+ALTER TABLE document ADD COLUMN last_change  TIMESTAMP WITH TIME ZONE;
+ALTER TABLE document ADD COLUMN last_compile TIMESTAMP WITH TIME ZONE;
+ALTER TABLE document ADD COLUMN pdf_path TEXT;
+ALTER TABLE document ADD COLUMN compile_abandoned_at TIMESTAMP WITH TIME ZONE;
