@@ -25,5 +25,3 @@ export function usePDFRenderQuery() {
 export function getPDFRenderedEventSource(docId: string): EventSource {
   return new EventSource(`${documentUrl}${docId}/stream-updates`);
 }
-
-
