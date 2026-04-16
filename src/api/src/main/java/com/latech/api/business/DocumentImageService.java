@@ -4,6 +4,7 @@ import com.latech.api.model.db.DocumentImage;
 import com.latech.api.repository.DocumentImageRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,10 +26,11 @@ public class DocumentImageService {
         return this.repository.findByDocumentIdAndUserSuppliedName(documentId, name);
     }
 
-    public DocumentImage registerPicture(UUID documentId, String userSuppliedName) {
+    public DocumentImage registerPicture(UUID documentId, String userSuppliedName, String mimeType) {
         DocumentImage picture = new DocumentImage();
         picture.setDocumentId(documentId);
         picture.setUserSuppliedName(userSuppliedName);
+        picture.setMimeType( mimeType );
         return repository.save(picture);
     }
 }

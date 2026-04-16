@@ -22,5 +22,16 @@ public class DocumentImage {
     @Column(nullable = false)
     private String userSuppliedName;
 
+    @Column(nullable = false)
+    private String mimeType;
+
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 }
