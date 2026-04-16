@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { getPDFRenderedEventSource, getRenderedPDF, requestPDFRender } from '../../../features/pdf-preview/api';
+import {
+  getPDFRenderedEventSource,
+  getRenderedPDF,
+  PDF_READY_MESSAGE_TYPE,
+  requestPDFRender,
+  type PDFReadyMessageDto,
+} from '../../../features/pdf-preview/api';
 import { Flex, Button, Text, Box } from '@radix-ui/themes';
 import { PDFViewer } from '@embedpdf/react-pdf-viewer';
 
@@ -20,7 +26,17 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
       console.log('EventSource opened');
     };
 
-    eventSource.addEventListener('pdf-ready', async () => {
+    eventSource.addEventListener(PDF_READY_MESSAGE_TYPE, async (event: MessageEvent) => {
+      //EventSource (Server-Sent Events) is a strictly text-based web protocol
+      const data: PDFReadyMessageDto = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      console.log('Parsed data:', data);
+
+      if (!data.success) {
+        console.error('Render unsuccessful:', data.errorMessage);
+        setIsRendering(false);
+        return;
+      }
+
       try {
         console.log('PDF ready');
         const blob = await getRenderedPDF(docId);
