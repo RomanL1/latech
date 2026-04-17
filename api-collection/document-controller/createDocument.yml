@@ -12,14 +12,15 @@ http:
     type: json
     data: |-
       {
-        "name": "FirstDocument"
+        "name": "FirstDocument",
+        "templateId": "4873d267-d356-47af-8c97-51983c3691c6"
       }
   auth: inherit
 
 runtime:
   scripts:
     - type: after-response
-      code: bru.setEnvVar('docId', res('uuid'))
+      code: bru.setEnvVar('docId', res('documentId'))
 
 settings:
   encodeUrl: true
