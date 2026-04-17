@@ -1,15 +1,13 @@
-CREATE TABLE document
-(
+CREATE TABLE document (
     id UUID PRIMARY KEY,
-    name     VARCHAR(255) NOT NULL,
-    content  TEXT,
+    name VARCHAR(255) NOT NULL,
+    content TEXT,
     password VARCHAR(255)
 );
 
-CREATE TABLE template
-(
+CREATE TABLE template (
     id UUID PRIMARY KEY,
-    name        VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     description VARCHAR(255),
-    content     TEXT
+    content TEXT
 );
