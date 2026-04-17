@@ -4,7 +4,8 @@ import lombok.Builder;
 
 @Builder
 public record PDFReadyMessageDto(String docId,
-								 boolean success,
-								 String errorMessage,
-								 String downloadPath,
-								 long timestampUTC){}
+                                 boolean success,
+                                 String errorMessage,
+                                 String downloadPath,
+                                 long timestampUTC) {
+}

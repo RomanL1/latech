@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface DocumentImageRepository extends JpaRepository<DocumentImage, UUID> {
-    Optional<DocumentImage> findByDocumentIdAndUserSuppliedName(UUID documentId, String name);
-    List<DocumentImage> findAllByDocumentId(UUID documentId);
+    Optional<DocumentImage> findByDocumentIdAndUserSuppliedName ( UUID documentId, String name );
+
+    List<DocumentImage> findAllByDocumentId ( UUID documentId );
 }

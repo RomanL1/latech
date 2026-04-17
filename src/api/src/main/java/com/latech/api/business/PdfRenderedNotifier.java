@@ -11,13 +11,13 @@ public class PdfRenderedNotifier {
 
     private final RenderedPDFTopicService renderedPDFTopicService;
 
-    public void publish(String docId, String docPath, boolean success, String errorMessage){
+    public void publish ( String docId, String docPath, boolean success, String errorMessage ) {
         String downloadUri = DocumentController.getDownloadPath( docPath );
 
         PDFReadyMessageDto pdfReadyMessage = PDFReadyMessageDto.builder()
                 .docId( docId )
-                .success(success)
-                .errorMessage(errorMessage)
+                .success( success )
+                .errorMessage( errorMessage )
                 .downloadPath( downloadUri )
                 .timestampUTC( System.currentTimeMillis() )
                 .build();

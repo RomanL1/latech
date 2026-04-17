@@ -14,10 +14,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class TemplateDto
-{
-	@Schema( types = { "string", "null" } )
-	private UUID templateId;
-	private String name;
-	private String description;
+public class TemplateDto {
+    @Schema( types = {"string", "null"} )
+    private UUID templateId;
+    private String name;
+    private String description;
 }

@@ -8,29 +8,29 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "documentimage")
+@Table( name = "documentimage" )
 @Getter
 @Setter
 public class DocumentImage {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue( strategy = GenerationType.UUID )
     private UUID imageId;
 
-    @Column(nullable = false)
+    @Column( nullable = false )
     private UUID documentId;
 
-    @Column(nullable = false)
+    @Column( nullable = false )
     private String userSuppliedName;
 
-    @Column(nullable = false)
+    @Column( nullable = false )
     private String mimeType;
 
-    @Column(nullable = false, updatable = false)
+    @Column( nullable = false, updatable = false )
     private Instant createdAt;
 
     @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
+    protected void onCreate () {
+        if ( createdAt == null ) {
             createdAt = Instant.now();
         }
     }
