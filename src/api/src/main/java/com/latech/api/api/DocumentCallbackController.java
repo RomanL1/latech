@@ -1,5 +1,6 @@
 package com.latech.api.api;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,6 +48,7 @@ public class DocumentCallbackController
 
 		Document document = documentOpt.get();
 		document.setContent( documentCallbackDto.getData() );
+		document.setLastChange( Instant.now() );
 		documentRepository.save( document );
 
 		return ResponseEntity.ok().build();
