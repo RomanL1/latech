@@ -18,8 +18,6 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
   const [isRendering, setIsRendering] = useState(false);
 
   useEffect(() => {
-    if (!docId) return;
-
     const eventSource = getPDFRenderedEventSource(docId);
 
     eventSource.onopen = () => {
@@ -71,8 +69,6 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
   }, [pdfUrl]);
 
   const handleRenderPDF = async () => {
-    if (!docId) return;
-
     setIsRendering(true);
 
     try {
