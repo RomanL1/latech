@@ -8,8 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class RabbitMQConfig
-{
+public class RabbitMQConfig {
 
     public static final String LATECH_TOPIC = "latech.topic";
 
@@ -24,33 +23,28 @@ public class RabbitMQConfig
     public static final String PDF_RENDERED_DLX = PDF_RENDERED + ".dlx";
 
     @Bean
-    public TopicExchange topic ()
-    {
+    public TopicExchange topic () {
         return new TopicExchange( LATECH_TOPIC );
     }
 
     @Bean
-    public TopicExchange documentExchangeDlx ()
-    {
+    public TopicExchange documentExchangeDlx () {
         return new TopicExchange( DOCUMENT_EXCHANGE_DLX );
     }
 
     @Bean
-    public Queue documentExchangeDlq ()
-    {
+    public Queue documentExchangeDlq () {
         return new Queue( DOCUMENT_EXCHANGE_DLQ, true );
     }
 
     @Bean
-    public Binding bindingDocumentExchangeDlq ()
-    {
+    public Binding bindingDocumentExchangeDlq () {
         return BindingBuilder.bind( documentExchangeDlq() ).to( documentExchangeDlx() )
                 .with( ROUTING_KEY_DOCUMENT_EXCHANGE );
     }
 
     @Bean
-    public Queue initiateDocumentExchangeQueue ()
-    {
+    public Queue initiateDocumentExchangeQueue () {
         return org.springframework.amqp.core.QueueBuilder.durable( DOCUMENT_EXCHANGE )
                 .withArgument( "x-dead-letter-exchange", DOCUMENT_EXCHANGE_DLX )
                 .withArgument( "x-dead-letter-routing-key", ROUTING_KEY_DOCUMENT_EXCHANGE )
@@ -58,33 +52,28 @@ public class RabbitMQConfig
     }
 
     @Bean
-    public Binding bindingDocumentExchangeQueue ()
-    {
+    public Binding bindingDocumentExchangeQueue () {
         return BindingBuilder.bind( initiateDocumentExchangeQueue() ).to( topic() )
                 .with( ROUTING_KEY_DOCUMENT_EXCHANGE );
     }
 
     @Bean
-    public TopicExchange pdfRenderedDlx ()
-    {
+    public TopicExchange pdfRenderedDlx () {
         return new TopicExchange( PDF_RENDERED_DLX );
     }
 
     @Bean
-    public Queue pdfRenderedDlq ()
-    {
+    public Queue pdfRenderedDlq () {
         return new Queue( PDF_RENDERED_DLQ, true );
     }
 
     @Bean
-    public Binding bindingPDFRenderedDlq ( Queue pdfRenderedDlq, TopicExchange pdfRenderedDlx )
-    {
+    public Binding bindingPDFRenderedDlq ( Queue pdfRenderedDlq, TopicExchange pdfRenderedDlx ) {
         return BindingBuilder.bind( pdfRenderedDlq ).to( pdfRenderedDlx ).with( ROUTING_KEY_PDF_RENDERED );
     }
 
     @Bean
-    public Queue initiatePDFRenderedQueue ()
-    {
+    public Queue initiatePDFRenderedQueue () {
         return org.springframework.amqp.core.QueueBuilder.durable( PDF_RENDERED )
                 .withArgument( "x-dead-letter-exchange", PDF_RENDERED_DLX )
                 .withArgument( "x-dead-letter-routing-key", ROUTING_KEY_PDF_RENDERED )
@@ -92,8 +81,7 @@ public class RabbitMQConfig
     }
 
     @Bean
-    public Binding bindingPDFRenderedQueue ()
-    {
+    public Binding bindingPDFRenderedQueue () {
         return BindingBuilder.bind( initiatePDFRenderedQueue() ).to( topic() )
                 .with( ROUTING_KEY_PDF_RENDERED );
     }

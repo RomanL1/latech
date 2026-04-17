@@ -12,27 +12,27 @@ import java.net.URI;
 
 @Configuration
 public class S3Config {
-    @Value("${seaweedfs.access-key}")
+    @Value( "${seaweedfs.access-key}" )
     private String accessKey;
 
-    @Value("${seaweedfs.secret-key}")
+    @Value( "${seaweedfs.secret-key}" )
     private String secretKey;
 
-    @Value("${seaweedfs.host}")
+    @Value( "${seaweedfs.host}" )
     private String host;
 
-    @Value("${seaweedfs.port}")
+    @Value( "${seaweedfs.port}" )
     private int port;
 
     @Bean
-    public S3Client s3Client() {
+    public S3Client s3Client () {
         return S3Client.builder()
-                .endpointOverride(URI.create("http://" + host + ":" + port))
-                .region(Region.EU_WEST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKey, secretKey)
-                ))
-                .forcePathStyle(true)                        // required — SeaweedFS doesn't do virtual-hosted style
+                .endpointOverride( URI.create( "http://" + host + ":" + port ) )
+                .region( Region.EU_WEST_1 )
+                .credentialsProvider( StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create( accessKey, secretKey )
+                ) )
+                .forcePathStyle( true )                        // required — SeaweedFS doesn't do virtual-hosted style
                 .build();
     }
 }
