@@ -4,12 +4,14 @@ import type { LatexFile } from '../sampleData';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
+import { useParams } from 'react-router';
 
 interface EditorViewProps {
   selectedFile: LatexFile;
 }
 
 const EditorView = ({ selectedFile }: EditorViewProps) => {
+  const { documentId } = useParams();
   return (
     <Group>
       <Panel minSize="30%" defaultSize="50%" className={styles.panel}>
@@ -17,7 +19,7 @@ const EditorView = ({ selectedFile }: EditorViewProps) => {
       </Panel>
       <ResizeSeparator />
       <Panel collapsible className={styles.panel} minSize="20%">
-        <PDFPreview />
+        {documentId ? <PDFPreview docId={documentId!} /> : <div>Document ID is missing</div>}
       </Panel>
     </Group>
   );

@@ -2,6 +2,7 @@ package com.latech.api.business;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -63,11 +64,10 @@ public class RenderedPDFTopicService
 							.name( "pdf-ready" )
 							.data( pdfReadyMessage, MediaType.APPLICATION_JSON )
 							.build() );
-					emitter.complete();
 				}
 				catch ( Exception e )
 				{
-					log.error( "Emitter error: ", e );
+					log.error( "Emitter error: {}", e.getMessage() );
 					docRegistry.get( docId ).remove( emitter );
 				}
 			} );
