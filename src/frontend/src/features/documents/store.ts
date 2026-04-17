@@ -4,7 +4,7 @@ const STORAGE_KEY = 'local_documents';
 
 export function getLocalDocuments(): DocumentMetadata[] {
   const documentsJson = localStorage.getItem(STORAGE_KEY)!;
-  const documents = JSON.parse(documentsJson) || [] as DocumentMetadata[];
+  const documents = (JSON.parse(documentsJson) || []) as DocumentMetadata[];
 
   return documents.map((document) => ({
     ...document,
