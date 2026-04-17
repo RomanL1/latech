@@ -29,7 +29,7 @@ public class DocumentExchangeDlqListener
     {
         Map<String, Object> headers = message.getMessageProperties().getHeaders();
 
-        String originalQueue = (String) headers.get( "x-death" ) != null
+        String originalQueue = headers.get( "x-death" ) != null
                 ? ((java.util.List<Map<String, Object>>) headers.get( "x-death" ))
                 .get( 0 ).get( "queue" ).toString()
                 : "unknown";

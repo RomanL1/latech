@@ -42,12 +42,16 @@ public class PdfRenderedConsumer
 			log.info( "Pdf rendered status: " + payload.getStatus() );
 			log.info( "Pdf rendered error message: " + payload.getErrorMessage() );
 
-			if (payload.getFilePath().isEmpty()){
-				log.error("Received empty pdf-path for render-id: " + payload.getRenderId() + "." +
-						"Can't distribute pdf of document: " + payload.getDocumentId());
-				//don't notify user, don't delete job from ongoingCompileTracker: We get here while Spring handles reboots
-				//DocumentExchangeDlqListener should be doing that, since that's after spring has given up on retries.
+			if (payload.getStatus() == PdfMetadata.Status.ERROR_WHILE_RENDERING ) {
+				if (payload.getFilePath().isEmpty()){
+					log.error("Received empty pdf-path for render-id: " + payload.getRenderId() + "." +
+							"Can't distribute pdf of document: " + payload.getDocumentId());
+					//don't notify user, don't delete job from ongoingCompileTracker: We get here while Spring handles reboots
+					//DocumentExchangeDlqListener should be doing that, since that's after spring has given up on retries.
+				}
+				return;
 			}
+
 			Document document = documentRepository.findById(UUID.fromString(payload.getDocumentId())).orElseThrow();
 			document.setPdfPath(payload.getFilePath());
 			Instant compiledAtTimestamp = Instant.ofEpochSecond(payload.getRenderedTimestamp().getSeconds(), payload.getRenderedTimestamp().getNanos());
