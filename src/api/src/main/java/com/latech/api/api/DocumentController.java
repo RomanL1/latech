@@ -29,6 +29,7 @@ import com.latech.api.model.api.DocumentDto;
 import com.latech.api.model.api.DocumentSecuredRequestDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
+import com.latech.api.repository.TemplateRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 public class DocumentController
 {
 	private final DocumentRepository documentRepository;
+	private final TemplateRepository templateRepository;
 	private final DocumentProducer documentProducer;
 	private final S3Client s3Client;
 	private final DocumentImageService documentImageService;
@@ -63,14 +65,17 @@ public class DocumentController
 			@RequestBody DocumentCreateRequestDto documentCreateRequestDto, UriComponentsBuilder uriBuilder )
 	{
 		if ( ObjectUtils.isEmpty( documentCreateRequestDto ) || ObjectUtils.isEmpty(
-				documentCreateRequestDto.getName() ) )
+				documentCreateRequestDto.name() ) )
 		{
 			return ResponseEntity.badRequest().build();
 		}
 
+		var template = templateRepository.getReferenceById(documentCreateRequestDto.templateId());
+
 		Document document = Document.builder()
-				.name( documentCreateRequestDto.getName() )
-				.password( documentCreateRequestDto.getPassword() )
+				.name( documentCreateRequestDto.name() )
+				.password( documentCreateRequestDto.password() )
+				.content( template.getContent() )
 				.build();
 
 		Document saved = documentRepository.save( document );
@@ -216,11 +221,7 @@ public class DocumentController
 
 	private static DocumentCreateResponseDto getDocumentCreateResponseDto ( Document saved )
 	{
-		DocumentCreateResponseDto dto = DocumentCreateResponseDto.builder()
-				.uuid( saved.getId().toString() )
-				.name( saved.getName() )
-				.build();
-		return dto;
+		return new DocumentCreateResponseDto(saved.getId(), saved.getName());
 	}
 
 	private static DocumentDto getDocumentDto ( Document document, boolean secured )

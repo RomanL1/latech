@@ -1,16 +1,5 @@
 package com.latech.api.model.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.UUID;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DocumentCreateResponseDto
-{
-	private String uuid;
-	private String name;
-}
+public record DocumentCreateResponseDto(UUID documentId, String name) {}

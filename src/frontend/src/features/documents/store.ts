@@ -10,7 +10,12 @@ const fakeDocuments: DocumentMetadata[] = [
 
 export function getLocalDocuments(): DocumentMetadata[] {
   const documentsJson = localStorage.getItem(STORAGE_KEY)!;
-  return (JSON.parse(documentsJson) || fakeDocuments) as DocumentMetadata[];
+  const documents = (JSON.parse(documentsJson) || fakeDocuments) as DocumentMetadata[];
+
+  return documents.map((document) => ({
+    ...document,
+    lastEdited: new Date(document.lastEdited),
+  }));
 }
 
 export function storeDocument(document: DocumentMetadata) {
