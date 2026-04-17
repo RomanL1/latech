@@ -25,7 +25,13 @@ export function CreateDocumentSidebar({ selectedTemplate, onSubmit }: CreateDocu
       <SelectedTemplate template={selectedTemplate} />
 
       <div className={styles.actions}>
-        <Button size="3" className={styles.createButton} onClick={onSubmit} disabled={!form.formState.isValid}>
+        <Button
+          size="3"
+          type="button"
+          className={styles.createButton}
+          onClick={onSubmit}
+          disabled={!form.formState.isValid}
+        >
           <FilePlusCornerIcon />
           Create document
         </Button>
