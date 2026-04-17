@@ -88,8 +88,8 @@ services:
       - "8888:8888" # filer
       - "8333:8333" # s3
     environment:
-      - SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}
-      - SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}
+      - SEAWEEDFS_ACCESS_KEY=changeme
+      - SEAWEEDFS_SECRET_KEY=changeme
     volumes:
       - seaweedfs-data:/data
     entrypoint: >
