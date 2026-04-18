@@ -14,7 +14,7 @@ const CurrentEditors = ({ className = '', editors }: CurrentEditorProps) => {
     <div className={`${className} ${styles.container}`}>
       {editors.slice(0, 2).map((editor) => (
         <Avatar
-          size="3"
+          size="2"
           key={editor.id}
           fallback={<EditorAvatarText editorName={editor.name[0]} />}
           radius="full"
@@ -27,7 +27,7 @@ const CurrentEditors = ({ className = '', editors }: CurrentEditorProps) => {
 
       {editors.length > 2 && (
         <Avatar
-          size="3"
+          size="2"
           fallback={<EditorAvatarText editorName={'+' + otherEditorCount} />}
           radius="full"
           className={styles.avatar}
@@ -44,7 +44,7 @@ interface EditorAvatarProps {
 }
 
 const EditorAvatarText = ({ editorName }: EditorAvatarProps) => {
-  return <Text size="2">{editorName}</Text>;
+  return <Text size="1">{editorName}</Text>;
 };
 
 export default CurrentEditors;

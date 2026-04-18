@@ -7,5 +7,5 @@
 .main {
   flex: 1;
   min-height: 0;
-  margin-top: var(--header-height);
+  /* margin-top: var(--header-height); */
 }
