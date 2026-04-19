@@ -30,7 +30,7 @@ function LatexEditor({ content }: LatexEditorProps) {
     const yText = yDoc.getText('monaco');
     if (content && content.length === 0) yText.insert(0, content);
 
-    const yProvider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, 'monaco', yDoc);
+    const yProvider = new WebsocketProvider(window.ENV.VITE_WS_HOST, 'monaco', yDoc);
 
     setYProvider(yProvider);
 

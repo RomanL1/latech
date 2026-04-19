@@ -8,14 +8,6 @@ http:
   url: "{{baseUrl}}/api/document/{{docId}}/images"
   auth: inherit
 
-runtime:
-  scripts:
-    - type: after-response
-      code: |-
-        const body = res.getBody();
-        const imageId = body[0]?.id;
-        bru.setVar("imageId", imageId);
-
 settings:
   encodeUrl: true
   timeout: 0

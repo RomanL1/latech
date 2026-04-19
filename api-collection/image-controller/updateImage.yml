@@ -4,7 +4,7 @@ info:
   seq: 5
 
 http:
-  method: GET
+  method: PUT
   url: "{{baseUrl}}/api/document/:docId/images/:imageId"
   params:
     - name: docId
@@ -17,7 +17,7 @@ http:
     type: json
     data: |-
       {
-        name: "Test"
+        "name": "Test3.png"
       }
   auth: inherit
 
