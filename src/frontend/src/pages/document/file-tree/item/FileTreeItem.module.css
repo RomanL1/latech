@@ -23,8 +23,13 @@
   }
 }
 
+.icon {
+  flex-shrink: 0;
+}
+
 .dotMenu {
   display: none;
   margin-left: auto;
   cursor: pointer;
+  flex-shrink: 0;
 }

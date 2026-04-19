@@ -1,5 +1,5 @@
 info:
-  name: getDynamicImage
+  name: singleImage
   type: http
   seq: 2
   tags:

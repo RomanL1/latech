@@ -2,3 +2,5 @@ name: localhost
 variables:
   - name: baseUrl
     value: http://localhost:5001
+  - name: docId
+    value: fbd63f90-8d0e-4de8-8c91-90e290772bfb

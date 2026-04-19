@@ -9,3 +9,10 @@ export interface DocumentCreation {
   password: string | null;
   templateId: string;
 }
+
+export interface DocumentImage {
+  id: string;
+  name: string;
+  mimeType: string;
+  url: string;
+}

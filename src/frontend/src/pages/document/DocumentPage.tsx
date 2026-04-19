@@ -1,16 +1,15 @@
 import { Group, Panel, useDefaultLayout, useGroupRef } from 'react-resizable-panels';
 import { useState } from 'react';
 import ImagePreview from './image-preview/ImagePreview';
-import type { SampleFile } from './sampleData';
-import EditorView from './editor-view/EditorView';
 import styles from './DocumentPage.module.css';
 import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
 import { Tabs } from '@radix-ui/themes';
 import { LucideFile, LucideSettings } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
+import type { DocumentImage } from '../../features/documents/document';
 
 export function DocumentPage() {
-  const [selectedFile, setSelectedFile] = useState<SampleFile>();
+  const [selectedFile, setSelectedFile] = useState<DocumentImage | undefined>();
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: 'document-page-layout',
     storage: localStorage,
@@ -64,12 +63,12 @@ export function DocumentPage() {
         </Panel>
         <ResizeSeparator />
         <Panel id="main" minSize="20%">
-          {selectedFile &&
-            (selectedFile.type === 'image/jpeg' ? (
-              <ImagePreview selectedFile={selectedFile} />
-            ) : (
-              <EditorView selectedFile={selectedFile} />
-            ))}
+          {selectedFile && (selectedFile.mimeType === 'image/jpeg' || selectedFile.mimeType === 'image/png') ? (
+            <ImagePreview selectedFile={selectedFile} />
+          ) : (
+            <div>Not supported yet</div>
+            // <EditorView selectedFile={selectedFile} />
+          )}
         </Panel>
       </Group>
     </Tabs.Root>

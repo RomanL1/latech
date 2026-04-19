@@ -1,5 +1,5 @@
 info:
-  name: uploadImage
+  name: uploadImages
   type: http
   seq: 1
   tags:
@@ -7,22 +7,23 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/document/:docId/image/upload?name=test"
-  params:
-    - name: name
-      value: test
-      type: query
-    - name: docId
-      value: 7c49b93e-0a52-4207-ac73-00f2089f1d9b
-      type: path
+  url: "{{baseUrl}}/api/document/{{docId}}/images/upload"
   body:
     type: multipart-form
     data:
-      - name: file
+      - name: files
         type: file
         value:
-          - /Users/roman/Downloads/2024-08-04 ID_b (1).jpg
+          - /Users/gregorlazzarato/Downloads/Unbenanntes Diagramm.drawio (1).png
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+        const imageId = body[0]?.id;
+        bru.setVar("imageId", imageId);
 
 settings:
   encodeUrl: true
