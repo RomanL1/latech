@@ -7,10 +7,10 @@ import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
 import { ThemeContext } from '@radix-ui/themes';
 
 interface LatexEditorProps {
-  texFile: string | undefined;
+  content: string | undefined;
 }
 
-function LatexEditor({ texFile }: LatexEditorProps) {
+function LatexEditor({ content }: LatexEditorProps) {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const isEditorMount = useRef(false);
   const monaco = useMonaco();
@@ -44,17 +44,14 @@ function LatexEditor({ texFile }: LatexEditorProps) {
       return;
     }
 
-    console.log('after:', model.getLanguageId()); // should be "latex"
-
     isEditorMount.current = true;
 
     const ydoc = new Y.Doc();
     const ytext = ydoc.getText('monaco');
 
-    console.log('YTEXT', ytext);
-
-    if (ytext.length === 0 && texFile) {
-      ytext.insert(0, texFile);
+    if (ytext.length === 0 && content) {
+      console.log('INSERT');
+      ytext.insert(0, content);
     }
 
     const provider = new WebsocketProvider(window.ENV.VITE_WS_HOST, 'monaco', ydoc);
@@ -104,13 +101,13 @@ function LatexEditor({ texFile }: LatexEditorProps) {
       provider.destroy();
       undoManager.destroy();
     };
-  }, [editor, texFile, monaco, context]);
+  }, [editor, content, monaco, context]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
   };
 
-  return <Editor height="100%" defaultValue={texFile} defaultLanguage="latex" onMount={handleMount} />;
+  return <Editor height="100%" defaultValue="" defaultLanguage="latex" onMount={handleMount} />;
 }
 
 export default LatexEditor;

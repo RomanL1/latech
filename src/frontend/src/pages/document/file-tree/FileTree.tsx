@@ -58,6 +58,8 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
     if (selectedFile.type === 'image') {
       renameMutation.mutateAsync({ imageId: item.file.id, newName: newName });
     }
+
+    // TODO: handle renaming for tex document as well
   };
 
   const files: DocumentFile[] = [

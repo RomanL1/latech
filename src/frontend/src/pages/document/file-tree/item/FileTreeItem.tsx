@@ -2,7 +2,6 @@ import styles from './FileTreeItem.module.css';
 import { Text, TextField } from '@radix-ui/themes';
 import FileTreeItemDotMenu from './dot-menu/FileTreeItemDotMenu';
 import { useEffect, useRef, useState } from 'react';
-import { file } from 'zod';
 
 interface FileTreeItemProps {
   fileName: string;
