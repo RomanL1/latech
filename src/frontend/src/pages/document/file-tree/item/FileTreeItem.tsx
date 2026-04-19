@@ -2,27 +2,35 @@ import styles from './FileTreeItem.module.css';
 import { Text, TextField } from '@radix-ui/themes';
 import FileTreeItemDotMenu from './dot-menu/FileTreeItemDotMenu';
 import { useEffect, useRef, useState } from 'react';
-import type { DocumentImage } from '../../../../features/documents/document';
-import { useDeleteImage, useDownloadImage, useRenameImage } from '../../../../features/documents/api';
-import { useParams } from 'react-router';
+import { file } from 'zod';
 
 interface FileTreeItemProps {
-  file: DocumentImage;
+  fileName: string;
   icon: React.ReactNode;
   isSelected: boolean;
-  setSelectedFile: (file?: DocumentImage | undefined) => void;
+  onDelete: () => void;
   onClick: () => void;
+  onNameChange: (newName: string) => void;
+  onDownload: () => void;
+  canDelete?: boolean;
+  canDownload?: boolean;
 }
 
-const FileTreeItem = ({ file, icon, isSelected, onClick, setSelectedFile }: FileTreeItemProps) => {
+const FileTreeItem = ({
+  fileName,
+  icon,
+  isSelected,
+  onClick,
+  onDelete,
+  onNameChange: onRename,
+  onDownload,
+  canDelete,
+  canDownload,
+}: FileTreeItemProps) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const textFieldRef = useRef<HTMLInputElement>(null);
-  const [textFieldValue, setTextFieldValue] = useState(file.name);
+  const [textFieldValue, setTextFieldValue] = useState(fileName);
   const fileTreeItemRef = useRef<HTMLDivElement>(null);
-  const documentId = useParams().documentId!;
-  const deleteQuery = useDeleteImage(documentId);
-  const downloadMutation = useDownloadImage(documentId, file.name);
-  const renameMutation = useRenameImage(documentId, file.id);
 
   useEffect(() => {
     if (isRenaming) {
@@ -38,51 +46,33 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, setSelectedFile }: File
     if (isSelected && !isRenaming) {
       fileTreeItemRef.current?.focus();
     }
-  });
+  }, [isSelected, isRenaming]);
 
   const handleOnRename = () => {
     setIsRenaming(true);
   };
 
   const handleOnDownload = () => {
-    downloadMutation.mutateAsync(file.id);
+    onDownload();
   };
 
   const handleOnDelete = () => {
-    deleteQuery.mutateAsync(file.id).then(() => {
-      setSelectedFile(undefined);
-    });
+    onDelete();
   };
 
   const handleOnKeyUp = (e: React.KeyboardEvent) => {
-    console.log('KEY UP', e.key);
     if (e.key !== 'Enter') return;
 
     if (isRenaming) {
-      renameMutation
-        .mutateAsync(textFieldValue)
-        .then(() => {
-          setIsRenaming(false);
-        })
-        .catch(() => {
-          setTextFieldValue(file.name);
-          setIsRenaming(false);
-        });
+      onRename(textFieldValue);
     }
 
     setIsRenaming(!isRenaming);
   };
 
   const handleOnBlur = () => {
-    renameMutation
-      .mutateAsync(textFieldValue)
-      .then(() => {
-        setIsRenaming(false);
-      })
-      .catch(() => {
-        setTextFieldValue(file.name);
-        setIsRenaming(false);
-      });
+    setIsRenaming(false);
+    onRename(textFieldValue);
   };
 
   const handleOnNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +82,6 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, setSelectedFile }: File
   return (
     <div
       className={styles.container}
-      key={file.id}
       onClick={() => {
         onClick();
       }}
@@ -110,7 +99,6 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, setSelectedFile }: File
           value={textFieldValue}
           onChange={handleOnNameChange}
           onBlur={handleOnBlur}
-          onFocus={() => console.log('FOCUS')}
           ref={textFieldRef}
           onKeyUp={(e) => {
             e.stopPropagation();
@@ -120,7 +108,7 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, setSelectedFile }: File
         />
       ) : (
         <Text size="1" wrap="nowrap" truncate>
-          {file.name}
+          {fileName}
         </Text>
       )}
       <FileTreeItemDotMenu
@@ -128,6 +116,8 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, setSelectedFile }: File
         onRename={handleOnRename}
         onDownload={handleOnDownload}
         onDelete={handleOnDelete}
+        canDelete={canDelete}
+        canDownload={canDownload}
       />
     </div>
   );

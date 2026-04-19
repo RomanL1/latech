@@ -7,7 +7,7 @@ import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
 import { ThemeContext } from '@radix-ui/themes';
 
 interface LatexEditorProps {
-  texFile: string;
+  texFile: string | undefined;
 }
 
 function LatexEditor({ texFile }: LatexEditorProps) {
@@ -53,7 +53,7 @@ function LatexEditor({ texFile }: LatexEditorProps) {
 
     console.log('YTEXT', ytext);
 
-    if (ytext.length === 0) {
+    if (ytext.length === 0 && texFile) {
       ytext.insert(0, texFile);
     }
 

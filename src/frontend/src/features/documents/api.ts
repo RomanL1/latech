@@ -5,7 +5,7 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import type { DocumentCreation, DocumentImage } from './document';
+import type { Document, DocumentCreation, DocumentImage } from './document';
 import { storeDocument } from './store';
 
 const apiHost = window.ENV.VITE_API_HOST;
@@ -36,6 +36,24 @@ export function saveTemplate(document: DocumentCreation): Promise<CreateDocument
 
       return document;
     });
+}
+
+async function getDocument(documentId: string): Promise<Document> {
+  return fetch(`${documentUrl}/${documentId}`).then((response) => {
+    if (!response.ok) {
+      return response.json().then((errorData) => {
+        throw new Error(errorData.message || 'Failed to fetch document');
+      });
+    }
+    return response.json() as Promise<Document>;
+  });
+}
+
+export function useGetDocument(documentId: string): UseQueryResult<Document> {
+  return useQuery({
+    queryKey: ['document', documentId],
+    queryFn: () => getDocument(documentId),
+  });
 }
 
 async function postImages(documentId: string, files: File[]): Promise<void> {
@@ -122,29 +140,39 @@ async function renameImage(documentId: string, imageId: string, newName: string)
   });
 }
 
-export function useRenameImage(documentId: string, imageId: string): UseMutationResult<void, Error, string> {
+interface RenameImageDto {
+  imageId: string;
+  newName: string;
+}
+
+export function useRenameImage(documentId: string): UseMutationResult<void, Error, RenameImageDto> {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, string>({
-    mutationFn: (newName: string) => renameImage(documentId, imageId, newName),
+  return useMutation<void, Error, RenameImageDto>({
+    mutationFn: ({ newName, imageId }) => renameImage(documentId, imageId, newName),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['images', documentId] });
     },
   });
 }
 
-export function useDownloadImage(documentId: string, imageName: string): UseMutationResult<Blob, Error, string> {
-  return useMutation<Blob, Error, string>({
-    mutationFn: (imageId: string) => getImageBlob(documentId, imageId),
-    onSuccess: (blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = imageName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    },
+interface DownloadImageDto {
+  imageId: string;
+  imageName: string;
+}
+
+export function useDownloadImage(documentId: string): UseMutationResult<void, Error, DownloadImageDto> {
+  return useMutation<void, Error, DownloadImageDto>({
+    mutationFn: ({ imageId, imageName }) =>
+      getImageBlob(documentId, imageId).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = imageName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }),
   });
 }

@@ -16,3 +16,10 @@ export interface DocumentImage {
   mimeType: string;
   url: string;
 }
+
+export interface Document {
+  id: string;
+  name: string;
+  content: string;
+  secured: boolean;
+}

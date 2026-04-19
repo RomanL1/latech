@@ -20,11 +20,14 @@ const ImageDropzone = ({ onDrop }: ImageDropzoneProps) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleOnDrop,
     accept: {
-      'image/*': [],
+      'image/png': ['.png'],
+      'image/jpeg': ['.jpg', '.jpeg'],
     },
   });
 
-  const dropZoneText = isDragActive ? 'Release to upload your images' : 'Drag & drop images here';
+  const dropZoneText = isDragActive
+    ? 'Release to upload your images'
+    : 'Drag & drop images here or click to select files';
 
   return (
     <div {...getRootProps()} className={`${styles.dropzone} ${isDragActive ? styles.active : ''}`}>
@@ -34,7 +37,7 @@ const ImageDropzone = ({ onDrop }: ImageDropzoneProps) => {
         <div className={styles.textContent}>
           <Text>{dropZoneText}</Text>
           <Text color="gray" size="1" style={isDragActive ? { visibility: 'hidden' } : {}}>
-            or click to browse
+            (only .png, .jpg, .jpeg will be accepted)
           </Text>
         </div>
       </div>

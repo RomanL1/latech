@@ -6,9 +6,18 @@ interface FileTreeItemDotMenuProps {
   onRename?: () => void;
   onDownload?: () => void;
   onDelete?: () => void;
+  canDownload?: boolean;
+  canDelete?: boolean;
 }
 
-const FileTreeItemDotMenu = ({ className, onRename, onDownload, onDelete }: FileTreeItemDotMenuProps) => {
+const FileTreeItemDotMenu = ({
+  className,
+  onRename,
+  onDownload,
+  onDelete,
+  canDownload,
+  canDelete,
+}: FileTreeItemDotMenuProps) => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
@@ -27,6 +36,7 @@ const FileTreeItemDotMenu = ({ className, onRename, onDownload, onDelete }: File
           onSelect={() => {
             onDownload?.();
           }}
+          disabled={!canDownload}
         >
           Download
         </DropdownMenu.Item>
@@ -36,6 +46,7 @@ const FileTreeItemDotMenu = ({ className, onRename, onDownload, onDelete }: File
             onDelete?.();
           }}
           color="red"
+          disabled={!canDelete}
         >
           Delete
         </DropdownMenu.Item>

@@ -6,10 +6,13 @@ import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
 import { Tabs } from '@radix-ui/themes';
 import { LucideFile, LucideSettings } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
-import type { DocumentImage } from '../../features/documents/document';
+import type { Document, DocumentImage } from '../../features/documents/document';
+import EditorView from './editor-view/EditorView';
+
+export type DocumentFile = { type: 'image'; file: DocumentImage } | { type: 'tex'; file: Document };
 
 export function DocumentPage() {
-  const [selectedFile, setSelectedFile] = useState<DocumentImage | undefined>();
+  const [selectedFile, setSelectedFile] = useState<DocumentFile | undefined>();
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: 'document-page-layout',
     storage: localStorage,
@@ -63,12 +66,11 @@ export function DocumentPage() {
         </Panel>
         <ResizeSeparator />
         <Panel id="main" minSize="20%">
-          {selectedFile && (selectedFile.mimeType === 'image/jpeg' || selectedFile.mimeType === 'image/png') ? (
-            <ImagePreview selectedFile={selectedFile} />
-          ) : (
-            <div>Not supported yet</div>
-            // <EditorView selectedFile={selectedFile} />
-          )}
+          {selectedFile && selectedFile.type === 'image' ? (
+            <ImagePreview selectedFile={selectedFile.file} />
+          ) : selectedFile && selectedFile.type === 'tex' ? (
+            <EditorView selectedFile={selectedFile?.file} />
+          ) : null}
         </Panel>
       </Group>
     </Tabs.Root>
