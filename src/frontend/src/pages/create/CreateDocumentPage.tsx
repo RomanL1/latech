@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FormProvider } from 'react-hook-form';
-import type { DocumentCreation } from '../../features/documents/document';
+import { useNavigate } from 'react-router';
+import { saveTemplate } from '../../features/documents/api';
 import type { DocumentTemplate } from '../../features/templates/template';
 import styles from './CreateDocumentPage.module.css';
 import { useDocumentCreationForm } from './form';
@@ -11,14 +12,16 @@ export function CreateDocumentPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const form = useDocumentCreationForm();
 
+  const navigate = useNavigate();
+
   function handleSubmit() {
-    const document: DocumentCreation = {
+    const request = saveTemplate({
       name: form.getValues('documentName'),
       password: form.getValues('password'),
       templateId: form.getValues('templateId')!,
-    };
+    });
 
-    console.log(document);
+    request.then(({ documentId }) => navigate(`/document/${documentId}`)).catch();
   }
 
   function handleTemplateSelect(template: DocumentTemplate) {

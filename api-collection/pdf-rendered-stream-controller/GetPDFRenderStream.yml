@@ -1,0 +1,24 @@
+info:
+  name: GetPDFRenderStream
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/document/:docId/stream-updates"
+  headers:
+    - name: Accept
+      value: text/event-stream
+    - name: Cache-Control
+      value: no-cache
+  params:
+    - name: docId
+      value: "{{docId}}"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

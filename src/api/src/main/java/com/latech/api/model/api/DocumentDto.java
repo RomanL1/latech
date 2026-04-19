@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentDto
-{
-	private String id;
-	private String name;
-	private Boolean secured;
-	private String content;
+public class DocumentDto {
+    private String id;
+    private String name;
+    private Boolean secured;
+    private String content;
 }

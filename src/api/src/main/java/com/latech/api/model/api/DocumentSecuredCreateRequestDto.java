@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentSecuredCreateRequestDto
-{
-	private String name;
-	private String password;
+public class DocumentSecuredCreateRequestDto {
+    private String name;
+    private String password;
 }

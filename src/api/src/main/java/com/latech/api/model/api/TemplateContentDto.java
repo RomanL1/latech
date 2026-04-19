@@ -1,10 +1,6 @@
 package com.latech.api.model.api;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -13,7 +9,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @EqualsAndHashCode( callSuper = true )
-public class TemplateContentDto extends TemplateDto
-{
-	private String content;
+public class TemplateContentDto extends TemplateDto {
+    private String content;
 }

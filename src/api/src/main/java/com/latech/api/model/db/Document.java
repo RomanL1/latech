@@ -1,17 +1,10 @@
 package com.latech.api.model.db;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Builder
 @Getter
@@ -19,20 +12,27 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "document")
-public class Document
-{
+@Table( name = "document" )
+public class Document {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue( strategy = GenerationType.UUID )
     private UUID id;
 
-    @Column(nullable = false)
+    @Column( nullable = false )
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Column( columnDefinition = "TEXT" )
     private String content;
 
-    @Column(name = "password")
+    @Column( name = "password" )
     private String password;
+
+    private Instant lastChange;
+
+    private Instant lastCompile;
+
+    private String pdfPath;
+
+    private Instant compileAbandonedAt;
 }

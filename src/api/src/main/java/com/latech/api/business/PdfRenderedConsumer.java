@@ -1,116 +1,64 @@
 package com.latech.api.business;
 
-import static com.latech.api.config.RabbitMQConfig.PDF_RENDERED;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import com.latech.api.model.db.Document;
+import com.latech.api.repository.DocumentRepository;
+import com.rabbitmq.client.Channel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.latech.api.api.DocumentController;
-import com.latech.api.model.api.PDFReadyMessageDto;
-import com.rabbitmq.client.Channel;
+import java.time.Instant;
+import java.util.UUID;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.latech.api.config.RabbitMQConfig.PDF_RENDERED;
 
 @Component
 @Slf4j
-public class PdfRenderedConsumer
-{
+@RequiredArgsConstructor
+public class PdfRenderedConsumer {
 
-	private final RenderedPDFTopicService renderedPdfTopicService;
+    private final PdfRenderedNotifier pdfRenderedNotifier;
+    private final DocumentRepository documentRepository;
+    private final OngoingCompileTracker ongoingCompileTracker;
 
-	@Value( "${latech.renderer.url}" )
-	private String rendererUrl;
+    @RabbitListener( queues = PDF_RENDERED )
+    public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag ) throws Exception {
+        try {
+            PdfMetadata payload = PdfMetadata.parseFrom( payloadBytes );
+            // Process rendered document...
+            log.info( "Pdf rendered renderId: " + payload.getRenderId() );
+            log.info( "Pdf rendered documentId: " + payload.getDocumentId() );
+            log.info( "Pdf rendered timestamp: " + payload.getRenderedTimestamp() );
+            log.info( "Pdf rendered seaweedfs-key: " + payload.getFilePath() );
+            log.info( "Pdf rendered status: " + payload.getStatus() );
+            log.info( "Pdf rendered error message: " + payload.getErrorMessage() );
 
-	public PdfRenderedConsumer ( RenderedPDFTopicService renderedPdfTopicService )
-	{
-		this.renderedPdfTopicService = renderedPdfTopicService;
-	}
+            if ( payload.getStatus() == PdfMetadata.Status.ERROR_WHILE_RENDERING ) {
+                if ( payload.getFilePath().isEmpty() ) {
+                    log.error( "Received empty pdf-path for render-id: " + payload.getRenderId() + "." + "Can't distribute pdf of document: " + payload.getDocumentId() );
+                    //don't notify user, don't delete job from ongoingCompileTracker: We get here while Spring handles reboots
+                    //DocumentExchangeDlqListener should be doing that, since that's after spring has given up on retries.
+                }
+                return;
+            }
 
-	@RabbitListener( queues = PDF_RENDERED )
-	public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag )
-			throws Exception
-	{
-		try
-		{
-			PdfMetadata payload = PdfMetadata.parseFrom( payloadBytes );
-			// Process rendered document...
-			log.info( "Pdf rendered renderId: " + payload.getRenderId() );
-			log.info( "Pdf rendered documentId: " + payload.getDocumentId() );
-			log.info( "Pdf rendered timestamp: " + payload.getRenderedTimestamp() );
-			log.info( "Pdf rendered status: " + payload.getStatus() );
-			log.info( "Pdf rendered error message: " + payload.getErrorMessage() );
-
-			// Download the PDF from the renderer
-			try
-			{
-				RestTemplate restTemplate = new RestTemplate();
-				String downloadUrl = UriComponentsBuilder.fromUriString( rendererUrl )
-						.path( "/renderer/pdf" )
-						.queryParam( "filePath", payload.getFilePath() )
-						.toUriString();
-
-				log.info( "Downloading PDF from renderer at: {}", downloadUrl );
-				byte[] pdfBytes = restTemplate.getForObject( downloadUrl, byte[].class );
-
-				if ( pdfBytes != null )
-				{
-					log.info( "Successfully downloaded PDF, size: {} bytes", pdfBytes.length );
-
-					// TODO: process the downloaded pdfBytes (e.g. save to DB, MinIO, etc.)
-					Path dataDir = Path.of( "data" );
-					Files.createDirectories( dataDir );
-					Path destination = Paths.get( "data", payload.getDocumentId() + ".pdf" );
-					if ( Files.exists( destination ) )
-					{
-						Files.delete( destination );
-					}
-					Files.write( destination, pdfBytes );
-
-					log.info( "PDF saved to location: {}", destination.toAbsolutePath() );
-
-					String downloadUri = DocumentController.getDownloadPath( payload.getDocumentId() );
-
-					PDFReadyMessageDto pdfReadyMessage = PDFReadyMessageDto.builder()
-							.docId( payload.getDocumentId() )
-							.downloadPath( downloadUri )
-							.timestampUTC( System.currentTimeMillis() )
-							.build();
-
-					renderedPdfTopicService.notifyAll( payload.getDocumentId(), pdfReadyMessage );
-					log.info( "Notified topic: {}",  payload.getDocumentId() );
-				}
-				else
-				{
-					log.error( "Failed to download PDF: received null bytes" );
-				}
-			}
-			catch ( Exception e )
-			{
-				log.error( "Error downloading PDF from renderer: {}", e.getMessage(), e );
-			}
-
-			// MANUALLY ACKNOWLEDGE (Success)
-			// 'false' means we only acknowledge this specific message
-			channel.basicAck( tag, false );
-
-		}
-		catch ( Exception e )
-		{
-			// MANUALLY REJECT (Failure)
-			// 'false' (multiple) -> reject only this message
-			// 'false' (requeue) -> don't requeue, send to DLQ (because we configured a DLQ)
-			log.error( e.getMessage() );
-			channel.basicReject( tag, false );
-			throw e;
-		}
-	}
+            Document document = documentRepository.findById( UUID.fromString( payload.getDocumentId() ) ).orElseThrow();
+            document.setPdfPath( payload.getFilePath() );
+            Instant compiledAtTimestamp = Instant.ofEpochSecond( payload.getRenderedTimestamp()
+                    .getSeconds(), payload.getRenderedTimestamp().getNanos() );
+            document.setLastCompile( compiledAtTimestamp );
+            document.setCompileAbandonedAt( null );
+            this.documentRepository.save( document );
+            this.ongoingCompileTracker.jobFinished( document.getId() );
+            this.pdfRenderedNotifier.publish( payload.getDocumentId(), payload.getFilePath(), true, "" );
+            log.info( "Notified topic: {}", payload.getDocumentId() );
+        } catch ( Exception e ) {
+            //don't manually reject here, spring handles this for us since we throw.
+            log.error( e.getMessage() );
+            throw e;
+        }
+    }
 }

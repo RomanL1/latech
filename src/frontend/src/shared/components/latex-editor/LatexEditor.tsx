@@ -8,10 +8,10 @@ import { ThemeContext } from '@radix-ui/themes';
 import Cursors from './cursor/Cursors';
 
 interface LatexEditorProps {
-  texFile: string;
+  content: string | undefined;
 }
 
-function LatexEditor({ texFile }: LatexEditorProps) {
+function LatexEditor({ content }: LatexEditorProps) {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const [yProvider, setYProvider] = useState<WebsocketProvider>();
   const monaco = useMonaco();
@@ -28,7 +28,7 @@ function LatexEditor({ texFile }: LatexEditorProps) {
 
     const yDoc = new Y.Doc();
     const yText = yDoc.getText('monaco');
-    if (texFile.length === 0) yText.insert(0, texFile);
+    if (content && content.length === 0) yText.insert(0, content);
 
     const yProvider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, 'monaco', yDoc);
 
@@ -52,7 +52,7 @@ function LatexEditor({ texFile }: LatexEditorProps) {
       yDoc.destroy();
       undoManager.destroy();
     };
-  }, [texFile, editor, monaco]);
+  }, [content, editor, monaco, context]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
@@ -61,7 +61,7 @@ function LatexEditor({ texFile }: LatexEditorProps) {
   return (
     <>
       {yProvider ? <Cursors yProvider={yProvider} /> : null}
-      <Editor height="100%" defaultValue={texFile} defaultLanguage="latex" onMount={handleMount} />
+      <Editor height="100%" defaultValue={content} defaultLanguage="latex" onMount={handleMount} />
     </>
   );
 }

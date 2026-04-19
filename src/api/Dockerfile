@@ -20,11 +20,12 @@ RUN ./gradlew bootJar --no-daemon -x test
 FROM eclipse-temurin:25-jre
 WORKDIR /app
 
+ARG FRONTEND_URL
+
 # Environment variables from application.properties
 ENV SPRING_APPLICATION_NAME="latech-api"
 ENV RENDERER_URL="http://renderer:8090"
-ENV SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS="static://localhost:9090"
-ENV SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_NEGOTIATION_TYPE="plaintext"
+ENV FRONTEND_URL=$FRONTEND_URL
 
 # API Documentation (JSON/YAML)
 ENV SPRINGDOC_API_DOCS_PATH="/api-docs"
@@ -64,6 +65,13 @@ ENV RABBITMQ_HOST="localhost"
 ENV RABBITMQ_PORT="5672"
 ENV RABBITMQ_USERNAME="admin"
 ENV RABBITMQ_PASSWORD="your_secure_password_here"
+
+# SeaweedFS Configuration
+ENV SEAWEEDFS_HOST="localhost"
+ENV SEAWEEDFS_PORT="8333"
+ENV SEAWEEDFS_ACCESS_KEY="changeme"
+ENV SEAWEEDFS_SECRET_KEY="changeme"
+ENV SEAWEEDFS_BUCKET="renderer"
 
 EXPOSE ${PORT:-8080}
 

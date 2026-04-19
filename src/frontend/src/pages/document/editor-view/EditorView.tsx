@@ -1,17 +1,18 @@
 import { Group, Panel, type PanelImperativeHandle } from 'react-resizable-panels';
 import LatexEditor from '../../../shared/components/latex-editor/LatexEditor';
-import type { LatexFile } from '../sampleData';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
 import EditorHeader from './header/EditorHeader';
 import { useRef } from 'react';
+import { useParams } from 'react-router';
+import type { Document } from '../../../features/documents/document';
 
 interface EditorViewProps {
-  selectedFile: LatexFile;
+  file: Document | undefined;
 }
 
-const EditorView = ({ selectedFile }: EditorViewProps) => {
+const EditorView = ({ file }: EditorViewProps) => {
   const rightPanelRef = useRef<PanelImperativeHandle | null>(null);
 
   const handleSeparatorClick = () => {
@@ -25,16 +26,17 @@ const EditorView = ({ selectedFile }: EditorViewProps) => {
     }
   };
 
+  const { documentId } = useParams();
   return (
     <div className={styles.container}>
-      <EditorHeader file={selectedFile} />
+      <EditorHeader file={file} />
       <Group className={styles.panelGroup}>
         <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          <LatexEditor texFile={selectedFile.content} />
+          <LatexEditor content={file?.content} />
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>
-          <PDFPreview />
+          {documentId && <PDFPreview docId={documentId} />}
         </Panel>
       </Group>
     </div>

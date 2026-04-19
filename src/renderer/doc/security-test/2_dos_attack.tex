@@ -1,0 +1,17 @@
+\documentclass{article}
+
+\begin{document}
+
+\section*{Attack 2: Denial of Service (CPU Exhaustion)}
+
+This code defines a macro called ``\bomb`` that recursively calls itself twice. 
+When called, it begins an exponential expansion that will never terminate.
+
+Because the previous `NaivePDFJobWorker` used `process.waitFor(Duration)` but failed to call `process.destroy()` on timeout,
+this process will continue pegging the server's CPU at 100\% forever.
+
+% The actual bomb:
+\def\bomb{\bomb\bomb}
+\bomb
+
+\end{document}
