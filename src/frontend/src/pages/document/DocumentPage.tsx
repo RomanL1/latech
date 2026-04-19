@@ -3,11 +3,12 @@ import { useRef, useState } from 'react';
 import ImagePreview from './image-preview/ImagePreview';
 import styles from './DocumentPage.module.css';
 import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
-import { Tabs } from '@radix-ui/themes';
-import { LucideFile, LucideSettings } from 'lucide-react';
+import { Separator, Tabs } from '@radix-ui/themes';
+import { FileBracesCornerIcon, LucideFile, LucideSettings } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
 import type { Document, DocumentImage } from '../../features/documents/document';
 import EditorView from './editor-view/EditorView';
+import { useNavigate } from 'react-router';
 
 export type DocumentFile = { type: 'image'; file: DocumentImage } | { type: 'tex'; file: Document };
 
@@ -18,6 +19,7 @@ export function DocumentPage() {
     storage: localStorage,
   });
   const leftPanelRef = useRef<PanelImperativeHandle | null>(null);
+  const nav = useNavigate();
 
   const handleSeparatorClick = () => {
     const panel = leftPanelRef.current;
@@ -48,6 +50,10 @@ export function DocumentPage() {
     }
   };
 
+  const handleHomeClick = () => {
+    nav('/');
+  };
+
   return (
     <Tabs.Root
       defaultValue="file"
@@ -57,6 +63,7 @@ export function DocumentPage() {
       className={styles.tabsRoot}
     >
       <Tabs.List className={styles.tabsList}>
+        <FileBracesCornerIcon className={styles.homeIcon} onClick={handleHomeClick} size={30} />
         <Tabs.Trigger value="file">
           <LucideFile />
         </Tabs.Trigger>
