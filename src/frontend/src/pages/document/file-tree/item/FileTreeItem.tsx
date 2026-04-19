@@ -1,21 +1,34 @@
 import styles from './FileTreeItem.module.css';
 import { Text, TextField } from '@radix-ui/themes';
-import type { SampleFile } from '../../sampleData';
 import FileTreeItemDotMenu from './dot-menu/FileTreeItemDotMenu';
 import { useEffect, useRef, useState } from 'react';
 
 interface FileTreeItemProps {
-  file: SampleFile;
+  fileName: string;
   icon: React.ReactNode;
   isSelected: boolean;
+  onDelete: () => void;
   onClick: () => void;
-  onRename?: (newName: string) => void;
+  onNameChange: (newName: string) => void;
+  onDownload: () => void;
+  canDelete?: boolean;
+  canDownload?: boolean;
 }
 
-const FileTreeItem = ({ file, icon, isSelected, onClick, onRename }: FileTreeItemProps) => {
+const FileTreeItem = ({
+  fileName,
+  icon,
+  isSelected,
+  onClick,
+  onDelete,
+  onNameChange: onRename,
+  onDownload,
+  canDelete,
+  canDownload,
+}: FileTreeItemProps) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const textFieldRef = useRef<HTMLInputElement>(null);
-  const [textFieldValue, setTextFieldValue] = useState(file.name);
+  const [textFieldValue, setTextFieldValue] = useState(fileName);
   const fileTreeItemRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,27 +45,25 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, onRename }: FileTreeIte
     if (isSelected && !isRenaming) {
       fileTreeItemRef.current?.focus();
     }
-  });
+  }, [isSelected, isRenaming]);
 
   const handleOnRename = () => {
-    console.log('Rename', file);
     setIsRenaming(true);
   };
 
   const handleOnDownload = () => {
-    console.log('Download', file);
+    onDownload();
   };
 
   const handleOnDelete = () => {
-    console.log('Delete', file);
+    onDelete();
   };
 
   const handleOnKeyUp = (e: React.KeyboardEvent) => {
-    console.log('KEY UP', e.key);
     if (e.key !== 'Enter') return;
 
     if (isRenaming) {
-      onRename?.(textFieldValue);
+      onRename(textFieldValue);
     }
 
     setIsRenaming(!isRenaming);
@@ -60,13 +71,16 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, onRename }: FileTreeIte
 
   const handleOnBlur = () => {
     setIsRenaming(false);
-    onRename?.(textFieldValue);
+    onRename(textFieldValue);
+  };
+
+  const handleOnNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTextFieldValue(e.target.value);
   };
 
   return (
     <div
       className={styles.container}
-      key={file.id}
       onClick={() => {
         onClick();
       }}
@@ -76,15 +90,14 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, onRename }: FileTreeIte
       tabIndex={0}
       ref={fileTreeItemRef}
     >
-      {icon}
+      {icon && <div className={styles.icon}>{icon}</div>}
       {isRenaming ? (
         <TextField.Root
           className={styles.textField}
           size="1"
           value={textFieldValue}
-          onChange={(e) => setTextFieldValue(e.target.value)}
+          onChange={handleOnNameChange}
           onBlur={handleOnBlur}
-          onFocus={() => console.log('FOCUS')}
           ref={textFieldRef}
           onKeyUp={(e) => {
             e.stopPropagation();
@@ -93,8 +106,8 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, onRename }: FileTreeIte
           autoFocus
         />
       ) : (
-        <Text size="1" wrap="nowrap">
-          {file.name}
+        <Text size="1" wrap="nowrap" truncate>
+          {fileName}
         </Text>
       )}
       <FileTreeItemDotMenu
@@ -102,6 +115,8 @@ const FileTreeItem = ({ file, icon, isSelected, onClick, onRename }: FileTreeIte
         onRename={handleOnRename}
         onDownload={handleOnDownload}
         onDelete={handleOnDelete}
+        canDelete={canDelete}
+        canDownload={canDownload}
       />
     </div>
   );

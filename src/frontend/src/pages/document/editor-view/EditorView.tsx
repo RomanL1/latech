@@ -1,13 +1,13 @@
 import { Group, Panel } from 'react-resizable-panels';
 import LatexEditor from '../../../shared/components/LatexEditor';
-import type { LatexFile } from '../sampleData';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
 import { useParams } from 'react-router';
+import type { Document } from '../../../features/documents/document';
 
 interface EditorViewProps {
-  selectedFile: LatexFile;
+  selectedFile: Document | undefined;
 }
 
 const EditorView = ({ selectedFile }: EditorViewProps) => {
@@ -15,11 +15,11 @@ const EditorView = ({ selectedFile }: EditorViewProps) => {
   return (
     <Group>
       <Panel minSize="30%" defaultSize="50%" className={styles.panel}>
-        <LatexEditor texFile={selectedFile.content} />
+        <LatexEditor content={selectedFile?.content} />
       </Panel>
       <ResizeSeparator />
       <Panel collapsible className={styles.panel} minSize="20%">
-        {documentId ? <PDFPreview docId={documentId!} /> : <div>Document ID is missing</div>}
+        {documentId && <PDFPreview docId={documentId} />}
       </Panel>
     </Group>
   );

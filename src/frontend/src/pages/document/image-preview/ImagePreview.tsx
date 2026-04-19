@@ -1,14 +1,16 @@
-import type { ImageFile } from '../sampleData';
+import type { DocumentImage } from '../../../features/documents/document';
 import styles from './ImagePreview.module.css';
 
 interface ImagePreviewProps {
-  selectedFile?: ImageFile;
+  selectedFile?: DocumentImage;
 }
+
+const apiHost = window.ENV.VITE_API_HOST;
 
 const ImagePreview = ({ selectedFile }: ImagePreviewProps) => {
   return (
     <div className={styles.container}>
-      <img src={selectedFile?.path} alt="Preview" />
+      <img src={apiHost + selectedFile?.url} alt="Preview" />
     </div>
   );
 };

@@ -1,16 +1,18 @@
 import { Group, Panel, useDefaultLayout, useGroupRef } from 'react-resizable-panels';
 import { useState } from 'react';
 import ImagePreview from './image-preview/ImagePreview';
-import type { SampleFile } from './sampleData';
-import EditorView from './editor-view/EditorView';
 import styles from './DocumentPage.module.css';
 import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
 import { Tabs } from '@radix-ui/themes';
 import { LucideFile, LucideSettings } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
+import type { Document, DocumentImage } from '../../features/documents/document';
+import EditorView from './editor-view/EditorView';
+
+export type DocumentFile = { type: 'image'; file: DocumentImage } | { type: 'tex'; file: Document };
 
 export function DocumentPage() {
-  const [selectedFile, setSelectedFile] = useState<SampleFile>();
+  const [selectedFile, setSelectedFile] = useState<DocumentFile | undefined>();
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: 'document-page-layout',
     storage: localStorage,
@@ -64,12 +66,11 @@ export function DocumentPage() {
         </Panel>
         <ResizeSeparator />
         <Panel id="main" minSize="20%">
-          {selectedFile &&
-            (selectedFile.type === 'image/jpeg' ? (
-              <ImagePreview selectedFile={selectedFile} />
-            ) : (
-              <EditorView selectedFile={selectedFile} />
-            ))}
+          {selectedFile && selectedFile.type === 'image' ? (
+            <ImagePreview selectedFile={selectedFile.file} />
+          ) : selectedFile && selectedFile.type === 'tex' ? (
+            <EditorView selectedFile={selectedFile?.file} />
+          ) : null}
         </Panel>
       </Group>
     </Tabs.Root>

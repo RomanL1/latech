@@ -1,0 +1,28 @@
+info:
+  name: updateImage
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/document/:docId/images/:imageId"
+  params:
+    - name: docId
+      value: "{{docId}}"
+      type: path
+    - name: imageId
+      value: "{{imageId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        name: "Test"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
