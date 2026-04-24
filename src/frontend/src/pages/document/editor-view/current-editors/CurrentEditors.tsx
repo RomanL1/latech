@@ -21,7 +21,7 @@ const CurrentEditors = ({ className = '', editors }: CurrentEditorProps) => {
           className={styles.avatar}
           variant="solid"
           // TODO: umbauen
-          color={editor.color}
+          // color={editor.color}
         />
       ))}
 

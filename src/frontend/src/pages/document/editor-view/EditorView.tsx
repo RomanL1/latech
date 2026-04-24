@@ -32,7 +32,7 @@ const EditorView = ({ file }: EditorViewProps) => {
       <EditorHeader file={file} />
       <Group className={styles.panelGroup}>
         <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          {documentId && <LatexEditor roomId={documentId} content={file?.content} />}
+          {documentId && <LatexEditor content={file?.content} />}
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>

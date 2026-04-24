@@ -28,7 +28,8 @@ const Cursors = ({ yProvider }: CursorsProps) => {
 
     // On changes, update `awarenessUsers`
     function setUsers() {
-      setAwarenessUsers(new Map(yProvider.awareness.getStates()));
+      // setAwarenessUsers(new Map(yProvider.awareness.getStates()));
+      setAwarenessUsers(new Map());
     }
     yProvider.awareness.on('change', setUsers);
     setUsers();

@@ -16,13 +16,13 @@ import HeadingControl from './heading-control/HeadingControl';
 import FontsizeControl from './fontsize-control/FontsizeControl';
 
 interface EditorControlsProps {
-  onClick: (controlType: EditorControlType) => void;
+  onClick?: (controlType: EditorControlType) => void;
 }
 
 const EditorControls = ({ onClick }: EditorControlsProps) => {
   const handleOnClick = (controlType: EditorControlType) => {
     console.log('FISCH');
-    onClick(controlType);
+    onClick?.(controlType);
   };
 
   return (
