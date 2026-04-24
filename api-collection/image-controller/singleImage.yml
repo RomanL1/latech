@@ -7,13 +7,13 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/document/:docId/image/:imageId"
+  url: "{{baseUrl}}/api/document/:docId/images/:imageId"
   params:
-    - name: docId
-      value: ""
-      type: path
     - name: imageId
-      value: ""
+      value: "{{imageId}}"
+      type: path
+    - name: docId
+      value: "{{docId}}"
       type: path
   auth: inherit
 
