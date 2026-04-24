@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import ImagePreview from './image-preview/ImagePreview';
 import styles from './DocumentPage.module.css';
 import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
-import { Separator, Tabs } from '@radix-ui/themes';
+import { Tabs } from '@radix-ui/themes';
 import { FileBracesCornerIcon, LucideFile, LucideSettings } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
 import type { Document, DocumentImage } from '../../features/documents/document';
