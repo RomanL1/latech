@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   # API application
   api:
@@ -27,10 +31,10 @@ jobs:
           java-version: "25"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Cache Gradle packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -65,10 +69,10 @@ jobs:
           java-version: "25"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Cache Gradle packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -115,3 +119,113 @@ jobs:
 
       - name: Build
         run: bun run build:ci
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs:
+      - api
+      - renderer
+      - frontend
+    strategy:
+      matrix:
+        component: [api, renderer, frontend, socket-server]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          
+      - name: Check for changes
+        uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            changed:
+              - 'src/${{ matrix.component }}/**'
+      
+      - name: Login to Container Registry
+        if: steps.filter.outputs.changed == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        if: steps.filter.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Downcase REPO
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+      - name: Build and push ${{ matrix.component }} image
+        if: steps.filter.outputs.changed == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: ./src/${{ matrix.component }}
+          push: true
+          tags: ghcr.io/${{ env.REPO }}/${{ matrix.component }}:latest
+  
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    needs:
+      - build-and-push
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            changed:
+              - 'src/api/**'
+              - 'src/renderer/**'
+              - 'src/frontend/**'
+              - 'src/socket-server/**'
+              - 'deploy.prod.yml'
+              - 'Caddyfile'
+
+      - name: Copy deploy files to Droplet
+        if: steps.filter.outputs.changed == 'true'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          source: "deploy.prod.yml,Caddyfile"
+          target: "/opt/latech"
+
+      - name: Deploy to DigitalOcean Droplet via SSH
+        if: steps.filter.outputs.changed == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            cd /opt/latech
+            
+            # Create .env dynamically from GitHub Secrets
+            echo "RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}" > .env
+            echo "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}" >> .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+            echo "SEAWEEDFS_ACCESS_KEY=${{ secrets.SEAWEEDFS_ACCESS_KEY }}" >> .env
+            echo "SEAWEEDFS_SECRET_KEY=${{ secrets.SEAWEEDFS_SECRET_KEY }}" >> .env
+
+            # If your GHCR images are private, uncomment the next line:
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            docker compose -f deploy.prod.yml pull
+            docker compose -f deploy.prod.yml up -d --remove-orphans
+            docker system prune -af
+
+      
+    

@@ -1,0 +1,31 @@
+[data-separator] {
+  position: relative;
+  width: 1px;
+  background: var(--gray-6);
+}
+
+/* hover state */
+[data-separator]:hover {
+  background: var(--accent-9);
+}
+
+/* center grip */
+.centerGrip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 0.4rem;
+  height: 2.75rem;
+  border-radius: var(--radius-2);
+
+  background: var(--accent-9);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* show grip on hover */
+[data-separator]:hover .centerGrip {
+  opacity: 1;
+}

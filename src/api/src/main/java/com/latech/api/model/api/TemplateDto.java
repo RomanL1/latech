@@ -7,15 +7,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class TemplateDto
-{
-	@Schema( types = { "string", "null" } )
-	private String id;
-	private String name;
-	private String description;
+public class TemplateDto {
+    @Schema( types = {"string", "null"} )
+    private UUID templateId;
+    private String name;
+    private String description;
 }

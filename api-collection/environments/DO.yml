@@ -1,0 +1,4 @@
+name: DO
+variables:
+  - name: baseUrl
+    value: https://latech.app

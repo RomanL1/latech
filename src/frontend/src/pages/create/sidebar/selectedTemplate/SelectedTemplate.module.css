@@ -1,0 +1,32 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: var(--gray-6);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.name {
+  font-weight: 600;
+  position: relative;
+}
+
+.description {
+  color: var(--gray-11);
+  position: relative;
+}

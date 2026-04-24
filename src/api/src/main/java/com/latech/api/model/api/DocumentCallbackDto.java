@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentCallbackDto
-{
-	//maps to docId
-	private String room;
-	private String data;
+public class DocumentCallbackDto {
+    //maps to docId
+    private String room;
+    private String data;
 }

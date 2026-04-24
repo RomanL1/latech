@@ -1,0 +1,27 @@
+info:
+  name: deleteImage
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/document/:docId/images/:imageId"
+  params:
+    - name: docId
+      value: "{{docId}}"
+      type: path
+    - name: imageId
+      value: "{{imageId}}"
+      type: path
+  auth: inherit
+
+runtime:
+  variables:
+    - name: imageId
+      value: c688e6a4-d60a-423c-9e6d-f5bc587fe411
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

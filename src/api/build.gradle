@@ -3,7 +3,7 @@ plugins {
     id 'org.springframework.boot' version '4.0.3'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.google.protobuf' version '0.9.5'
-    id "org.flywaydb.flyway" version "11.19.0"
+    id 'org.flywaydb.flyway' version '11.19.0'
 }
 
 group = 'com.latech'
@@ -26,19 +26,16 @@ repositories {
     mavenCentral()
 }
 
-ext {
-    set('springGrpcVersion', "1.0.2")
-}
+
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-restclient'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.grpc:grpc-services'
+    implementation 'com.google.protobuf:protobuf-java:4.34.1'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
-    implementation 'org.springframework.grpc:spring-grpc-client-spring-boot-starter'
-    implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
@@ -49,32 +46,20 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-restclient-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.grpc:spring-grpc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-amqp-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'com.h2database:h2'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'
+    implementation 'org.jspecify:jspecify:1.0.0'
+    implementation("software.amazon.awssdk:s3:2.42.32")
+    implementation platform('software.amazon.awssdk:bom:2.42.32')
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.grpc:spring-grpc-dependencies:${springGrpcVersion}"
-    }
-}
+
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc'
-    }
-    plugins {
-        grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java'
-        }
-    }
-    generateProtoTasks {
-        all()*.plugins {
-            grpc {
-                option '@generated=omit'
-            }
-        }
+        artifact = 'com.google.protobuf:protoc:4.34.1'
     }
 }
 

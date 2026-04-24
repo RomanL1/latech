@@ -1,0 +1,4 @@
+name: railway
+variables:
+  - name: baseUrl
+    value: https://staging-latech-api.up.railway.app

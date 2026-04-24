@@ -1,0 +1,38 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 24rem));
+  grid-auto-rows: 16rem;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.template {
+  height: 16rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.previewImage {
+  display: flex;
+  flex: 1;
+  background-color: var(--gray-6);
+}
+
+.templateInfo {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 1rem;
+  height: 6rem;
+}
+
+.name {
+  font-weight: 500;
+}
+
+.description {
+  width: 100%;
+  color: var(--gray-10);
+  text-overflow: ellipsis;
+}

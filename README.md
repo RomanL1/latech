@@ -2,9 +2,11 @@
 
   <h1 align="center">LaTeCH</h1>
 
-  <p align="center">
+  <span align="center">
     Collaborative LaTeX editor
-  </p>
+  </span>
+
+  <a href="https://latech.app" target="_blank">latech.app</a>
 
 [![Continuous Integration Build](https://github.com/RomanL1/latech/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/RomanL1/latech/actions/workflows/continuous_integration.yml)
 

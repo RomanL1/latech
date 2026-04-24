@@ -1,24 +1,37 @@
-import Editor from '@monaco-editor/react';
-import { useEffect, useRef, useState } from 'react';
+import Editor, { useMonaco } from '@monaco-editor/react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import { editor as MonacoEditor, KeyMod, KeyCode, languages } from 'monaco-editor';
-import { useParams } from 'react-router';
+import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
+import { ThemeContext } from '@radix-ui/themes';
 
-function LatexEditor() {
+interface LatexEditorProps {
+  content: string | undefined;
+}
+
+function LatexEditor({ content }: LatexEditorProps) {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const isEditorMount = useRef(false);
-  const { roomId } = useParams()!;
-
-  console.log('ROOM ID: ', roomId);
-
-  console.log(
-    'Language-Support: ',
-    languages.getLanguages().map((l) => l.id),
-  );
+  const monaco = useMonaco();
+  const context = useContext(ThemeContext);
 
   useEffect(() => {
+    if (monaco) {
+      const theme = context?.appearance === 'dark' ? 'vs-dark' : 'vs-light';
+      monaco.editor.setTheme(theme);
+      monaco.languages.register({ id: 'latex' });
+      monaco.languages.setMonarchTokensProvider('latex', {
+        tokenizer: {
+          root: [
+            [/%.*$/, 'comment'],
+            [/\\[a-zA-Z]+/, 'keyword'],
+            [/\$[^$]*\$/, 'string'],
+          ],
+        },
+      });
+    }
+
     if (!editor) return;
 
     const model = editor.getModel();
@@ -31,14 +44,17 @@ function LatexEditor() {
       return;
     }
 
-    console.log('after:', model.getLanguageId()); // should be "latex"
-
     isEditorMount.current = true;
 
     const ydoc = new Y.Doc();
     const ytext = ydoc.getText('latech');
 
-    const provider = new WebsocketProvider(import.meta.env.VITE_WS_HOST, roomId!, ydoc);
+    if (ytext.length === 0 && content) {
+      console.log('INSERT');
+      ytext.insert(0, content);
+    }
+
+    const provider = new WebsocketProvider(window.ENV.VITE_WS_HOST, 'monaco', ydoc);
     provider.on('status', (event) => {
       console.log('Status: ' + event.status);
     });
@@ -86,19 +102,13 @@ function LatexEditor() {
       provider.destroy();
       undoManager.destroy();
     };
-  }, [editor, roomId]);
+  }, [editor, content, monaco, context]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
-
-    console.log('Editor mounted: ', editor);
   };
 
-  return (
-    <>
-      <Editor path="file:///document.tex" height="50vh" defaultLanguage="latex" onMount={handleMount} />;
-    </>
-  );
+  return <Editor height="100%" defaultValue="" defaultLanguage="latex" onMount={handleMount} />;
 }
 
 export default LatexEditor;

