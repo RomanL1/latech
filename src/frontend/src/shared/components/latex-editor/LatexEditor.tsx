@@ -17,7 +17,6 @@ function LatexEditor({ content }: LatexEditorProps) {
   const monaco = useMonaco();
   const context = useContext(ThemeContext);
 
-  
   useEffect(() => {
     if (!monaco || !editor) return;
 

@@ -1,5 +1,5 @@
 export enum EditorControlType {
-    BOLD = 'BOLD',
-    ITALIC = 'ITALIC',
-    UNDERLINE = 'UNDERLINE',
+  BOLD = 'BOLD',
+  ITALIC = 'ITALIC',
+  UNDERLINE = 'UNDERLINE',
 }
