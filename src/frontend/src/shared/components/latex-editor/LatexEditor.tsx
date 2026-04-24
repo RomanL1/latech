@@ -17,6 +17,7 @@ function LatexEditor({ content }: LatexEditorProps) {
   const monaco = useMonaco();
   const context = useContext(ThemeContext);
 
+  
   useEffect(() => {
     if (!monaco || !editor) return;
 
@@ -32,6 +33,7 @@ function LatexEditor({ content }: LatexEditorProps) {
 
     const yProvider = new WebsocketProvider(window.ENV.VITE_WS_HOST, 'monaco', yDoc);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setYProvider(yProvider);
 
     const binding = new MonacoBinding(yText, model, new Set([editor]), yProvider.awareness);

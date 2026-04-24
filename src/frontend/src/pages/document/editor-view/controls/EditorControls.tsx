@@ -1,4 +1,4 @@
-import { DropdownMenu, IconButton, Separator } from '@radix-ui/themes';
+import { IconButton, Separator } from '@radix-ui/themes';
 import styles from './EditorControls.module.css';
 import {
   LucideBold,
@@ -11,7 +11,7 @@ import {
   LucideTable,
   LucideUnderline,
 } from 'lucide-react';
-import type { EditorControlType } from './controlType';
+import { EditorControlType } from './EditorControlType';
 import HeadingControl from './heading-control/HeadingControl';
 import FontsizeControl from './fontsize-control/FontsizeControl';
 
@@ -31,13 +31,13 @@ const EditorControls = ({ onClick }: EditorControlsProps) => {
       <FontsizeControl />
       <Separator orientation="vertical" />
 
-      <IconButton size="1" variant="ghost">
+      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.BOLD)}>
         <LucideBold size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost">
+      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.ITALIC)}>
         <LucideItalic size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost">
+      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.UNDERLINE)}>
         <LucideUnderline size={16} />
       </IconButton>
       <Separator orientation="vertical" />
