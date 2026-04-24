@@ -68,7 +68,7 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
   ];
 
   return (
-    <Flex direction="column" gap="3">
+    <Flex direction="column" gap="5">
       <div className={styles.header}>
         <Text size="5" wrap="nowrap">
           File Tree

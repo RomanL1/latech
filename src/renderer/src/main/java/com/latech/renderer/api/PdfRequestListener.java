@@ -41,11 +41,27 @@ public class PdfRequestListener {
 
     @PostConstruct
     void init () {
-        try {
-            s3Client.createBucket( b -> b.bucket( this.bucket ) );
-        } catch ( BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e ) {
-            log.info( "Bucket already exists, that's fine." );
+        int maxRetries = 10;
+        int retryDelayMs = 5000;
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                s3Client.createBucket( b -> b.bucket( this.bucket ) );
+                log.info("Successfully initialized bucket: {}", this.bucket);
+                return;
+            } catch ( BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e ) {
+                log.info( "Bucket already exists, that's fine." );
+                return;
+            } catch (Exception e) {
+                log.warn("Failed to create bucket (attempt {}/{}). Retrying in {}ms: {}", i + 1, maxRetries, retryDelayMs, e.getMessage());
+                try {
+                    Thread.sleep(retryDelayMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted while waiting to initialize bucket", ie);
+                }
+            }
         }
+        log.error("Failed to initialize bucket after {} attempts", maxRetries);
     }
 
     @RabbitListener( queues = DOCUMENT_EXCHANGE )

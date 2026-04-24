@@ -1,0 +1,12 @@
+.container {
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.currentEditors {
+  margin-left: auto;
+  margin-right: 0.5rem;
+}
