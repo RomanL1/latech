@@ -25,17 +25,17 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
       panel.collapse();
     }
   };
-  
+
   return (
     <div className={styles.container}>
       <EditorHeader file={file} />
       <Group className={styles.panelGroup}>
         <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          {documentId ? <LatexEditor roomId={documentId} content={file?.content ?? ''} /> : "No file selected"}
+          {documentId ? <LatexEditor roomId={documentId} content={file?.content ?? ''} /> : 'No file selected'}
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>
-          {documentId ? <PDFPreview docId={documentId} /> : "No file selected"}
+          {documentId ? <PDFPreview docId={documentId} /> : 'No file selected'}
         </Panel>
       </Group>
     </div>

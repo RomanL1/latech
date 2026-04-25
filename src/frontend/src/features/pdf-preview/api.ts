@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 
 const apiHost = window.ENV.VITE_API_HOST;
 const documentUrl = `${apiHost}/document/`;
@@ -9,7 +15,9 @@ export async function requestPDFRender(docId: string): Promise<void> {
     .then((response) => {
       if (!response.ok) throw new Error('Failed to initiate render');
     })
-    .catch(() => {throw new Error('Failed to initiate render')});
+    .catch(() => {
+      throw new Error('Failed to initiate render');
+    });
 }
 
 export function useRequestPDFRender(docId: string): UseMutationResult<void> {
