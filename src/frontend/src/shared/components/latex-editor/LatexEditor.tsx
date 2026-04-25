@@ -8,10 +8,11 @@ import { ThemeContext } from '@radix-ui/themes';
 import Cursors from './cursor/Cursors';
 
 interface LatexEditorProps {
-  content: string | undefined;
+  content: string;
+  roomId: string;
 }
 
-function LatexEditor({ content }: LatexEditorProps) {
+function LatexEditor({ content, roomId }: LatexEditorProps) {
   const [editor, setEditor] = useState<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const [yProvider, setYProvider] = useState<WebsocketProvider>();
   const monaco = useMonaco();
@@ -27,10 +28,9 @@ function LatexEditor({ content }: LatexEditorProps) {
     monaco.editor.setTheme(theme);
 
     const yDoc = new Y.Doc();
-    const yText = yDoc.getText('monaco');
-    if (content && content.length === 0) yText.insert(0, content);
+    const yText = yDoc.getText('latech');
 
-    const yProvider = new WebsocketProvider(window.ENV.VITE_WS_HOST, 'monaco', yDoc);
+    const yProvider = new WebsocketProvider(window.ENV.VITE_WS_HOST, roomId, yDoc);
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setYProvider(yProvider);
@@ -38,6 +38,13 @@ function LatexEditor({ content }: LatexEditorProps) {
     const binding = new MonacoBinding(yText, model, new Set([editor]), yProvider.awareness);
     const undoManager = new Y.UndoManager(yText, {
       trackedOrigins: new Set([binding]),
+    });
+
+    // Initialize the editor content with the provided content if the Yjs document is empty
+    yProvider.on('sync', (isSynced) => {
+      if (isSynced && yText.toString().length === 0 && content) {
+        yText.insert(0, content);
+      }
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {
@@ -53,7 +60,7 @@ function LatexEditor({ content }: LatexEditorProps) {
       yDoc.destroy();
       undoManager.destroy();
     };
-  }, [content, editor, monaco, context]);
+  }, [editor, monaco, context, roomId, content]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);

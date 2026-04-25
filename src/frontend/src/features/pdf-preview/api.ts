@@ -1,18 +1,48 @@
+import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from "@tanstack/react-query";
+
 const apiHost = window.ENV.VITE_API_HOST;
 const documentUrl = `${apiHost}/document/`;
 
 //post trigger PDF render
-export function requestPDFRender(docId: string): Promise<void> {
+export async function requestPDFRender(docId: string): Promise<void> {
   return fetch(`${documentUrl}${docId}/render`, { method: 'POST' })
     .then((response) => {
       if (!response.ok) throw new Error('Failed to initiate render');
     })
-    .catch(() => Promise.resolve<void>(undefined));
+    .catch(() => {throw new Error('Failed to initiate render')});
+}
+
+export function useRequestPDFRender(docId: string): UseMutationResult<void> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => requestPDFRender(docId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pdf', docId] });
+    },
+  });
 }
 
 //get PDF as file
-export function getRenderedPDF(docId: string): Promise<Blob> {
-  return fetch(`${documentUrl}${docId}/render`).then((res) => res.blob());
+export async function getPDF(docId: string): Promise<Blob | null> {
+  const response = await fetch(`${documentUrl}${docId}/render`);
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch PDF');
+  }
+
+  return response.blob();
+}
+
+export function useGetRenderedPDF(docId: string): UseQueryResult<Blob | null> {
+  return useQuery({
+    queryKey: ['pdf', docId],
+    queryFn: () => getPDF(docId),
+  });
 }
 
 //get event source for PDF render status

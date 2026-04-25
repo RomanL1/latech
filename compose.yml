@@ -24,9 +24,11 @@ services:
     restart: always
 
   socket-server:
-    # TODO: add healtcheck to ensure api is up before starting socket-server
+    # TODO: add healtcheck to ensure api and renderer is up before starting socket-server
     # depends_on:
     #   api:
+    #     condition: service_healthy
+    #   renderer:
     #     condition: service_healthy
     build:
       context: ./src/socket-server
