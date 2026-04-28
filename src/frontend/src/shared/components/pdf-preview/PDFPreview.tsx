@@ -21,14 +21,14 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [latestSuccess, setLatestSuccess] = useState<boolean | null>(null);
   const [history, setHistory] = useState<RenderHistoryDto[]>([]);
-  const [activeTab, setActiveTab] = useState("preview");
+  const [activeTab, setActiveTab] = useState('preview');
 
   const fetchHistory = async () => {
     try {
       const h = await getRenderHistory(docId);
       setHistory(h);
     } catch (e) {
-      console.error("Failed to fetch history", e);
+      console.error('Failed to fetch history', e);
     }
   };
 
@@ -47,7 +47,7 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
       //EventSource (Server-Sent Events) is a strictly text-based web protocol
       const data: PDFReadyMessageDto = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
       console.log('Parsed data:', data);
-      
+
       setCompileLog(data.logMessage || null);
       setLatestSuccess(data.success);
       fetchHistory(); // refresh history
@@ -55,7 +55,7 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
       if (!data.success) {
         console.error('Render unsuccessful:', data.logMessage);
         setIsRendering(false);
-        setActiveTab("history"); // switch to history tab to show error log
+        setActiveTab('history'); // switch to history tab to show error log
         return;
       }
 
@@ -124,7 +124,11 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
           backgroundColor: 'var(--gray-2)',
         }}
       >
-        <Tabs.Root value={activeTab} onValueChange={setActiveTab} style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <Tabs.Root
+          value={activeTab}
+          onValueChange={setActiveTab}
+          style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+        >
           <Box style={{ flexShrink: 0, backgroundColor: 'var(--color-panel)' }}>
             <Tabs.List>
               <Tabs.Trigger value="preview">Preview</Tabs.Trigger>
@@ -132,8 +136,16 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
             </Tabs.List>
           </Box>
 
-          <Box style={{ flexGrow: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "var(--space-3)" }}>
-            <Tabs.Content value="preview" style={{ flexGrow: 1, position: "relative", height: "100%" }}>
+          <Box
+            style={{
+              flexGrow: 1,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: 'var(--space-3)',
+            }}
+          >
+            <Tabs.Content value="preview" style={{ flexGrow: 1, position: 'relative', height: '100%' }}>
               {pdfUrl ? (
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
                   <PDFViewer
@@ -166,11 +178,21 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
               )}
             </Tabs.Content>
 
-            <Tabs.Content value="history" style={{ flexGrow: 1, position: "relative", height: "100%" }}>
-              <ScrollArea type="always" scrollbars="vertical" style={{ height: "100%", paddingRight: "var(--space-3)" }}>
+            <Tabs.Content value="history" style={{ flexGrow: 1, position: 'relative', height: '100%' }}>
+              <ScrollArea
+                type="always"
+                scrollbars="vertical"
+                style={{ height: '100%', paddingRight: 'var(--space-3)' }}
+              >
                 <Flex direction="column" gap="4">
                   {compileLog && latestSuccess !== null && (
-                    <Box style={{ border: `1px solid var(--${latestSuccess ? 'grass' : 'ruby'}-7)`, padding: 'var(--space-2)', borderRadius: 'var(--radius-2)' }}>
+                    <Box
+                      style={{
+                        border: `1px solid var(--${latestSuccess ? 'grass' : 'ruby'}-7)`,
+                        padding: 'var(--space-2)',
+                        borderRadius: 'var(--radius-2)',
+                      }}
+                    >
                       <Text weight="bold" color={latestSuccess ? 'grass' : 'ruby'} mb="2">
                         Latest Result {latestSuccess ? '(Success)' : '(Failed)'}
                       </Text>
@@ -180,20 +202,48 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
                     </Box>
                   )}
                   {history.map((h) => (
-                    <Box key={h.id} p="3" style={{ backgroundColor: "var(--gray-3)", borderRadius: "var(--radius-2)" }}>
+                    <Box key={h.id} p="3" style={{ backgroundColor: 'var(--gray-3)', borderRadius: 'var(--radius-2)' }}>
                       <Flex justify="between" mb="2">
-                        <Text weight="bold" color={h.status === 'SUCCESSFULLY_RENDERED' ? 'grass' : h.status === 'ERROR_WHILE_RENDERING' ? 'ruby' : undefined}>
-                          Status: {h.status === 'SUCCESSFULLY_RENDERED' ? 'Successful' : h.status === 'ERROR_WHILE_RENDERING' ? 'Error' : h.status}
+                        <Text
+                          weight="bold"
+                          color={
+                            h.status === 'SUCCESSFULLY_RENDERED'
+                              ? 'grass'
+                              : h.status === 'ERROR_WHILE_RENDERING'
+                                ? 'ruby'
+                                : undefined
+                          }
+                        >
+                          Status:{' '}
+                          {h.status === 'SUCCESSFULLY_RENDERED'
+                            ? 'Successful'
+                            : h.status === 'ERROR_WHILE_RENDERING'
+                              ? 'Error'
+                              : h.status}
                         </Text>
-                        <Text size="1" color="gray">{new Date(h.renderedAt).toLocaleString()}</Text>
+                        <Text size="1" color="gray">
+                          {new Date(h.renderedAt).toLocaleString()}
+                        </Text>
                       </Flex>
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '10px', maxHeight: '150px', overflowY: 'auto', backgroundColor: "var(--gray-4)", padding: '8px' }}>
+                      <pre
+                        style={{
+                          margin: 0,
+                          whiteSpace: 'pre-wrap',
+                          fontSize: '10px',
+                          maxHeight: '150px',
+                          overflowY: 'auto',
+                          backgroundColor: 'var(--gray-4)',
+                          padding: '8px',
+                        }}
+                      >
                         <code>{h.logMessage || 'No logs available.'}</code>
                       </pre>
                     </Box>
                   ))}
                   {history.length === 0 && !compileLog && (
-                    <Text size="2" color="gray">No history available.</Text>
+                    <Text size="2" color="gray">
+                      No history available.
+                    </Text>
                   )}
                 </Flex>
               </ScrollArea>
