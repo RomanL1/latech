@@ -3,6 +3,8 @@ package com.latech.api.business;
 import com.latech.api.model.api.PDFReadyMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -60,5 +62,20 @@ public class RenderedPDFTopicService {
                 }
             } );
         }
+    }
+
+    @EventListener( ContextClosedEvent.class )
+    public void cleanup () {
+        docRegistry.values().forEach( emitters -> {
+            emitters.forEach( emitter -> {
+                try {
+                    log.info( "Closing emitter: {}", emitter );
+                    emitter.complete();
+                } catch ( Exception e ) {
+                    log.error( "Error completing emitter during destroy", e );
+                }
+            } );
+        } );
+        docRegistry.clear();
     }
 }
