@@ -1,10 +1,7 @@
 package com.latech.api.api;
 
 import com.latech.api.business.*;
-import com.latech.api.model.api.DocumentCreateRequestDto;
-import com.latech.api.model.api.DocumentCreateResponseDto;
-import com.latech.api.model.api.DocumentDto;
-import com.latech.api.model.api.DocumentSecuredRequestDto;
+import com.latech.api.model.api.*;
 import com.latech.api.model.db.Document;
 import com.latech.api.model.db.DocumentImage;
 import com.latech.api.model.db.RenderHistory;
@@ -223,6 +220,19 @@ public class DocumentController {
         List<RenderHistory> history =
                 renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc( documentId, Limit.of( 50 ) );
         return ResponseEntity.ok( history );
+    }
+
+    @GetMapping( "/{docId}/timestamps" )
+    public ResponseEntity<DocumentTimestampsDto> getTimestamps ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        return documentRepository.findById( documentId )
+                .map( doc -> ResponseEntity.ok(
+                        new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
+                .orElseGet( () -> ResponseEntity.notFound().build() );
     }
 
 }
