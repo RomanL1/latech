@@ -50,10 +50,10 @@ public class RenderedPDFTopicService {
             group.forEach( emitter -> {
                 try {
                     emitter.send( SseEmitter.event()
-                            .id( UUID.randomUUID().toString() )
-                            .name( "pdf-ready" )
-                            .data( pdfReadyMessage, MediaType.APPLICATION_JSON )
-                            .build() );
+                                          .id( UUID.randomUUID().toString() )
+                                          .name( "compile-finished" )
+                                          .data( pdfReadyMessage, MediaType.APPLICATION_JSON )
+                                          .build() );
                 } catch ( Exception e ) {
                     log.error( "Emitter error: {}", e.getMessage() );
                     docRegistry.get( docId ).remove( emitter );

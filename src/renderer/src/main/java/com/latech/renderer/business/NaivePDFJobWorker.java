@@ -15,7 +15,7 @@ public class NaivePDFJobWorker {
     public NaivePDFJobWorker () {
     }
 
-    public static Path compile ( DocumentRecord documentRecord ) throws IOException, InterruptedException {
+    public static CompileResult compile ( DocumentRecord documentRecord ) throws IOException, InterruptedException {
 
         Path jobDir = Path.of( "output", documentRecord.getDocumentId() );
 
@@ -39,16 +39,16 @@ public class NaivePDFJobWorker {
         log.info( "Compiling of {} took {}ms", documentRecord.getDocumentId() + ".pdf", compileDuration );
 
         if ( !completed ) {
-            throw new RuntimeException( "pdflatex failed :\n" + output );
+            return new CompileResult( false, null, "pdflatex timed out :\n" + output );
         }
 
         Path pdfPath = jobDir.resolve( documentRecord.getDocumentId() + ".pdf" );
 
         if ( !Files.exists( pdfPath ) ) {
-            throw new RuntimeException( "pdf file could not be created." );
+            return new CompileResult( false, null, "pdf file could not be created.\n" + output );
         }
 
 
-        return pdfPath;
+        return new CompileResult( true, pdfPath, output );
     }
 }

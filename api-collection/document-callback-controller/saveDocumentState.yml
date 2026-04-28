@@ -17,6 +17,11 @@ http:
       }
   auth: inherit
 
+runtime:
+  variables:
+    - name: docId
+      value: b3346736-75f7-498b-b66a-1e06302cf8fd
+
 settings:
   encodeUrl: true
   timeout: 0

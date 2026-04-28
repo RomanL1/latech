@@ -26,7 +26,7 @@ public class PdfCompiledMessageProducer {
 
     public void handlePdfCompiled ( String renderId, String documentId,
             String filePath, Timestamp timestamp,
-            PdfMetadata.Status status, String errorMessage ) {
+            PdfMetadata.Status status, String logMessage ) {
 
         PdfMetadata pdfMetadata = PdfMetadata.newBuilder()
                 .setRenderId( renderId )
@@ -34,7 +34,7 @@ public class PdfCompiledMessageProducer {
                 .setFilePath( filePath )
                 .setRenderedTimestamp( timestamp )
                 .setStatus( status )
-                .setErrorMessage( errorMessage )
+                .setLogMessage( logMessage )
                 .build();
         publishPdfCompiled( pdfMetadata );
     }
