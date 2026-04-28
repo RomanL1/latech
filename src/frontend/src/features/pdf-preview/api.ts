@@ -12,7 +12,10 @@ export function requestPDFRender(docId: string): Promise<void> {
 
 //get PDF as file
 export function getRenderedPDF(docId: string): Promise<Blob> {
-  return fetch(`${documentUrl}${docId}/render`).then((res) => res.blob());
+  return fetch(`${documentUrl}${docId}/render`).then((res) => {
+    if (!res.ok) throw new Error('Failed to load PDF');
+    return res.blob();
+  });
 }
 
 //get event source for PDF render status

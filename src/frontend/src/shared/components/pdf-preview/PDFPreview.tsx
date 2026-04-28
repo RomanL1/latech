@@ -49,6 +49,23 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
   }, [docId]);
 
   useEffect(() => {
+    const loadInitialPdf = async () => {
+      try {
+        const blob = await getRenderedPDF(docId);
+        const url = URL.createObjectURL(blob);
+        setPdfUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      } catch {
+        // Ignore errors (404 means no PDF is rendered yet)
+        console.log('No initial PDF available waiting for render events...');
+      }
+    };
+    void loadInitialPdf();
+  }, [docId]);
+
+  useEffect(() => {
     const eventSource = getPDFRenderedEventSource(docId);
 
     eventSource.onopen = () => {
