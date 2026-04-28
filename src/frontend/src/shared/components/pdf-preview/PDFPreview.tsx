@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   getPDFRenderedEventSource,
   getRenderedPDF,
   COMPILE_FINISHED_MESSAGE_TYPE,
-  requestPDFRender,
   getRenderHistory,
   type PDFReadyMessageDto,
   type RenderHistoryDto,
 } from '../../../features/pdf-preview/api';
-import { Flex, Button, Text, Box, Tabs, ScrollArea } from '@radix-ui/themes';
+import { Flex, Text, Box, Tabs, ScrollArea } from '@radix-ui/themes';
 import { PDFViewer } from '@embedpdf/react-pdf-viewer';
 
 interface PDFPreviewProps {
@@ -17,23 +16,36 @@ interface PDFPreviewProps {
 
 const PDFPreview = ({ docId }: PDFPreviewProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [isRendering, setIsRendering] = useState(false);
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [latestSuccess, setLatestSuccess] = useState<boolean | null>(null);
   const [history, setHistory] = useState<RenderHistoryDto[]>([]);
   const [activeTab, setActiveTab] = useState('preview');
 
-  const fetchHistory = async () => {
+  useEffect(() => {
+    let ignore = false;
+    const loadHistory = async () => {
+      try {
+        const h = await getRenderHistory(docId);
+        if (!ignore) {
+          setHistory(h);
+        }
+      } catch (e) {
+        console.error('Failed to fetch history', e);
+      }
+    };
+    void loadHistory();
+    return () => {
+      ignore = true;
+    };
+  }, [docId]);
+
+  const fetchHistory = useCallback(async () => {
     try {
       const h = await getRenderHistory(docId);
       setHistory(h);
     } catch (e) {
       console.error('Failed to fetch history', e);
     }
-  };
-
-  useEffect(() => {
-    fetchHistory();
   }, [docId]);
 
   useEffect(() => {
@@ -50,11 +62,10 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
 
       setCompileLog(data.logMessage || null);
       setLatestSuccess(data.success);
-      fetchHistory(); // refresh history
+      void fetchHistory(); // refresh history
 
       if (!data.success) {
         console.error('Render unsuccessful:', data.logMessage);
-        setIsRendering(false);
         setActiveTab('history'); // switch to history tab to show error log
         return;
       }
@@ -69,8 +80,6 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
         });
       } catch (error) {
         console.error('Failed to load PDF preview:', error);
-      } finally {
-        setIsRendering(false);
       }
     });
 
@@ -82,7 +91,7 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
       eventSource.close();
       console.log('Closing event source');
     };
-  }, [docId]);
+  }, [docId, fetchHistory]);
 
   useEffect(() => {
     return () => {
@@ -92,27 +101,8 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
     };
   }, [pdfUrl]);
 
-  const handleRenderPDF = async () => {
-    setIsRendering(true);
-    setCompileLog(null);
-    setLatestSuccess(null);
-
-    try {
-      await requestPDFRender(docId);
-    } catch (e) {
-      console.error('Failed to request render', e);
-      setIsRendering(false);
-    }
-  };
-
   return (
     <Flex direction="column" height="100%" gap="3">
-      <Flex justify="between" align="center">
-        <Button onClick={handleRenderPDF} disabled={isRendering || !docId}>
-          {isRendering ? 'Rendering...' : 'Render PDF'}
-        </Button>
-      </Flex>
-
       <Box
         style={{
           flexGrow: 1,
