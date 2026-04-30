@@ -2,7 +2,6 @@ import { useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import {
   getPDFRenderedEventSource,
   useGetRenderedPDF,
-  useRequestPDFRender,
   COMPILE_FINISHED_MESSAGE_TYPE,
   getRenderHistory,
   type PDFReadyMessageDto,
@@ -48,25 +47,7 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
     }
   }, [docId]);
 
-  // useEffect(() => {
-  //   const loadInitialPdf = async () => {
-  //     try {
-  //       const blob = await getRenderedPDF(docId);
-  //       const url = URL.createObjectURL(blob);
-  //       setPdfUrl((prev) => {
-  //         if (prev) URL.revokeObjectURL(prev);
-  //         return url;
-  //       });
-  //     } catch {
-  //       // Ignore errors (404 means no PDF is rendered yet)
-  //       console.log('No initial PDF available waiting for render events...');
-  //     }
-  //   };
-  //   void loadInitialPdf();
-  // }, [docId]);
-
   const { data: pdfBlob, isLoading: isPdfLoading, refetch } = useGetRenderedPDF(docId);
-  const renderPDFMutation = useRequestPDFRender(docId);
   const themeContext = useContext(ThemeContext);
 
   const pdfUrl = useMemo(() => {
@@ -105,21 +86,6 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
       }
 
       await refetch();
-      // setIsRendering(false);
-
-      try {
-        console.log('PDF ready');
-        const blob = await getRenderedPDF(docId);
-        const url = URL.createObjectURL(blob);
-        setPdfUrl((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return url;
-        });
-      } catch (error) {
-        console.error('Failed to load PDF preview:', error);
-      } finally {
-        // setIsRendering(false);
-      }
     });
 
     eventSource.onerror = (error) => {
@@ -130,16 +96,6 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
       eventSource.close();
     };
   }, [docId, refetch, fetchHistory]);
-
-  const handleRenderPDF = async () => {
-    setIsRendering(true);
-    await renderPDFMutation.mutateAsync({}).catch((error) => {
-      console.error('Failed to request PDF render:', error);
-      setIsRendering(false);
-    });
-  };
-
-  const isLoading = isPdfLoading || isRendering;
 
   return (
     <Flex direction="column" height="100%" gap="3">
