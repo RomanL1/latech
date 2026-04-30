@@ -1,6 +1,7 @@
 package com.latech.renderer.api;
 
 import com.google.protobuf.Timestamp;
+import com.latech.renderer.business.CompileResult;
 import com.latech.renderer.business.NaivePDFJobWorker;
 import com.latech.renderer.business.PdfCompiledMessageProducer;
 import com.rabbitmq.client.Channel;
@@ -46,22 +47,23 @@ public class PdfRequestListener {
         for (int i = 0; i < maxRetries; i++) {
             try {
                 s3Client.createBucket( b -> b.bucket( this.bucket ) );
-                log.info("Successfully initialized bucket: {}", this.bucket);
+                log.info( "Successfully initialized bucket: {}", this.bucket );
                 return;
             } catch ( BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e ) {
                 log.info( "Bucket already exists, that's fine." );
                 return;
-            } catch (Exception e) {
-                log.warn("Failed to create bucket (attempt {}/{}). Retrying in {}ms: {}", i + 1, maxRetries, retryDelayMs, e.getMessage());
+            } catch ( Exception e ) {
+                log.warn( "Failed to create bucket (attempt {}/{}). Retrying in {}ms: {}", i + 1, maxRetries,
+                          retryDelayMs, e.getMessage() );
                 try {
-                    Thread.sleep(retryDelayMs);
-                } catch (InterruptedException ie) {
+                    Thread.sleep( retryDelayMs );
+                } catch ( InterruptedException ie ) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException("Interrupted while waiting to initialize bucket", ie);
+                    throw new RuntimeException( "Interrupted while waiting to initialize bucket", ie );
                 }
             }
         }
-        log.error("Failed to initialize bucket after {} attempts", maxRetries);
+        log.error( "Failed to initialize bucket after {} attempts", maxRetries );
     }
 
     @RabbitListener( queues = DOCUMENT_EXCHANGE )
@@ -70,13 +72,26 @@ public class PdfRequestListener {
         try {
             payload = DocumentRecord.parseFrom( payloadBytes );
             log.info( "Received payload with documentId: " + payload.getDocumentId() );
-            Path pdfPath = NaivePDFJobWorker.compile( payload );
+            CompileResult result = NaivePDFJobWorker.compile( payload );
 
             Timestamp timestamp = Timestamp.newBuilder()
                     .setSeconds( Instant.now().getEpochSecond() )
                     .setNanos( Instant.now().getNano() )
                     .build();
 
+            if ( !result.success() ) {
+                log.warn( "Compilation failed for document {}", payload.getDocumentId() );
+                this.pdfCompiledMessageProducer.handlePdfCompiled(
+                        payload.getRenderId(),
+                        payload.getDocumentId(),
+                        "",
+                        timestamp,
+                        ERROR_WHILE_RENDERING,
+                        result.output() );
+                return;
+            }
+
+            Path pdfPath = result.pdfPath();
             String payloadS3Key = payload.getDocumentId() + ".pdf";
 
             s3Client.putObject(
@@ -90,7 +105,7 @@ public class PdfRequestListener {
                     payloadS3Key,
                     timestamp,
                     SUCCESSFULLY_RENDERED,
-                    "" );
+                    result.output() );
 
             Path parent = pdfPath.getParent();
             try {
@@ -112,9 +127,9 @@ public class PdfRequestListener {
                     "",
                     timestamp,
                     ERROR_WHILE_RENDERING,
-                    e.getMessage() );
+                    "Internal renderer error: " + e.getMessage() );
 
-            // DON'T MANUALLY REJECT here, spring handles this.
+            // DO REJECT here, spring handles this if we throw
             throw e;
         }
     }

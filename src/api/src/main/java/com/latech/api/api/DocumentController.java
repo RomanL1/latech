@@ -1,12 +1,10 @@
 package com.latech.api.api;
 
 import com.latech.api.business.*;
-import com.latech.api.model.api.DocumentCreateRequestDto;
-import com.latech.api.model.api.DocumentCreateResponseDto;
-import com.latech.api.model.api.DocumentDto;
-import com.latech.api.model.api.DocumentSecuredRequestDto;
+import com.latech.api.model.api.*;
 import com.latech.api.model.db.Document;
 import com.latech.api.model.db.DocumentImage;
+import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
 import com.latech.api.repository.TemplateRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Limit;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +36,7 @@ import java.util.UUID;
 public class DocumentController {
     private final DocumentRepository documentRepository;
     private final TemplateRepository templateRepository;
+    private final com.latech.api.repository.RenderHistoryRepository renderHistoryRepository;
     private final DocumentProducer documentProducer;
     private final S3Client s3Client;
     private final DocumentImageService documentImageService;
@@ -122,7 +122,7 @@ public class DocumentController {
         }
 
         Optional<Document> document = documentRepository.findByIdAndPassword( UUID.fromString( docId ),
-                documentSecuredRequestDto.getPassword() );
+                                                                              documentSecuredRequestDto.getPassword() );
 
         if ( document.isEmpty() ) {
             return ResponseEntity.notFound().build();
@@ -205,6 +205,34 @@ public class DocumentController {
         } catch ( NoSuchKeyException e ) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping( "/{docId}/history" )
+    public ResponseEntity<List<RenderHistory>> getRenderHistory ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        if ( !documentRepository.existsById( documentId ) ) {
+            return ResponseEntity.notFound().build();
+        }
+        List<RenderHistory> history =
+                renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc( documentId, Limit.of( 50 ) );
+        return ResponseEntity.ok( history );
+    }
+
+    @GetMapping( "/{docId}/timestamps" )
+    public ResponseEntity<DocumentTimestampsDto> getTimestamps ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        return documentRepository.findById( documentId )
+                .map( doc -> ResponseEntity.ok(
+                        new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
+                .orElseGet( () -> ResponseEntity.notFound().build() );
     }
 
 }

@@ -8,7 +8,7 @@ import org.springframework.util.FileSystemUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NaivePDFJobWorkerTest {
@@ -27,22 +27,25 @@ class NaivePDFJobWorkerTest {
                         """ )
                 .build();
 
-        Path result = NaivePDFJobWorker.compile( documentRecord );
+        CompileResult result = NaivePDFJobWorker.compile( documentRecord );
 
-        assertTrue( result.toFile().exists(), "Expected a PDF file to exist at: " + result );
-        assertTrue( result.toString().endsWith( ".pdf" ), "Expected output path to end with .pdf" );
+        assertTrue( result.success(), "Expected compile to succeed" );
+        assertTrue( result.pdfPath().toFile().exists(), "Expected a PDF file to exist at: " + result.pdfPath() );
+        assertTrue( result.pdfPath().toString().endsWith( ".pdf" ), "Expected output path to end with .pdf" );
     }
 
     @Test
     @Disabled
-    void compile_throwsOrReturnsPath_whenLatexIsInvalid () {
+    void compile_returnsFalse_whenLatexIsInvalid () throws Exception {
         DocumentRecord documentRecord = DocumentRecord.newBuilder()
                 .setRenderId( "render-456" )
                 .setDocumentId( "doc-broken" )
                 .setLatexContent( "this is not valid latex %%%" )
                 .build();
 
-        assertThrows( RuntimeException.class, () -> NaivePDFJobWorker.compile( documentRecord ) );
+        CompileResult result = NaivePDFJobWorker.compile( documentRecord );
+        assertFalse( result.success(), "Expected compile to fail" );
+        assertTrue( result.output() != null && !result.output().isEmpty(), "Expected output to contain log message" );
 
         try {
             Path dirToDelete = Path.of( "output", "doc-broken" );

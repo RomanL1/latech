@@ -176,3 +176,17 @@ export function useDownloadImage(documentId: string): UseMutationResult<void, Er
       }),
   });
 }
+
+export interface DocumentTimestampsDto {
+  lastChange: string | null;
+  lastCompile: string | null;
+}
+
+export function getDocumentTimestamps(docId: string): Promise<DocumentTimestampsDto> {
+  return fetch(`${documentUrl}/${docId}/timestamps`).then((res) => {
+    if (!res.ok) {
+      throw new Error('Failed to fetch document timestamps');
+    }
+    return res.json();
+  });
+}

@@ -40,5 +40,5 @@ message PdfMetadata {
 
   Status status = 5;
 
-  string error_message = 6;
+  string log_message = 6;
 }

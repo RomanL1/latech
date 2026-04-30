@@ -3,6 +3,8 @@ package com.latech.api.business;
 import com.latech.api.model.api.PDFReadyMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -50,15 +52,30 @@ public class RenderedPDFTopicService {
             group.forEach( emitter -> {
                 try {
                     emitter.send( SseEmitter.event()
-                            .id( UUID.randomUUID().toString() )
-                            .name( "pdf-ready" )
-                            .data( pdfReadyMessage, MediaType.APPLICATION_JSON )
-                            .build() );
+                                          .id( UUID.randomUUID().toString() )
+                                          .name( "compile-finished" )
+                                          .data( pdfReadyMessage, MediaType.APPLICATION_JSON )
+                                          .build() );
                 } catch ( Exception e ) {
                     log.error( "Emitter error: {}", e.getMessage() );
                     docRegistry.get( docId ).remove( emitter );
                 }
             } );
         }
+    }
+
+    @EventListener( ContextClosedEvent.class )
+    public void cleanup () {
+        docRegistry.values().forEach( emitters -> {
+            emitters.forEach( emitter -> {
+                try {
+                    log.info( "Closing emitter: {}", emitter );
+                    emitter.complete();
+                } catch ( Exception e ) {
+                    log.error( "Error completing emitter during destroy", e );
+                }
+            } );
+        } );
+        docRegistry.clear();
     }
 }

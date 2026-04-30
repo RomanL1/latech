@@ -2,7 +2,7 @@ import { Inset, RadioCards, Skeleton } from '@radix-ui/themes';
 import styles from './TemplateSelection.module.css';
 
 export function TemplateCardSkeleton() {
-  const numberOfSkeletons = 9;
+  const numberOfSkeletons = 5;
   const skeletons = Array.from(Array(numberOfSkeletons).keys()).map(String);
 
   return skeletons.map((index) => (
