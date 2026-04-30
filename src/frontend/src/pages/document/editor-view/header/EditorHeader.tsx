@@ -1,4 +1,4 @@
-import { LucideFileCodeCorner } from 'lucide-react';
+import { LucideFileCodeCorner, LucidePlay } from 'lucide-react';
 import styles from './EditorHeader.module.css';
 import { Button, Separator, Spinner, Text } from '@radix-ui/themes';
 import { useState, useEffect, useCallback } from 'react';
