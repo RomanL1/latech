@@ -12,7 +12,7 @@ export const isCallbackSet = !!CALLBACK_URL
  * @param {import('./utils.js').WSSharedDoc} doc
  */
 export const callbackHandler = (doc) => {
-  const room = doc.name.split('/')[1] // Assuming room name is the first part of the doc name before a hyphen
+  const room = doc.name.split('/').pop() // Handles both 'ws/:roomId' and ':roomId'
   const dataToSend = {
     room,
     data: doc.getText(CALLBACK_OBJECT_NAME).toJSON()
