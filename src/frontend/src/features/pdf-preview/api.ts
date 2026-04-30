@@ -12,7 +12,10 @@ export function requestPDFRender(docId: string): Promise<void> {
 
 //get PDF as file
 export function getRenderedPDF(docId: string): Promise<Blob> {
-  return fetch(`${documentUrl}${docId}/render`).then((res) => res.blob());
+  return fetch(`${documentUrl}${docId}/render`).then((res) => {
+    if (!res.ok) throw new Error('Failed to load PDF');
+    return res.blob();
+  });
 }
 
 //get event source for PDF render status
@@ -20,12 +23,25 @@ export function getPDFRenderedEventSource(docId: string): EventSource {
   return new EventSource(`${documentUrl}${docId}/stream-updates`);
 }
 
-export const PDF_READY_MESSAGE_TYPE = 'pdf-ready';
+export const COMPILE_FINISHED_MESSAGE_TYPE = 'compile-finished';
 
 export interface PDFReadyMessageDto {
   docId: string;
   success: boolean;
-  errorMessage: string | null;
+  logMessage: string | null;
   downloadPath: string | null;
   timestampUTC: number;
+}
+
+export interface RenderHistoryDto {
+  id: string;
+  documentId: string;
+  renderId: string;
+  status: string;
+  logMessage: string;
+  renderedAt: string;
+}
+
+export function getRenderHistory(docId: string): Promise<RenderHistoryDto[]> {
+  return fetch(`${documentUrl}${docId}/history`).then((res) => res.json());
 }
