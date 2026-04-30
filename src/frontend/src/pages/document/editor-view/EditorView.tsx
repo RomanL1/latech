@@ -5,14 +5,14 @@ import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
 import EditorHeader from './header/EditorHeader';
 import { useRef } from 'react';
-import { useParams } from 'react-router';
 import type { Document } from '../../../features/documents/document';
 
 interface EditorViewProps {
   file: Document | undefined;
+  documentId: string | undefined;
 }
 
-const EditorView = ({ file }: EditorViewProps) => {
+const EditorView = ({ file, documentId }: EditorViewProps) => {
   const rightPanelRef = useRef<PanelImperativeHandle | null>(null);
 
   const handleSeparatorClick = () => {
@@ -26,17 +26,16 @@ const EditorView = ({ file }: EditorViewProps) => {
     }
   };
 
-  const { documentId } = useParams();
   return (
     <div className={styles.container}>
       <EditorHeader file={file} />
       <Group className={styles.panelGroup}>
         <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          {documentId && <LatexEditor content={file?.content} />}
+          {documentId ? <LatexEditor roomId={documentId} content={file?.content ?? ''} /> : 'No file selected'}
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>
-          {documentId && <PDFPreview docId={documentId} />}
+          {documentId ? <PDFPreview docId={documentId} /> : 'No file selected'}
         </Panel>
       </Group>
     </div>

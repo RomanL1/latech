@@ -57,11 +57,19 @@ services:
     restart: always
 
   socket-server:
+    # TODO: add healtcheck to ensure api and renderer is up before starting socket-server
+    # depends_on:
+    #   api:
+    #     condition: service_healthy
+    #   renderer:
+    #     condition: service_healthy
     image: ghcr.io/romanl1/latech/socket-server:latest
-    container_name: socket-server
     environment:
-      - HOST=0.0.0.0
-      - PORT=3000
+      - CALLBACK_URL=http://api:5001/api/document/callback
+      - CALLBACK_OBJECT_NAME=latech
+    container_name: socket-server
+    ports:
+      - 3000:3000
     restart: always
 
   api:

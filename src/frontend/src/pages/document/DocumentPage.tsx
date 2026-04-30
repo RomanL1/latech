@@ -87,7 +87,7 @@ export function DocumentPage() {
           {selectedFile && selectedFile.type === 'image' ? (
             <ImagePreview selectedFile={selectedFile.file} />
           ) : selectedFile && selectedFile.type === 'tex' ? (
-            <EditorView file={selectedFile?.file} />
+            <EditorView documentId={selectedFile.file.id} file={selectedFile?.file} />
           ) : null}
         </Panel>
       </Group>

@@ -1,13 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import {
   getPDFRenderedEventSource,
-  getRenderedPDF,
+  useGetRenderedPDF,
   COMPILE_FINISHED_MESSAGE_TYPE,
   getRenderHistory,
   type PDFReadyMessageDto,
   type RenderHistoryDto,
 } from '../../../features/pdf-preview/api';
-import { Flex, Text, Box, Tabs, ScrollArea } from '@radix-ui/themes';
+import { Flex, Text, Box, Tabs, ScrollArea, ThemeContext } from '@radix-ui/themes';
 import { PDFViewer } from '@embedpdf/react-pdf-viewer';
 
 interface PDFPreviewProps {
@@ -15,7 +15,6 @@ interface PDFPreviewProps {
 }
 
 const PDFPreview = ({ docId }: PDFPreviewProps) => {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [latestSuccess, setLatestSuccess] = useState<boolean | null>(null);
   const [history, setHistory] = useState<RenderHistoryDto[]>([]);
@@ -48,22 +47,21 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
     }
   }, [docId]);
 
+  const { data: pdfBlob, isLoading: isPdfLoading, refetch } = useGetRenderedPDF(docId);
+  const themeContext = useContext(ThemeContext);
+
+  const pdfUrl = useMemo(() => {
+    if (!pdfBlob) return null;
+    return URL.createObjectURL(pdfBlob);
+  }, [pdfBlob]);
+
   useEffect(() => {
-    const loadInitialPdf = async () => {
-      try {
-        const blob = await getRenderedPDF(docId);
-        const url = URL.createObjectURL(blob);
-        setPdfUrl((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return url;
-        });
-      } catch {
-        // Ignore errors (404 means no PDF is rendered yet)
-        console.log('No initial PDF available waiting for render events...');
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
       }
     };
-    void loadInitialPdf();
-  }, [docId]);
+  }, [pdfUrl]);
 
   useEffect(() => {
     const eventSource = getPDFRenderedEventSource(docId);
@@ -87,17 +85,7 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
         return;
       }
 
-      try {
-        console.log('PDF ready');
-        const blob = await getRenderedPDF(docId);
-        const url = URL.createObjectURL(blob);
-        setPdfUrl((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return url;
-        });
-      } catch (error) {
-        console.error('Failed to load PDF preview:', error);
-      }
+      await refetch();
     });
 
     eventSource.onerror = (error) => {
@@ -106,17 +94,8 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
 
     return () => {
       eventSource.close();
-      console.log('Closing event source');
     };
-  }, [docId, fetchHistory]);
-
-  useEffect(() => {
-    return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
-    };
-  }, [pdfUrl]);
+  }, [docId, refetch, fetchHistory]);
 
   return (
     <Flex direction="column" height="100%" gap="3">
@@ -154,24 +133,25 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
           >
             <Tabs.Content value="preview" style={{ flexGrow: 1, position: 'relative', height: '100%' }}>
               {pdfUrl ? (
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+                <div style={{ position: 'absolute', inset: 0 }}>
                   <PDFViewer
+                    key={pdfUrl} // Force remount when URL changes
                     style={{ width: '100%', height: '100%' }}
-                    key={pdfUrl}
                     config={{
                       src: pdfUrl,
-                      theme: { preference: 'system' },
+                      theme: { preference: themeContext?.appearance === 'dark' ? 'dark' : 'light' },
                       disabledCategories: [
                         'annotation',
                         'form',
                         'redaction',
-                        'zoom',
                         'document',
                         'panel',
                         'insert',
                         'history',
                         'rotate',
                         'capture',
+                        // pan plugin causes issues with hihjacking keyboard events when in monaco editor. So it is disabled.
+                        'pan',
                       ],
                     }}
                   />
@@ -179,7 +159,9 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
               ) : (
                 <Flex direction="column" align="center" justify="center" height="100%" p="4">
                   <Text color="gray" size="2">
-                    No PDF rendered yet. Click "Render PDF" to generate.
+                    {isPdfLoading
+                      ? 'Checking for existing PDF...'
+                      : 'No PDF rendered yet. Click "Render PDF" to generate.'}
                   </Text>
                 </Flex>
               )}
