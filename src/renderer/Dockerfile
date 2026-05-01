@@ -15,8 +15,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-latex-base \
     texlive-latex-extra \
+    texlive-latex-recommended \
     texlive-fonts-recommended \
     texlive-science \
+    lmodern \
     && rm -rf /var/lib/apt/lists/*
 
 # Environment variables from application.properties

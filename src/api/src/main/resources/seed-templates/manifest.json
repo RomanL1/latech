@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Blank Document",
+    "description": "Minimal LaTeX document",
+    "file": "blank.tex"
+  },
+  {
+    "name": "Essay",
+    "description": "Academic essay format",
+    "file": "essay.tex"
+  },
+  {
+    "name": "Formal letter",
+    "description": "Professional letter template",
+    "file": "formal-letter.tex"
+  },
+  {
+    "name": "Meeting notes",
+    "description": "Organized template for catching meeting notes",
+    "file": "meeting-notes.tex"
+  },
+  {
+    "name": "Resume/CV",
+    "description": "Clean, professional layout to showcase your skills",
+    "file": "resume.tex"
+  }
+]
