@@ -72,9 +72,9 @@ export class ResilientEventSource {
 
   private connect() {
     if (this.closed) return;
-    
+
     this.eventSource = new EventSource(this.url);
-    
+
     this.eventSource.onopen = () => {
       this.reconnectTimeout = 1000; // Reset backoff on successful connection
       if (this.onopen) this.onopen();
@@ -82,7 +82,7 @@ export class ResilientEventSource {
 
     this.eventSource.onerror = (err) => {
       if (this.onerror) this.onerror(err);
-      
+
       // Close the current instances to prevent native re-connections
       // which don't use exponential backoff, and handle reconnection ourselves.
       this.eventSource?.close();
@@ -99,7 +99,7 @@ export class ResilientEventSource {
 
   private scheduleReconnect() {
     if (this.closed || this.reconnectTimerId) return;
-    
+
     this.reconnectTimerId = setTimeout(() => {
       this.reconnectTimerId = null;
       // Exponential backoff
@@ -120,7 +120,7 @@ export class ResilientEventSource {
 
   public removeEventListener(type: string, listener: (event: MessageEvent) => void) {
     if (!this.listeners[type]) return;
-    this.listeners[type] = this.listeners[type].filter(cb => cb !== listener);
+    this.listeners[type] = this.listeners[type].filter((cb) => cb !== listener);
     if (this.eventSource) {
       this.eventSource.removeEventListener(type, listener as EventListener);
     }
