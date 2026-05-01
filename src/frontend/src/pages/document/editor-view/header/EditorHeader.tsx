@@ -8,16 +8,17 @@ import EditorControls from '../controls/EditorControls';
 import type { Document } from '../../../../features/documents/document';
 import {
   requestPDFRender,
-  getPDFRenderedEventSource,
   COMPILE_FINISHED_MESSAGE_TYPE,
+  type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
 import { getDocumentTimestamps } from '../../../../features/documents/api';
 
 interface EditorHeaderProps {
   file: Document | undefined;
+  pdfEventSource: ResilientEventSource | null;
 }
 
-const EditorHeader = ({ file }: EditorHeaderProps) => {
+const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const docId = file?.id;
   const [isCompiling, setIsCompiling] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
@@ -51,19 +52,19 @@ const EditorHeader = ({ file }: EditorHeaderProps) => {
   }, [fetchTimestamps]);
 
   useEffect(() => {
-    if (!docId) return;
+    if (!docId || !pdfEventSource) return;
 
-    const eventSource = getPDFRenderedEventSource(docId);
-
-    eventSource.addEventListener(COMPILE_FINISHED_MESSAGE_TYPE, () => {
+    const onCompileFinished = () => {
       setIsCompiling(false);
       void fetchTimestamps();
-    });
+    };
+
+    pdfEventSource.addEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
 
     return () => {
-      eventSource.close();
+      pdfEventSource.removeEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
     };
-  }, [docId, fetchTimestamps]);
+  }, [docId, fetchTimestamps, pdfEventSource]);
 
   const handleOnCompileClick = async () => {
     if (!docId) return;

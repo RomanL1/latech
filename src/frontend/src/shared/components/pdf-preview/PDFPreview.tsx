@@ -1,20 +1,21 @@
 import { useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import {
-  getPDFRenderedEventSource,
   useGetRenderedPDF,
   COMPILE_FINISHED_MESSAGE_TYPE,
   getRenderHistory,
   type PDFReadyMessageDto,
   type RenderHistoryDto,
+  type ResilientEventSource,
 } from '../../../features/pdf-preview/api';
 import { Flex, Text, Box, Tabs, ScrollArea, ThemeContext } from '@radix-ui/themes';
 import { PDFViewer } from '@embedpdf/react-pdf-viewer';
 
 interface PDFPreviewProps {
   docId: string;
+  pdfEventSource: ResilientEventSource | null;
 }
 
-const PDFPreview = ({ docId }: PDFPreviewProps) => {
+const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
   const [compileLog, setCompileLog] = useState<string | null>(null);
   const [latestSuccess, setLatestSuccess] = useState<boolean | null>(null);
   const [history, setHistory] = useState<RenderHistoryDto[]>([]);
@@ -64,13 +65,13 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
   }, [pdfUrl]);
 
   useEffect(() => {
-    const eventSource = getPDFRenderedEventSource(docId);
+    if (!pdfEventSource) return;
 
-    eventSource.onopen = () => {
+    const onOpen = () => {
       console.log('EventSource opened');
     };
 
-    eventSource.addEventListener(COMPILE_FINISHED_MESSAGE_TYPE, async (event: MessageEvent) => {
+    const onCompileFinished = async (event: MessageEvent) => {
       //EventSource (Server-Sent Events) is a strictly text-based web protocol
       const data: PDFReadyMessageDto = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
       console.log('Parsed data:', data);
@@ -86,16 +87,26 @@ const PDFPreview = ({ docId }: PDFPreviewProps) => {
       }
 
       await refetch();
-    });
+    };
 
-    eventSource.onerror = (error) => {
+    const onError = (error: Event) => {
       console.error('EventSource failed:', error);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pdfEventSource.addEventListener('open', onOpen as any);
+    pdfEventSource.addEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pdfEventSource.addEventListener('error', onError as any);
+
     return () => {
-      eventSource.close();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      pdfEventSource.removeEventListener('open', onOpen as any);
+      pdfEventSource.removeEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      pdfEventSource.removeEventListener('error', onError as any);
     };
-  }, [docId, refetch, fetchHistory]);
+  }, [docId, refetch, fetchHistory, pdfEventSource]);
 
   return (
     <Flex direction="column" height="100%" gap="3">
