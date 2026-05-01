@@ -49,7 +49,7 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
 
     const theme = context?.appearance === 'dark' ? 'vs-dark' : 'vs-light';
     monaco.editor.setTheme(theme);
-    
+
     // Force LF line endings for Yjs synchronisation
     model.setEOL(monaco.editor.EndOfLineSequence.LF);
 
