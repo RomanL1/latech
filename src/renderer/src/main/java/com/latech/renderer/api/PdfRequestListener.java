@@ -1,9 +1,7 @@
 package com.latech.renderer.api;
 
 import com.google.protobuf.Timestamp;
-import com.latech.renderer.business.CompileResult;
-import com.latech.renderer.business.NaivePDFJobWorker;
-import com.latech.renderer.business.PdfCompiledMessageProducer;
+import com.latech.renderer.business.*;
 import com.rabbitmq.client.Channel;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +10,6 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
@@ -31,13 +28,15 @@ import static com.latech.renderer.config.RabbitMQConfig.DOCUMENT_EXCHANGE;
 public class PdfRequestListener {
     private final PdfCompiledMessageProducer pdfCompiledMessageProducer;
     private final S3Client s3Client;
+    private final ContainerCreatingPDFJobWorker containerCreatingPDFJobWorker;
 
     @Value( "${seaweedfs.bucket}" )
     private String bucket;
 
-    public PdfRequestListener ( PdfCompiledMessageProducer pdfCompiledMessageProducer, S3Client s3Client ) {
+    public PdfRequestListener ( PdfCompiledMessageProducer pdfCompiledMessageProducer, S3Client s3Client, ContainerCreatingPDFJobWorker containerCreatingPDFJobWorker ) {
         this.pdfCompiledMessageProducer = pdfCompiledMessageProducer;
         this.s3Client = s3Client;
+        this.containerCreatingPDFJobWorker = containerCreatingPDFJobWorker;
     }
 
     @PostConstruct
@@ -72,7 +71,7 @@ public class PdfRequestListener {
         try {
             payload = DocumentRecord.parseFrom( payloadBytes );
             log.info( "Received payload with documentId: " + payload.getDocumentId() );
-            CompileResult result = NaivePDFJobWorker.compile( payload );
+            CompileResult result = this.containerCreatingPDFJobWorker.compile( payload );
 
             Timestamp timestamp = Timestamp.newBuilder()
                     .setSeconds( Instant.now().getEpochSecond() )
@@ -107,11 +106,10 @@ public class PdfRequestListener {
                     SUCCESSFULLY_RENDERED,
                     result.output() );
 
-            Path parent = pdfPath.getParent();
             try {
-                FileSystemUtils.deleteRecursively( parent );
+                FileWorker.cleanup();
             } catch ( IOException e ) {
-                log.error( "Could not delete directory: {}.", parent, e );
+                log.error( "Could not delete files in workdir.", e );
             }
         } catch ( Exception e ) {
             log.error( e.getMessage() );
