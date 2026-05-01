@@ -81,6 +81,11 @@ services:
       - rabbitmq
       - seaweedfs
     restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # DooD: share host Docker daemon
+      - render_tmp:/workdir
+    group_add:
+      - "${DOCKER_GID}" # gives renderer permission to use the socket
 
   postgres:
     image: "postgres:latest"
@@ -117,3 +122,9 @@ volumes:
   rabbitmq_data:
   postgres_data:
   seaweedfs-data:
+  render_tmp:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/compileRAMTempFS

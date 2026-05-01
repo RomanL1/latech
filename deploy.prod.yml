@@ -43,6 +43,11 @@ services:
       - rabbitmq
       - seaweedfs
     restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # DooD: share host Docker daemon
+      - render_tmp:/workdir
+    group_add:
+      - "${DOCKER_GID}"  # gives renderer permission to use the socket
 
   rabbitmq:
     image: rabbitmq:4.0-management
@@ -127,3 +132,9 @@ volumes:
   caddy_data:
   caddy_config:
   seaweedfs-data:
+  render_tmp:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/compileRAMTempFS

@@ -199,7 +199,7 @@ jobs:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
-          source: "deploy.prod.yml,Caddyfile"
+          source: "deploy.prod.yml,Caddyfile,src/renderer/src/main/resources/tex-renderer-Dockerfile"
           target: "/opt/latech"
 
       - name: Deploy to DigitalOcean Droplet via SSH
@@ -219,6 +219,9 @@ jobs:
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
             echo "SEAWEEDFS_ACCESS_KEY=${{ secrets.SEAWEEDFS_ACCESS_KEY }}" >> .env
             echo "SEAWEEDFS_SECRET_KEY=${{ secrets.SEAWEEDFS_SECRET_KEY }}" >> .env
+            grep -v '^DOCKER_GID=' .env > .env.tmp && mv .env.tmp .env
+            echo "DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)" >> .env
+            docker build -t tex-renderer-image -f tex-renderer-Dockerfile
 
             # If your GHCR images are private, uncomment the next line:
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
