@@ -239,7 +239,7 @@ jobs:
 
             docker compose -f deploy.prod.yml pull
             docker compose -f deploy.prod.yml up -d --remove-orphans
-            docker system prune -af
+            docker image prune -f
 
       
     
