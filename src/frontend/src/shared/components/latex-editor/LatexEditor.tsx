@@ -47,6 +47,12 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
     const model = editor.getModel();
     if (!model) return;
 
+    const theme = context?.appearance === 'dark' ? 'vs-dark' : 'vs-light';
+    monaco.editor.setTheme(theme);
+    
+    // Force LF line endings for Yjs synchronisation
+    model.setEOL(monaco.editor.EndOfLineSequence.LF);
+
     const yDoc = new Y.Doc();
     const yText = yDoc.getText('latech');
 
@@ -63,7 +69,8 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
     // Initialize the editor content with the provided content if the Yjs document is empty
     yProvider.on('sync', (isSynced) => {
       if (isSynced && yText.toString().length === 0 && content) {
-        yText.insert(0, content);
+        // Ensure inserted content only uses LF
+        yText.insert(0, content.replace(/\r\n/g, '\n'));
       }
     });
 
@@ -73,6 +80,10 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyY, () => {
       undoManager.redo();
+    });
+
+    editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyC, () => {
+      editor.trigger('keyboard', 'editor.action.clipboardCopyAction', null);
     });
 
     let name = sessionStorage.getItem('latech-username') || '';
