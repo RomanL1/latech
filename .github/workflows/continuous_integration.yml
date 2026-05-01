@@ -205,37 +205,26 @@ jobs:
       - name: Deploy to DigitalOcean Droplet via SSH
         if: steps.filter.outputs.changed == 'true'
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
-          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          SEAWEEDFS_ACCESS_KEY: ${{ secrets.SEAWEEDFS_ACCESS_KEY }}
-          SEAWEEDFS_SECRET_KEY: ${{ secrets.SEAWEEDFS_SECRET_KEY }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
-          envs: RABBITMQ_USER,RABBITMQ_PASSWORD,POSTGRES_USER,POSTGRES_PASSWORD,SEAWEEDFS_ACCESS_KEY,SEAWEEDFS_SECRET_KEY,GH_TOKEN
           script: |
             cd /opt/latech
             
-            # Create .env dynamically and safely
-            cat <<EOF > .env
-            RABBITMQ_USER=$RABBITMQ_USER
-            RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD
-            POSTGRES_USER=$POSTGRES_USER
-            POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-            SEAWEEDFS_ACCESS_KEY=$SEAWEEDFS_ACCESS_KEY
-            SEAWEEDFS_SECRET_KEY=$SEAWEEDFS_SECRET_KEY
-            DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
-            EOF
+            # Create .env dynamically from GitHub Secrets
+            echo "RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}" > .env
+            echo "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}" >> .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+            echo "SEAWEEDFS_ACCESS_KEY=${{ secrets.SEAWEEDFS_ACCESS_KEY }}" >> .env
+            echo "SEAWEEDFS_SECRET_KEY=${{ secrets.SEAWEEDFS_SECRET_KEY }}" >> .env
+            echo "DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)" >> .env
 
             docker build -t tex-renderer-image -f src/renderer/src/main/resources/tex-renderer-Dockerfile .
 
             # If your GHCR images are private, uncomment the next line:
-            echo "$GH_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             docker compose -f deploy.prod.yml pull
             docker compose -f deploy.prod.yml up -d --remove-orphans
