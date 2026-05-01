@@ -24,15 +24,6 @@ RUN apt-get update && apt-get install -y \
     apt-get update && apt-get install -y docker-ce-cli && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    texlive-latex-base \
-    texlive-latex-extra \
-    texlive-latex-recommended \
-    texlive-fonts-recommended \
-    texlive-science \
-    lmodern \
-    && rm -rf /var/lib/apt/lists/*
-
 # Environment variables from application.properties
 ENV SPRING_APPLICATION_NAME="latech-renderer"
 
