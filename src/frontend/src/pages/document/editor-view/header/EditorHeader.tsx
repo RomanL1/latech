@@ -2,8 +2,6 @@ import { LucideFileCodeCorner, LucidePlay } from 'lucide-react';
 import styles from './EditorHeader.module.css';
 import { Button, Separator, Spinner, Text } from '@radix-ui/themes';
 import { useState, useEffect, useCallback } from 'react';
-import CurrentEditors from '../current-editors/CurrentEditors';
-import { editors } from '../sampleData';
 import EditorControls from '../controls/EditorControls';
 import type { Document } from '../../../../features/documents/document';
 import {
@@ -12,18 +10,24 @@ import {
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
 import { getDocumentTimestamps } from '../../../../features/documents/api';
+import CurrentEditors from './current-editors/CurrentEditors';
+import type { AwarenessUser, AwarenessUserList } from '../../../../shared/components/latex-editor/LatexEditor';
 
 interface EditorHeaderProps {
   file: Document | undefined;
   pdfEventSource: ResilientEventSource | null;
+  awarenessUsers: AwarenessUserList;
+  currentAwarenessUsers: AwarenessUser | null;
 }
 
-const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
+const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUsers }: EditorHeaderProps) => {
   const docId = file?.id;
   const [isCompiling, setIsCompiling] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
+
+  console.log("Current awareness users in header:", awarenessUsers, currentAwarenessUsers);
 
   const fetchTimestamps = useCallback(async () => {
     if (!docId) return;
@@ -97,8 +101,8 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
       <Separator orientation="vertical" />
       <EditorControls />
       <Separator orientation="vertical" />
-      <CurrentEditors editors={editors} className={styles.currentEditors} />
-      <div style={{ marginLeft: 'auto', marginRight: '12px', textAlign: 'right' }}>
+      <CurrentEditors className={styles.currentEditors} editors={awarenessUsers} currentEditor={currentAwarenessUsers} />
+      <div style={{marginRight: '12px', textAlign: 'right' }}>
         {lastChangedAt && now !== null && (
           <Text size="2" color="gray" as="div" style={{ lineHeight: 1.2 }}>
             Last save: {getTimeAgo(lastChangedAt, now)}
