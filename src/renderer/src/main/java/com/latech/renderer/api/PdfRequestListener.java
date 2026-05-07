@@ -70,7 +70,6 @@ public class PdfRequestListener {
         DocumentRecord payload = null;
         try {
             payload = DocumentRecord.parseFrom( payloadBytes );
-            log.info( "Received payload with documentId: " + payload.getDocumentId() );
             CompileResult result = this.containerCreatingPDFJobWorker.compile( payload );
 
             Timestamp timestamp = Timestamp.newBuilder()
@@ -87,6 +86,11 @@ public class PdfRequestListener {
                         timestamp,
                         ERROR_WHILE_RENDERING,
                         result.output() );
+                try {
+                    FileWorker.cleanup( payload.getRenderId() );
+                } catch ( IOException e ) {
+                    log.error( "Exception while trying to cleanup files after unsuccessful compilation: " + e );
+                }
                 return;
             }
 
@@ -96,7 +100,6 @@ public class PdfRequestListener {
             s3Client.putObject(
                     b -> b.bucket( this.bucket ).key( payloadS3Key ),
                     pdfPath );
-            log.info( "Saved document {} to s3 with key: {}.", pdfPath, payloadS3Key );
 
             this.pdfCompiledMessageProducer.handlePdfCompiled(
                     payload.getRenderId(),
@@ -107,7 +110,7 @@ public class PdfRequestListener {
                     result.output() );
 
             try {
-                FileWorker.cleanup();
+                FileWorker.cleanup( payload.getRenderId() );
             } catch ( IOException e ) {
                 log.error( "Could not delete files in workdir.", e );
             }
@@ -127,6 +130,12 @@ public class PdfRequestListener {
                     ERROR_WHILE_RENDERING,
                     "Internal renderer error: " + e.getMessage() );
 
+            try {
+                assert payload != null;
+                FileWorker.cleanup( payload.getRenderId() );
+            } catch ( IOException ex ) {
+                log.error( "Could not delete files in workdir. ", ex );
+            }
             // DO REJECT here, spring handles this if we throw
             throw e;
         }
