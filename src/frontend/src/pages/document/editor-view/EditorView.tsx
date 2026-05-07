@@ -49,10 +49,24 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
 
   return (
     <div className={styles.container}>
-      <EditorHeader file={file} pdfEventSource={pdfEventSource} awarenessUsers={awarenessUsers} currentAwarenessUsers={currentAwarenessUsers} />
+      <EditorHeader
+        file={file}
+        pdfEventSource={pdfEventSource}
+        awarenessUsers={awarenessUsers}
+        currentAwarenessUsers={currentAwarenessUsers}
+      />
       <Group className={styles.panelGroup}>
         <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          {documentId ? <LatexEditor roomId={documentId} content={file?.content ?? ''} onAwarenessChange={setAwarenessUsers} onCurrentAwarenessChange={setCurrentAwarenessUsers} /> : 'No file selected'}
+          {documentId ? (
+            <LatexEditor
+              roomId={documentId}
+              content={file?.content ?? ''}
+              onAwarenessChange={setAwarenessUsers}
+              onCurrentAwarenessChange={setCurrentAwarenessUsers}
+            />
+          ) : (
+            'No file selected'
+          )}
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>

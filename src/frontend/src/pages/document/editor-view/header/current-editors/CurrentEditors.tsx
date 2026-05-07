@@ -9,27 +9,17 @@ interface CurrentEditorProps {
 }
 
 const CurrentEditors = ({ className = '', editors, currentEditor }: CurrentEditorProps) => {
-  const editorList = Array.from(editors.values()).filter(e => e.user);
+  const editorList = Array.from(editors.values()).filter((e) => e.user);
   const otherEditorCount = editorList.length - 2;
-  const filteredEditors = currentEditor ? editorList.filter(e => e.clientId !== currentEditor.clientId) : editorList;
+  const filteredEditors = currentEditor ? editorList.filter((e) => e.clientId !== currentEditor.clientId) : editorList;
 
   return (
     <div className={`${className} ${styles.container}`}>
       {filteredEditors.slice(0, 2).map((editor) => (
-        <EditorAvatar
-          key={editor.clientId}
-          name={editor.user!.name ?? 'User'}
-          color={editor.user!.color}
-        />
+        <EditorAvatar key={editor.clientId} name={editor.user!.name ?? 'User'} color={editor.user!.color} />
       ))}
 
-      {filteredEditors.length > 2 && (
-        <EditorAvatar
-          name={`+${otherEditorCount - 1}`}
-          color={'var(--gray-8)'}
-          isCount
-        />
-      )}
+      {filteredEditors.length > 2 && <EditorAvatar name={`+${otherEditorCount - 1}`} color={'var(--gray-8)'} isCount />}
     </div>
   );
 };
@@ -49,12 +39,9 @@ interface EditorAvatarProps {
   isCount?: boolean;
 }
 
-const EditorAvatar = ({ name, color, isCount=false }: EditorAvatarProps) => {
+const EditorAvatar = ({ name, color, isCount = false }: EditorAvatarProps) => {
   return (
-    <div
-      className={styles.avatar}
-      style={{ backgroundColor: color }}
-    >
+    <div className={styles.avatar} style={{ backgroundColor: color }}>
       <EditorAvatarText editorName={isCount ? name : name[0]} />
     </div>
   );

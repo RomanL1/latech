@@ -5,7 +5,6 @@ interface CursorsProps {
   awarenessUsers: AwarenessUserList;
 }
 
-
 const Cursors = ({ awarenessUsers }: CursorsProps) => {
   const styleSheet = useMemo(() => {
     let cursorStyles = '';

@@ -27,8 +27,6 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
 
-  console.log("Current awareness users in header:", awarenessUsers, currentAwarenessUsers);
-
   const fetchTimestamps = useCallback(async () => {
     if (!docId) return;
     try {
@@ -101,8 +99,12 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
       <Separator orientation="vertical" />
       <EditorControls />
       <Separator orientation="vertical" />
-      <CurrentEditors className={styles.currentEditors} editors={awarenessUsers} currentEditor={currentAwarenessUsers} />
-      <div style={{marginRight: '12px', textAlign: 'right' }}>
+      <CurrentEditors
+        className={styles.currentEditors}
+        editors={awarenessUsers}
+        currentEditor={currentAwarenessUsers}
+      />
+      <div style={{ marginRight: '12px', textAlign: 'right' }}>
         {lastChangedAt && now !== null && (
           <Text size="2" color="gray" as="div" style={{ lineHeight: 1.2 }}>
             Last save: {getTimeAgo(lastChangedAt, now)}

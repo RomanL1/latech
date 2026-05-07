@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { MonacoBinding } from 'y-monaco';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+import * as awarenessProtocol from 'y-protocols/awareness';
 import { editor as MonacoEditor, KeyMod, KeyCode } from 'monaco-editor';
 import { ThemeContext } from '@radix-ui/themes';
 import Cursors from './cursor/Cursors';
@@ -74,28 +75,55 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
       undoManager.redo();
     });
 
-    return () => {
-      yProvider.destroy();
-      yDoc.destroy();
-      undoManager.destroy();
-      yProvider.awareness.setLocalState(null);
-    };
-  }, [editor, monaco, roomId, content]);
+    let name = sessionStorage.getItem('latech-username') || '';
+    let color = sessionStorage.getItem('latech-usercolor') || '';
 
-  useEffect(() => {
-    if (!yProvider) return;
+    if (
+      name &&
+      color &&
+      Array.from(yProvider.awareness.getStates().values()).some((state) => state.user?.name === name)
+    ) {
+      name = '';
+      color = '';
+    }
 
-    const name = uniqueNamesGenerator({
-      dictionaries: [adjectives, animals],
-      style: 'capital',
+    if (!name || !color) {
+      while (true) {
+        name = uniqueNamesGenerator({
+          dictionaries: [adjectives, animals],
+          style: 'capital',
+        });
+
+        if (!Array.from(yProvider.awareness.getStates().values()).some((state) => state.user?.name === name)) {
+          color = generateColor(name);
+          sessionStorage.setItem('latech-username', name);
+          sessionStorage.setItem('latech-usercolor', color);
+          break;
+        }
+      }
+    }
+
+    // Clean up awareness state on window unload
+    window.addEventListener('beforeunload', () => {
+      awarenessProtocol.removeAwarenessStates(yProvider.awareness, [yProvider.doc.clientID], 'window unload');
     });
-
-    const color = generateColor(name);
 
     yProvider.awareness.setLocalStateField('user', {
       name: name,
       color: color,
     });
+
+    return () => {
+      binding.destroy();
+      yProvider.awareness.destroy();
+      yProvider.destroy();
+      yDoc.destroy();
+      undoManager.destroy();
+    };
+  }, [editor, monaco, roomId, content, onAwarenessChange, onCurrentAwarenessChange]);
+
+  useEffect(() => {
+    if (!yProvider) return;
 
     function setUsers() {
       const users: AwarenessUserList = new Map(
@@ -113,19 +141,22 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
       onCurrentAwarenessChange?.(users.get(yProvider!.awareness.clientID) || null);
     }
 
-    yProvider.awareness.on('change', setUsers);
     setUsers();
+
+    yProvider.awareness.on('change', setUsers);
+    yProvider.awareness.on('update', () => {});
 
     return () => {
       yProvider.awareness.off('change', setUsers);
+      yProvider.awareness.off('update', () => {
+        console.log('AWARNE');
+      });
     };
   }, [yProvider, onAwarenessChange, onCurrentAwarenessChange]);
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
   };
-
-  console.log('Current Awareness Users:', Array.from(awarenessUsers.values()));
 
   return (
     <div className={styles.container}>
