@@ -128,7 +128,7 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
     const handleWindowUnload = () => {
       awarenessProtocol.removeAwarenessStates(yProvider.awareness, [yProvider.doc.clientID], 'window unload');
     };
-    
+
     window.addEventListener('beforeunload', handleWindowUnload);
 
     yProvider.awareness.setLocalStateField('user', {

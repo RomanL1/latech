@@ -1,5 +1,8 @@
 import { Group, Panel, type PanelImperativeHandle } from 'react-resizable-panels';
-import LatexEditor, { type AwarenessUser, type AwarenessUserList } from '../../../shared/components/latex-editor/LatexEditor';
+import LatexEditor, {
+  type AwarenessUser,
+  type AwarenessUserList,
+} from '../../../shared/components/latex-editor/LatexEditor';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
