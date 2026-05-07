@@ -1,5 +1,5 @@
 import { Group, Panel, type PanelImperativeHandle } from 'react-resizable-panels';
-import LatexEditor, { type AwarenessUser } from '../../../shared/components/latex-editor/LatexEditor';
+import LatexEditor, { type AwarenessUser, type AwarenessUserList } from '../../../shared/components/latex-editor/LatexEditor';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
@@ -16,7 +16,7 @@ interface EditorViewProps {
 const EditorView = ({ file, documentId }: EditorViewProps) => {
   const rightPanelRef = useRef<PanelImperativeHandle | null>(null);
   const [pdfEventSource, setPdfEventSource] = useState<ResilientEventSource | null>(null);
-  const [awarenessUsers, setAwarenessUsers] = useState(new Map());
+  const [awarenessUsers, setAwarenessUsers] = useState<AwarenessUserList>(new Map());
   const [currentAwarenessUsers, setCurrentAwarenessUsers] = useState<AwarenessUser | null>(null);
 
   useEffect(() => {

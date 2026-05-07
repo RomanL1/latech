@@ -88,25 +88,48 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
     }
 
     if (!name || !color) {
-      while (true) {
-        name = uniqueNamesGenerator({
+      const MAX_NAME_GENERATION_ATTEMPTS = 20;
+
+      const usedNames = new Set(
+        Array.from(yProvider.awareness.getStates().values())
+          .map((state) => state.user?.name)
+          .filter((stateName): stateName is string => Boolean(stateName)),
+      );
+
+      let generatedName = '';
+      for (let attempt = 0; attempt < MAX_NAME_GENERATION_ATTEMPTS; attempt++) {
+        const candidateName = uniqueNamesGenerator({
           dictionaries: [adjectives, animals],
           style: 'capital',
         });
 
-        if (!Array.from(yProvider.awareness.getStates().values()).some((state) => state.user?.name === name)) {
-          color = generateColor(name);
-          sessionStorage.setItem('latech-username', name);
-          sessionStorage.setItem('latech-usercolor', color);
+        if (!usedNames.has(candidateName)) {
+          generatedName = candidateName;
           break;
         }
       }
+
+      if (!generatedName) {
+        const fallbackBaseName = uniqueNamesGenerator({
+          dictionaries: [adjectives, animals],
+          style: 'capital',
+        });
+        const fallbackSuffix = Math.random().toString(36).slice(2, 8);
+        generatedName = `${fallbackBaseName}${fallbackSuffix}`;
+      }
+
+      name = generatedName;
+      color = generateColor(name);
+      sessionStorage.setItem('latech-username', name);
+      sessionStorage.setItem('latech-usercolor', color);
     }
 
     // Clean up awareness state on window unload
-    window.addEventListener('beforeunload', () => {
+    const handleWindowUnload = () => {
       awarenessProtocol.removeAwarenessStates(yProvider.awareness, [yProvider.doc.clientID], 'window unload');
-    });
+    };
+    
+    window.addEventListener('beforeunload', handleWindowUnload);
 
     yProvider.awareness.setLocalStateField('user', {
       name: name,
@@ -119,6 +142,7 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
       yProvider.destroy();
       yDoc.destroy();
       undoManager.destroy();
+      window.removeEventListener('beforeunload', handleWindowUnload);
     };
   }, [editor, monaco, roomId, content, onAwarenessChange, onCurrentAwarenessChange]);
 
@@ -144,13 +168,9 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
     setUsers();
 
     yProvider.awareness.on('change', setUsers);
-    yProvider.awareness.on('update', () => {});
 
     return () => {
       yProvider.awareness.off('change', setUsers);
-      yProvider.awareness.off('update', () => {
-        console.log('AWARNE');
-      });
     };
   }, [yProvider, onAwarenessChange, onCurrentAwarenessChange]);
 
