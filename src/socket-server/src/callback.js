@@ -4,6 +4,7 @@ import * as number from 'lib0/number'
 const CALLBACK_URL = process.env.CALLBACK_URL ? new URL(process.env.CALLBACK_URL) : null
 const CALLBACK_TIMEOUT = number.parseInt(process.env.CALLBACK_TIMEOUT || '5000')
 const CALLBACK_OBJECT_NAME = process.env.CALLBACK_OBJECT_NAME
+const INTERNAL_AUTH_SECRET = process.env.INTERNAL_AUTH_SECRET || ''
 // const CALLBACK_OBJECTS = process.env.CALLBACK_OBJECTS ? JSON.parse(process.env.CALLBACK_OBJECTS) : {}
 
 export const isCallbackSet = !!CALLBACK_URL
@@ -49,7 +50,8 @@ const callbackRequest = (url, timeout, data) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(data)
+      'Content-Length': Buffer.byteLength(data),
+      'X-Internal-Secret': INTERNAL_AUTH_SECRET
     }
   }
   const req = http.request(options)

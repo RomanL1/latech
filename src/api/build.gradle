@@ -53,6 +53,7 @@ dependencies {
     implementation 'org.jspecify:jspecify:1.0.0'
     implementation("software.amazon.awssdk:s3:2.42.32")
     implementation platform('software.amazon.awssdk:bom:2.42.32')
+    implementation("org.springframework.security:spring-security-crypto")
 }
 
 

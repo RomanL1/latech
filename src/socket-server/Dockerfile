@@ -2,24 +2,23 @@ FROM node:25-alpine
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
 
-# Install dependencies (use ci for reproducible builds)
 RUN npm ci --omit=dev
 
-# Copy application code
 COPY . .
 
-# Run as non-root user
 RUN addgroup -g 1001 -S nodeapp && adduser -S nodeapp -u 1001 -G nodeapp
 RUN chown -R nodeapp:nodeapp /app
 USER nodeapp
 
-# Bind to all interfaces so the server is accessible from outside the container
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
-EXPOSE 0000
+# Latech local/docker auth config
+ENV API_INTERNAL_URL=http://api:5001
+ENV INTERNAL_AUTH_SECRET=d1994d751e106da55475cc5aadfb3e742b2c849bdb961b420a934e094108965f
+
+EXPOSE 3000
 
 CMD [ "npm", "start" ]

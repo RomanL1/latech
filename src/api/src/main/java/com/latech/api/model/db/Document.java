@@ -25,7 +25,11 @@ public class Document {
     @Column( columnDefinition = "TEXT" )
     private String content;
 
-    @Column( name = "password" )
+    /**
+     * Stores the hashed document password.
+     * Never store the raw password here.
+     */
+    @Column( name = "password", columnDefinition = "TEXT")
     private String password;
 
     private Instant lastChange;

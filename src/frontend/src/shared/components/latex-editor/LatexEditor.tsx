@@ -42,7 +42,7 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
   }, [monaco, context?.appearance, editor]);
 
   useEffect(() => {
-    if (!monaco || !editor) return;
+    if (!monaco || !editor || !roomId) return;
 
     const model = editor.getModel();
     if (!model) return;
