@@ -19,10 +19,10 @@ function LatexEditor({ content, roomId }: LatexEditorProps) {
   const context = useContext(ThemeContext);
 
   useEffect(() => {
-      if (!monaco || !editor || !roomId) return;
+    if (!monaco || !editor || !roomId) return;
 
-      const model = editor.getModel();
-      if (!model) return;
+    const model = editor.getModel();
+    if (!model) return;
 
     const theme = context?.appearance === 'dark' ? 'vs-dark' : 'vs-light';
     monaco.editor.setTheme(theme);
