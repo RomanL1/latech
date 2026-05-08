@@ -19,7 +19,7 @@ export interface DocumentImage {
 
 export interface Document {
   id: string;
-  name: string;
-  content: string;
+  name?: string;
+  content?: string;
   secured: boolean;
 }

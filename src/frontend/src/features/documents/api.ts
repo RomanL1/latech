@@ -16,8 +16,27 @@ interface CreateDocumentResponse {
   name: string;
 }
 
+async function readError(response: Response, fallback: string): Promise<Error> {
+  try {
+    const errorData = await response.json();
+    return new Error(errorData.message || fallback);
+  } catch {
+    return new Error(fallback);
+  }
+}
+
+function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return fetch(input, {
+    ...init,
+    credentials: 'include',
+    headers: {
+      ...init?.headers,
+    },
+  });
+}
+
 export function saveTemplate(document: DocumentCreation): Promise<CreateDocumentResponse> {
-  const request = fetch(documentUrl, {
+  const request = apiFetch(documentUrl, {
     method: 'POST',
     body: JSON.stringify(document),
     headers: {
@@ -39,12 +58,11 @@ export function saveTemplate(document: DocumentCreation): Promise<CreateDocument
 }
 
 async function getDocument(documentId: string): Promise<Document> {
-  return fetch(`${documentUrl}/${documentId}`).then((response) => {
+  return apiFetch(`${documentUrl}/${documentId}`).then(async (response) => {
     if (!response.ok) {
-      return response.json().then((errorData) => {
-        throw new Error(errorData.message || 'Failed to fetch document');
-      });
+      throw await readError(response, 'Failed to fetch document');
     }
+
     return response.json() as Promise<Document>;
   });
 }
@@ -56,24 +74,54 @@ export function useGetDocument(documentId: string): UseQueryResult<Document> {
   });
 }
 
+async function unlockDocument(documentId: string, password: string): Promise<void> {
+  return apiFetch(`${documentUrl}/${documentId}/unlock`, {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(async (response) => {
+    if (!response.ok) {
+      throw await readError(response, 'Failed to unlock document');
+    }
+  });
+}
+
+export function useUnlockDocument(documentId: string): UseMutationResult<void, Error, string> {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string>({
+    mutationFn: (password) => unlockDocument(documentId, password),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+      queryClient.invalidateQueries({ queryKey: ['images', documentId] });
+    },
+  });
+}
+
 async function postImages(documentId: string, files: File[]): Promise<void> {
   const formData = new FormData();
   files.forEach((file) => formData.append('files', file));
 
-  return fetch(`${documentUrl}/${documentId}/images/upload`, {
+  return apiFetch(`${documentUrl}/${documentId}/images/upload`, {
     method: 'POST',
     body: formData,
-  }).then((response) => {
+  }).then(async (response) => {
     if (!response.ok) {
-      return response.json().then((errorData) => {
-        throw new Error(errorData.message || 'Failed to upload images');
-      });
+      throw await readError(response, 'Failed to upload images');
     }
   });
 }
 
 async function getImages(documentId: string): Promise<DocumentImage[]> {
-  return (await fetch(`${documentUrl}/${documentId}/images`)).json();
+  return apiFetch(`${documentUrl}/${documentId}/images`).then(async (response) => {
+    if (!response.ok) {
+      throw await readError(response, 'Failed to fetch images');
+    }
+
+    return response.json() as Promise<DocumentImage[]>;
+  });
 }
 
 export function usePostImages(documentId: string): UseMutationResult<void, Error, File[]> {
@@ -92,11 +140,9 @@ export function useDeleteImage(documentId: string): UseMutationResult<void, Erro
 
   return useMutation<void, Error, string>({
     mutationFn: (imageId) =>
-      fetch(`${documentUrl}/${documentId}/images/${imageId}`, { method: 'DELETE' }).then((response) => {
+      apiFetch(`${documentUrl}/${documentId}/images/${imageId}`, { method: 'DELETE' }).then(async (response) => {
         if (!response.ok) {
-          return response.json().then((errorData) => {
-            throw new Error(errorData.message || 'Failed to delete image');
-          });
+          throw await readError(response, 'Failed to delete image');
         }
       }),
     onSuccess: () => {
@@ -105,19 +151,18 @@ export function useDeleteImage(documentId: string): UseMutationResult<void, Erro
   });
 }
 
-export function useGetImages(documentId: string): UseQueryResult<DocumentImage[]> {
+export function useGetImages(documentId: string, enabled = true): UseQueryResult<DocumentImage[]> {
   return useQuery({
     queryKey: ['images', documentId],
     queryFn: () => getImages(documentId),
+    enabled,
   });
 }
 
 async function getImageBlob(documentId: string, imageId: string): Promise<Blob> {
-  return fetch(`${documentUrl}/${documentId}/images/${imageId}`).then((response) => {
+  return apiFetch(`${documentUrl}/${documentId}/images/${imageId}`).then(async (response) => {
     if (!response.ok) {
-      return response.json().then((errorData) => {
-        throw new Error(errorData.message || 'Failed to download image');
-      });
+      throw await readError(response, 'Failed to download image');
     }
 
     return response.blob();
@@ -125,17 +170,15 @@ async function getImageBlob(documentId: string, imageId: string): Promise<Blob> 
 }
 
 async function renameImage(documentId: string, imageId: string, newName: string): Promise<void> {
-  return fetch(`${documentUrl}/${documentId}/images/${imageId}`, {
+  return apiFetch(`${documentUrl}/${documentId}/images/${imageId}`, {
     method: 'PUT',
     body: JSON.stringify({ name: newName }),
     headers: {
       'Content-Type': 'application/json',
     },
-  }).then((response) => {
+  }).then(async (response) => {
     if (!response.ok) {
-      return response.json().then((errorData) => {
-        throw new Error(errorData.message || 'Failed to rename image');
-      });
+      throw await readError(response, 'Failed to rename image');
     }
   });
 }
@@ -183,10 +226,11 @@ export interface DocumentTimestampsDto {
 }
 
 export function getDocumentTimestamps(docId: string): Promise<DocumentTimestampsDto> {
-  return fetch(`${documentUrl}/${docId}/timestamps`).then((res) => {
+  return apiFetch(`${documentUrl}/${docId}/timestamps`).then(async (res) => {
     if (!res.ok) {
-      throw new Error('Failed to fetch document timestamps');
+      throw await readError(res, 'Failed to fetch document timestamps');
     }
-    return res.json();
+
+    return res.json() as Promise<DocumentTimestampsDto>;
   });
 }

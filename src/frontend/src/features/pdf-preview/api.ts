@@ -9,21 +9,31 @@ import {
 const apiHost = window.ENV.VITE_API_HOST;
 const documentUrl = `${apiHost}/document/`;
 
-//post trigger PDF render
-export async function requestPDFRender(docId: string): Promise<void> {
-  return fetch(`${documentUrl}${docId}/render`, { method: 'POST' })
-    .then((response) => {
-      if (!response.ok) throw new Error('Failed to initiate render');
-    })
-    .catch(() => {
-      throw new Error('Failed to initiate render');
-    });
+function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return fetch(input, {
+    ...init,
+    credentials: 'include',
+    headers: {
+      ...init?.headers,
+    },
+  });
 }
 
-export function useRequestPDFRender(docId: string): UseMutationResult<void> {
+// post trigger PDF render
+export async function requestPDFRender(docId: string): Promise<void> {
+  const response = await apiFetch(`${documentUrl}${docId}/render`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to initiate render');
+  }
+}
+
+export function useRequestPDFRender(docId: string): UseMutationResult<void, Error, void> {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<void, Error, void>({
     mutationFn: () => requestPDFRender(docId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pdf', docId] });
@@ -31,9 +41,9 @@ export function useRequestPDFRender(docId: string): UseMutationResult<void> {
   });
 }
 
-//get PDF as file
+// get PDF as file
 export async function getPDF(docId: string): Promise<Blob | null> {
-  const response = await fetch(`${documentUrl}${docId}/render`);
+  const response = await apiFetch(`${documentUrl}${docId}/render`);
 
   if (response.status === 404) {
     return null;
@@ -73,23 +83,27 @@ export class ResilientEventSource {
   private connect() {
     if (this.closed) return;
 
-    this.eventSource = new EventSource(this.url);
+    this.eventSource = new EventSource(this.url, {
+      withCredentials: true,
+    });
 
     this.eventSource.onopen = () => {
-      this.reconnectTimeout = 1000; // Reset backoff on successful connection
-      if (this.onopen) this.onopen();
+      this.reconnectTimeout = 1000;
+
+      if (this.onopen) {
+        this.onopen();
+      }
     };
 
     this.eventSource.onerror = (err) => {
-      if (this.onerror) this.onerror(err);
+      if (this.onerror) {
+        this.onerror(err);
+      }
 
-      // Close the current instances to prevent native re-connections
-      // which don't use exponential backoff, and handle reconnection ourselves.
       this.eventSource?.close();
       this.scheduleReconnect();
     };
 
-    // Reattach standard listeners
     for (const [type, callbacks] of Object.entries(this.listeners)) {
       for (const cb of callbacks) {
         this.eventSource.addEventListener(type, cb as EventListener);
@@ -102,7 +116,6 @@ export class ResilientEventSource {
 
     this.reconnectTimerId = setTimeout(() => {
       this.reconnectTimerId = null;
-      // Exponential backoff
       this.reconnectTimeout = Math.min(this.reconnectTimeout * 2, this.maxReconnectTimeout);
       this.connect();
     }, this.reconnectTimeout);
@@ -112,7 +125,9 @@ export class ResilientEventSource {
     if (!this.listeners[type]) {
       this.listeners[type] = [];
     }
+
     this.listeners[type].push(listener);
+
     if (this.eventSource) {
       this.eventSource.addEventListener(type, listener as EventListener);
     }
@@ -120,7 +135,9 @@ export class ResilientEventSource {
 
   public removeEventListener(type: string, listener: (event: MessageEvent) => void) {
     if (!this.listeners[type]) return;
+
     this.listeners[type] = this.listeners[type].filter((cb) => cb !== listener);
+
     if (this.eventSource) {
       this.eventSource.removeEventListener(type, listener as EventListener);
     }
@@ -128,10 +145,12 @@ export class ResilientEventSource {
 
   public close() {
     this.closed = true;
+
     if (this.reconnectTimerId) {
       clearTimeout(this.reconnectTimerId);
       this.reconnectTimerId = null;
     }
+
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
@@ -139,7 +158,7 @@ export class ResilientEventSource {
   }
 }
 
-//get event source for PDF render status
+// get event source for PDF render status
 export function getPDFRenderedEventSource(docId: string): ResilientEventSource {
   return new ResilientEventSource(`${documentUrl}${docId}/stream-updates`);
 }
@@ -164,5 +183,11 @@ export interface RenderHistoryDto {
 }
 
 export function getRenderHistory(docId: string): Promise<RenderHistoryDto[]> {
-  return fetch(`${documentUrl}${docId}/history`).then((res) => res.json());
+  return apiFetch(`${documentUrl}${docId}/history`).then((res) => {
+    if (!res.ok) {
+      throw new Error('Failed to fetch render history');
+    }
+
+    return res.json() as Promise<RenderHistoryDto[]>;
+  });
 }
