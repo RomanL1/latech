@@ -1,0 +1,32 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.container > * {
+  position: relative;
+}
+
+.container > :first-child {
+  z-index: 10;
+}
+
+.avatar {
+  position: relative;
+  border-radius: 100%;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-direction: column;
+  border: 1px solid black;
+}
+
+.avatar:not(:first-child) {
+  margin-left: -0.7rem;
+  z-index: 10;
+}
