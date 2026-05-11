@@ -31,8 +31,8 @@ public class DocumentImageService {
         return this.repository.findByDocumentIdAndUserSuppliedName(documentId, name);
     }
 
-    public Optional<DocumentImage> getPictureFromDocumentAndImageId(UUID documentId, UUID fileId) {
-        return this.repository.findByDocumentIdAndImageId(documentId, fileId);
+    public Optional<DocumentImage> getPictureFromDocumentAndImageId(UUID documentId, UUID imageId) {
+        return this.repository.findByDocumentIdAndImageId(documentId, imageId);
     }
 
     public DocumentImage registerPicture(UUID documentId, String userSuppliedName, String mimeType) {
@@ -56,5 +56,13 @@ public class DocumentImageService {
     @Transactional
     public void deletePicture(UUID documentId, UUID imageId) {
         this.repository.deleteByDocumentIdAndImageId(documentId, imageId);
+    }
+
+    public boolean pictureExistsWithDocumentIdAndImageName(UUID documentId, String name){
+        return this.repository.existsByDocumentIdAndUserSuppliedName( documentId, name );
+    }
+
+    public boolean pictureExistsWithDocumentIdAndImageId(UUID documentId, UUID imageId){
+        return this.repository.existsByDocumentIdAndImageId( documentId, imageId );
     }
 }
