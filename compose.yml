@@ -77,6 +77,7 @@ services:
       - 'SEAWEEDFS_ACCESS_KEY=changeme'
       - 'SEAWEEDFS_SECRET_KEY=changeme'
       - 'SEAWEEDFS_HOST=seaweedfs'
+      - HOST_SIDE_WORK_DIR_PATH=/mnt/compileRAMTempFS # for mac change to /tmp/compileRAMTempFS
     depends_on:
       - rabbitmq
       - seaweedfs
@@ -127,4 +128,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /mnt/compileRAMTempFS
+      device: /mnt/compileRAMTempFS # for mac change to /tmp/compileRAMTempFS
