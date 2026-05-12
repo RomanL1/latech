@@ -103,7 +103,7 @@ services:
     restart: always
 
   postgres:
-    image: 'postgres:staging'
+    image: 'postgres:latest'
     container_name: postgres
     environment:
       - 'POSTGRES_DB=latech'
