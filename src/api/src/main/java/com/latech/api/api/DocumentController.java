@@ -156,12 +156,14 @@ public class DocumentController {
 
         //if we already queued a document for compilation
         if ( !this.ongoingCompileTracker.tryStartJob( documentId ) ) {
+            log.info("Compilation already queued for docId: " + documentId);
             return ResponseEntity.accepted().build();
         }
 
         //if a previous request was unable to be compiled 3 times, and there have been no changes since.
         if ( document.getCompileAbandonedAt() != null &&
                 document.getCompileAbandonedAt().isAfter( document.getLastChange() ) ) {
+            log.info("unprocessable Content: no changes since last 3 tries of compilation.");
             return ResponseEntity.unprocessableContent().build();
         }
 

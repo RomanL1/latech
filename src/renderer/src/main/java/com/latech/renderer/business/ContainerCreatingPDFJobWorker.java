@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,7 +28,7 @@ public class ContainerCreatingPDFJobWorker {
 
     public CompileResult compile( DocumentRecord documentRecord) throws IOException, InterruptedException {
         Path texFile = this.fileWorker.setupFiles( documentRecord );
-        Path workDir = this.fileWorker.getWorkDir();
+        Path hostSideCompileDir = Path.of( this.hostSideWorkDirPath + "/" + documentRecord.getRenderId() + "/");
 
         long startTime = System.currentTimeMillis();
         Process process =  new ProcessBuilder(
@@ -41,16 +42,13 @@ public class ContainerCreatingPDFJobWorker {
                 "--cap-drop", "ALL",       //drop linux capabilities
                 "--read-only",             //make everything readonly
                 "--tmpfs", "/tmp",         //writable in-memory tmpfs, needed by pdflatex
-                "-v", this.hostSideWorkDirPath + ":/workdir",  // mount job directory
+                "-v", hostSideCompileDir + ":/workdir",  // mount job directory
                 "-w", "/workdir",                // set working directory inside container
                 "tex-renderer-image",
-                "pdflatex",
-                "-interaction=nonstopmode",
-                "-no-shell-escape",         //never run with shell-escape enabled
-                "-halt-on-error",
-                texFile.getFileName().toString()  // relative to /workdir inside container
+                "sh", "-c",
+                "pdflatex -interaction=nonstopmode -no-shell-escape -halt-on-error " + texFile.getFileName().toString() +
+                " && pdflatex -interaction=nonstopmode -no-shell-escape -halt-on-error " + texFile.getFileName().toString()
         )
-                .directory(workDir.toFile())
                 .redirectErrorStream(true)  // merge stderr into stdout
                 .start();
 
@@ -60,7 +58,7 @@ public class ContainerCreatingPDFJobWorker {
         //TODO(marc): tune the wait time.
         boolean completed = process.waitFor( Duration.of( 10, ChronoUnit.SECONDS));
         long containerDuration = System.currentTimeMillis() - startTime;
-        Path pdfPath = workDir.resolve( documentRecord.getDocumentId() + ".pdf" );
+        Path pdfPath = texFile.getParent().resolve( documentRecord.getDocumentId() + ".pdf");
         log.info( "Spinning up Container and Compiling {} took {}ms", pdfPath, containerDuration);
 
         if (!completed) {

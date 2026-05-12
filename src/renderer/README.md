@@ -12,6 +12,6 @@
     - `./gradlew bootRun`
 - The renderer should be running on localhost:9090
 - Run `./gradlew generateProto` to generate the grpc code
-- Make sure src/renderer/src/main/resources/Dockerfile is built with name tex-renderer-image.
+- Make sure src/renderer/src/main/resources/tex-renderer-Dockerfile is built with name tex-renderer-image
 - Run createTempFSforRenderer.sh (located in project root) before trying to start this container
 - for local docker compose you need to run localDevCompose.sh, to get the correct GID
