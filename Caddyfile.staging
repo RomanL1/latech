@@ -1,0 +1,25 @@
+staging.latech.app {
+    # Proxy WebSocket connections
+    handle /ws/* {
+        uri strip_prefix /ws
+        reverse_proxy socket-server:3000
+    }
+
+    # Proxy Backend API connections
+    handle /api/* {
+        reverse_proxy api:5001
+    }
+
+    # Catch-all: Route everything else to the React Frontend
+    handle /* {
+        reverse_proxy frontend:80
+    }
+}
+
+staging.portainer.latech.app {
+    reverse_proxy https://host.docker.internal:9443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}

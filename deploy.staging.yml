@@ -1,0 +1,140 @@
+services:
+  caddy:
+    image: caddy:alpine
+    container_name: caddy-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile.staging:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - frontend
+      - api
+      - socket-server
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/romanl1/latech/frontend:staging
+    container_name: frontend
+    environment:
+      - VITE_API_HOST=https://staging.latech.app/api
+      - WEBSOCKET_SERVER_URL=wss://staging.latech.app/ws
+    restart: always
+
+  renderer:
+    image: ghcr.io/romanl1/latech/renderer:staging
+    container_name: renderer
+    environment:
+      - 'PORT=8090'
+      - 'RABBITMQ_HOST=rabbitmq'
+      - 'RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}'
+      - 'RABBITMQ_PORT=5672'
+      - 'RABBITMQ_USERNAME=${RABBITMQ_USER}'
+      - 'SEAWEEDFS_HOST=seaweedfs'
+      - 'SEAWEEDFS_PORT=8333'
+      - 'SEAWEEDFS_BUCKET=latech'
+      - 'SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}'
+      - 'SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}'
+    depends_on:
+      - rabbitmq
+      - seaweedfs
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # DooD: share host Docker daemon
+      - render_tmp:/workdir
+    group_add:
+      - "${DOCKER_GID}"  # gives renderer permission to use the socket
+
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq-server
+    ports:
+      - "15672:15672" # Management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+
+  socket-server:
+    # TODO: add healtcheck to ensure api and renderer is up before starting socket-server
+    # depends_on:
+    #   api:
+    #     condition: service_healthy
+    #   renderer:
+    #     condition: service_healthy
+    image: ghcr.io/romanl1/latech/socket-server:staging
+    environment:
+      - CALLBACK_URL=http://api:5001/api/document/callback
+      - CALLBACK_OBJECT_NAME=latech
+    container_name: socket-server
+    ports:
+      - 3000:3000
+    restart: always
+
+  api:
+    image: ghcr.io/romanl1/latech/api:staging
+    container_name: api
+    environment:
+      - 'PORT=5001'
+      - 'RABBITMQ_HOST=rabbitmq'
+      - 'RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}'
+      - 'RABBITMQ_PORT=5672'
+      - 'RABBITMQ_USERNAME=${RABBITMQ_USER}'
+      - 'RENDERER_URL=http://renderer:8090'
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
+      - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
+      - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'FRONTEND_URL=https://staging.latech.app'
+      - 'SEAWEEDFS_HOST=seaweedfs'
+      - 'SEAWEEDFS_PORT=8333'
+      - 'SEAWEEDFS_BUCKET=latech'
+      - 'SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}'
+      - 'SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}'
+    depends_on:
+      - postgres
+      - rabbitmq
+      - seaweedfs
+    restart: always
+
+  postgres:
+    image: 'postgres:staging'
+    container_name: postgres
+    environment:
+      - 'POSTGRES_DB=latech'
+      - 'POSTGRES_USER=${POSTGRES_USER}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    restart: unless-stopped
+
+  seaweedfs:
+    image: chrislusf/seaweedfs
+    environment:
+      - SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}
+      - SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}
+    volumes:
+      - seaweedfs-data:/data
+    entrypoint: >
+      sh -c "mkdir -p /etc/seaweedfs &&
+      echo '{\"identities\":[{\"name\":\"admin\",\"credentials\":[{\"accessKey\":\"'$$SEAWEEDFS_ACCESS_KEY'\",\"secretKey\":\"'$$SEAWEEDFS_SECRET_KEY'\"}],\"actions\":[\"Admin\",\"Read\",\"Write\"]}]}' > /etc/seaweedfs/s3.json &&
+      weed server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json"
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+  seaweedfs-data:
+  render_tmp:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/compileRAMTempFS
