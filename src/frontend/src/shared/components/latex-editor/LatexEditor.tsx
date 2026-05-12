@@ -66,12 +66,18 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
       trackedOrigins: new Set([binding]),
     });
 
-    // Initialize the editor content with the provided content if the Yjs document is empty
     yProvider.on('sync', (isSynced) => {
-      if (isSynced && yText.toString().length === 0 && content) {
-        // Ensure inserted content only uses LF
+      if (!isSynced) return;
+      const current = yText.toString();
+      if (current.length === 0 && content) {
         yText.insert(0, content.replace(/\r\n/g, '\n'));
+      } else if (current.includes('\r\n')) {
+        yDoc.transact(() => {
+          yText.delete(0, current.length);
+          yText.insert(0, current.replace(/\r\n/g, '\n'));
+        });
       }
+      model.setEOL(monaco.editor.EndOfLineSequence.LF);
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {
