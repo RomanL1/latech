@@ -1,69 +1,58 @@
 package com.latech.renderer.business;
 
-import com.latech.renderer.api.DocumentRecord;
+import com.latech.renderer.model.CompileJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 @Component
 @Slf4j
 public class FileWorker {
 
     private static final Path WORK_DIR = Path.of("/workdir");
-    private final S3Client s3Client;
+    private final S3Service s3Service;
 
-    @Value( "${seaweedfs.bucket}" )
-    private String bucket;
-
-    public FileWorker( S3Client s3Client){
-        this.s3Client = s3Client;
+    public FileWorker( S3Service s3Service){
+        this.s3Service = s3Service;
     }
 
-    public Path setupFiles(DocumentRecord documentRecord) throws IOException, InterruptedException {
-        //TODO(marc): figure out if we reject absurdly large .tex files here, or already in the API
-        Path renderIdDirectory = WORK_DIR.resolve( documentRecord.getRenderId() + "/");
-        Path texFile = renderIdDirectory.resolve(documentRecord.getDocumentId() + ".tex");
-        Files.createDirectories( renderIdDirectory );
-        new ProcessBuilder("chown", "1001:1001", renderIdDirectory.toString())
-                .start().waitFor();
-        Files.writeString(texFile, documentRecord.getLatexContent());
-
-        if (documentRecord.getImagesCount() <= 0){
-            return texFile;
-        }
-
-        try {
-            for (String imageUUID : documentRecord.getImagesMap().keySet()) {
-                String s3ImageKey = documentRecord.getDocumentId() + "/" + imageUUID;
-                GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                        .bucket( this.bucket )
-                        .key( s3ImageKey )
-                        .build();
-
-                String userSuppliedName = documentRecord.getImagesMap().get( imageUUID );
-                Path imagePath = renderIdDirectory.resolve( userSuppliedName );
-                s3Client.getObject( getObjectRequest, ResponseTransformer.toFile( imagePath ) );
-            }
-        }catch ( S3Exception e ){
-            log.error( "S3Exception: {}", e.getMessage() );
-            throw new RuntimeException("Error while trying to fetch images from Server", e);
-        }
-        return texFile;
+    public void setupWorkDir( CompileJob compileJob ) throws IOException, InterruptedException {
+        Path compileDirectory = WORK_DIR.resolve( compileJob.getRenderId() + "/" );
+        Files.createDirectory( compileDirectory );
+        compileJob.setCompileDir( compileDirectory );
+        new ProcessBuilder( "chown", "1001:1001", compileDirectory.toString() ).start().waitFor();
     }
 
-    public static void cleanup(String renderId) throws IOException {
+    public void setupTexFileAndLogFile( CompileJob compileJob ) throws IOException {
+        Path texFile = compileJob.getCompileDir().resolve( compileJob.getDocumentId() + ".tex");
+        Files.writeString(texFile, compileJob.getLatexContent() );
+        Path compileLogPath = compileJob.getCompileDir().resolve( "compile.log" );
+        Files.createFile( compileLogPath );
+        compileJob.setTexFilePath( texFile );
+        compileJob.setCompileLogPath( compileLogPath );
+    }
+
+    public void setupImages( CompileJob compileJob ){
+        Map<String, String> imagesMap = compileJob.getImages().orElseThrow();
+        for (String imageUUID : imagesMap.keySet()){
+            String s3ImageKey = compileJob.getDocumentId() + "/" + imageUUID;
+            String userSuppliedName = imagesMap.get( imageUUID );
+            Path imagePath = compileJob.getCompileDir().resolve( userSuppliedName );
+            this.s3Service.getFileAndSaveToPath( s3ImageKey, imagePath );
+        }
+    }
+
+    public static void cleanupWorkDir( CompileJob compileJob) throws IOException {
+        if ( compileJob.getCompileDir() == null){
+            return;
+        }
         try {
-            Path directoryToDelete = WORK_DIR.resolve( renderId + "/" );
-            FileSystemUtils.deleteRecursively( directoryToDelete );
+            FileSystemUtils.deleteRecursively( compileJob.getCompileDir() );
         } catch ( IOException e ) {
             log.error( "Error while trying to cleanup: {}", e.getMessage() );
             throw new IOException( e );
