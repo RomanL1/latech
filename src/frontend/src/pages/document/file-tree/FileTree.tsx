@@ -26,7 +26,7 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
 
   const { data: document, isLoading: isDocumentLoading } = useGetDocument(documentId);
 
-  const documentUnlocked = !!document && (!document.secured || !!document.content);
+  const documentUnlocked = !!document && (!document.secured || document.content != null);
 
   const { data: images = [], isLoading: isImageLoading } = useGetImages(documentId, documentUnlocked);
 
