@@ -41,14 +41,17 @@ public class ContainerService {
                 "-w", "/workdir",                // set working directory inside container
                 "tex-renderer-image",
                 "sh", "-c",
-                containerTimeoutValue + " pdflatex -interaction=nonstopmode -no-shell-escape -halt-on-error " + compileJob.getTexFilePath().getFileName() +
-                        " && " + containerTimeoutValue + " pdflatex -interaction=nonstopmode -no-shell-escape -halt-on-error " + compileJob.getTexFilePath().getFileName()
+                containerTimeoutValue + " latexmk -pdf -halt-on-error" +
+                        " -pdflatex=\"pdflatex -interaction=nonstopmode -no-shell-escape -halt-on-error %O %S\" " +
+                        compileJob.getTexFilePath().getFileName()
         )
                 .redirectErrorStream(true)
                 .redirectOutput(compileJob.getCompileLogPath().toFile())
                 .start();
 
-        compileJob.setContainerStartTime( System.currentTimeMillis() );
+        long timestamp = System.currentTimeMillis();
+        compileJob.setContainerStartTime( timestamp );
+        log.info( "Container {} started", containerName);
         compileJob.setContainerName( containerName );
     }
 

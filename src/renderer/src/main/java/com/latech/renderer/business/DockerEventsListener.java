@@ -37,6 +37,7 @@ public class DockerEventsListener {
                 Process events = new ProcessBuilder(
                         "docker", "events",
                         "--filter", "event=die",
+                        "--filter", "event=start",
                         "--format", "{{json .}}"
                 ).start();
 
@@ -71,7 +72,12 @@ public class DockerEventsListener {
     private DockerEvent parse( String line ) {
         JsonNode node = objectMapper.readTree( line );
         String name = node.at( "/Actor/Attributes/name" ).asString();
+        String event = node.at( "/Action" ).asString();
         if (!name.contains( "tex-compiler-container-" )){
+            return null;
+        }
+        if (event.equals( "start" )){
+            log.info("Container {} has finished spinning up.", name);
             return null;
         }
         int exitCode = Integer.parseInt( node.at( "/Actor/Attributes/exitCode" ).asString() );
