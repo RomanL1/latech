@@ -51,8 +51,12 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
   const handleUnlock = async () => {
     if (!password.trim()) return;
 
-    await unlockMutation.mutateAsync(password);
-    setPassword('');
+    try {
+      await unlockMutation.mutateAsync(password);
+      setPassword('');
+    } catch {
+      // Keep the password so the user can correct it and retry.
+    }
   };
 
   const handleOnDownload = (item: DocumentFile) => {
