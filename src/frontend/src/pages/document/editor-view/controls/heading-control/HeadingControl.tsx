@@ -1,41 +1,26 @@
-import { Button, DropdownMenu, Text } from '@radix-ui/themes';
+import { Text } from '@radix-ui/themes';
+import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
 
 const HeadingControl = () => {
+  function handleSelected(value: string | number) {
+    console.log('handle option selected', value);
+  }
+
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger>
-        <Button variant="soft" size="1">
-          Headings
-          <DropdownMenu.TriggerIcon />
-        </Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content size="2" variant="soft">
-        <DropdownMenu.Item>
-          <Text size="2">Normal Text</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text size="5">Part</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text size="5">Chapter</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text size="4">Section</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text size="3">SubSection</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text size="2">SubSubSection</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text size="2">Paragraph</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text size="1">Sub-Paragraph</Text>
-        </DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+    <NonFocusStealingDropdown name="Headings" onOptionSelected={handleSelected}>
+      <NonFocusStealingDropdown.Option value={1}>
+        <Text size="8">Heading 1</Text>
+      </NonFocusStealingDropdown.Option>
+      <NonFocusStealingDropdown.Option value={2}>
+        <Text size="6">Heading 2</Text>
+      </NonFocusStealingDropdown.Option>
+      <NonFocusStealingDropdown.Option value={3}>
+        <Text size="4">Heading 3</Text>
+      </NonFocusStealingDropdown.Option>
+      <NonFocusStealingDropdown.Option value={4}>
+        <Text size="2">Heading 4</Text>
+      </NonFocusStealingDropdown.Option>
+    </NonFocusStealingDropdown>
   );
 };
 
