@@ -1,0 +1,30 @@
+\documentclass{article}
+\begin{document}
+
+\newcount\outeri
+\newcount\inneri
+\newcount\dummy
+
+\def\innerloop{%
+  \ifnum\inneri<50000
+    \dummy=\numexpr(\inneri*\outeri + 12345) / (\inneri + 1)\relax
+    \advance\inneri by 1
+    \expandafter\innerloop
+  \fi
+}
+
+\def\outerloop{%
+  \ifnum\outeri<100000
+    \inneri=0
+    \innerloop
+    \advance\outeri by 1
+    \expandafter\outerloop
+  \fi
+}
+
+\outeri=0
+\outerloop
+
+Done. Outer counter: \the\outeri.
+
+\end{document}
