@@ -92,8 +92,12 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
     return `${days}d ago`;
   };
 
+  function preventFocusLoss(event: React.MouseEvent<HTMLElement, MouseEvent>) {
+    event.preventDefault();
+  }
+
   return (
-    <div className={styles.container}>
+    <div className={styles.container} onMouseDown={preventFocusLoss} role="toolbar">
       <LucideFileCodeCorner size={20} />
       <Text size="2">{file?.name}</Text>
       <Separator orientation="vertical" />
