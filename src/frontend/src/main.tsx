@@ -8,6 +8,7 @@ import { PageLayout } from './PageLayout';
 import { CreateDocumentPage } from './pages/create/CreateDocumentPage';
 import { DocumentPage } from './pages/document/DocumentPage';
 import { LandingPage } from './pages/landing/LandingPage';
+import { EditorProvider } from './shared/context/editor';
 
 const queryClient = new QueryClient();
 
@@ -15,15 +16,17 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Theme appearance="dark">
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<PageLayout />}>
-              <Route index element={<LandingPage />} />
-              <Route path="create" element={<CreateDocumentPage />} />
-              <Route path="document/:documentId" element={<DocumentPage />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <EditorProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<PageLayout />}>
+                <Route index element={<LandingPage />} />
+                <Route path="create" element={<CreateDocumentPage />} />
+                <Route path="document/:documentId" element={<DocumentPage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </EditorProvider>
       </QueryClientProvider>
     </Theme>
   </StrictMode>,

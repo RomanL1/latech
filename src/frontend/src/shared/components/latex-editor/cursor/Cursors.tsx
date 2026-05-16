@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import type { AwarenessUserList } from '../LatexEditor';
+import type { AwarenessUserMap } from '../../../context/editor/hook';
 
 interface CursorsProps {
-  awarenessUsers: AwarenessUserList;
+  awarenessUsers: AwarenessUserMap;
 }
 
 const Cursors = ({ awarenessUsers }: CursorsProps) => {
