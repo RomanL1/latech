@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { AwarenessUserMap } from '../../../context/editor/hook';
+import type { AwarenessUserMap } from '../../../context/editor/EditorProvider';
 
 interface CursorsProps {
   awarenessUsers: AwarenessUserMap;

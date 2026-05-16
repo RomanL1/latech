@@ -9,9 +9,6 @@ interface CurrentEditorProps {
 const CurrentEditors = ({ className = '' }: CurrentEditorProps) => {
   const { users, currentUser } = useEditorService();
 
-  console.log('users', users);
-  console.log('current user', currentUser);
-
   const editorList = Array.from(users.values()).filter((e) => e.user);
   const otherEditorCount = editorList.length - 2;
   const filteredEditors = currentUser ? editorList.filter((e) => e.clientId !== currentUser.clientId) : editorList;
