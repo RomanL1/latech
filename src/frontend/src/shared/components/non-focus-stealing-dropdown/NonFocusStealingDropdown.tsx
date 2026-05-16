@@ -4,7 +4,7 @@ import { Children, cloneElement, isValidElement, useState } from 'react';
 
 type NonFocusStealingDropdownProps = PropsWithChildren<{
   name: string;
-  onOptionSelected: (value: string | number) => unknown;
+  onOptionSelected: (value: string) => unknown;
 }>;
 
 /**
@@ -18,7 +18,7 @@ export function NonFocusStealingDropdown({ name, children, onOptionSelected }: N
     event.preventDefault();
   }
 
-  function handleOptionClick(value: string | number) {
+  function handleOptionClick(value: string) {
     onOptionSelected(value);
     setOpen(false);
   }
@@ -46,11 +46,11 @@ export function NonFocusStealingDropdown({ name, children, onOptionSelected }: N
 }
 
 type InjectedOptionProps = {
-  onOptionSelected?: (value: string | number) => void;
+  onOptionSelected?: (value: string) => void;
 };
 
 type NonFocusStealingDropdownOptionProps = PropsWithChildren<{
-  value: string | number;
+  value: string;
 }>;
 
 type NonFocusStealingDropdownOptionElement = React.ReactElement<
