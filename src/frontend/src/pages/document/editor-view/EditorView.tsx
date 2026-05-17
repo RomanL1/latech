@@ -60,16 +60,18 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
       />
       <Group className={styles.panelGroup}>
         <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          {documentId ? (
-            <LatexEditor
-              roomId={documentId}
-              content={file?.content ?? ''}
-              onAwarenessChange={setAwarenessUsers}
-              onCurrentAwarenessChange={setCurrentAwarenessUsers}
-            />
-          ) : (
-            'No file selected'
-          )}
+          <div style={{ height: '100%' }} onKeyDown={(e) => e.stopPropagation()}>
+            {documentId ? (
+              <LatexEditor
+                roomId={documentId}
+                content={file?.content ?? ''}
+                onAwarenessChange={setAwarenessUsers}
+                onCurrentAwarenessChange={setCurrentAwarenessUsers}
+              />
+            ) : (
+              'No file selected'
+            )}
+          </div>
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>
