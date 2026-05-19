@@ -57,8 +57,8 @@ export function saveTemplate(document: DocumentCreation): Promise<CreateDocument
     });
 }
 
-async function getDocument(documentId: string): Promise<Document> {
-  return apiFetch(`${documentUrl}/${documentId}`).then(async (response) => {
+export async function getDocument(documentId: string): Promise<Document> {
+  return apiFetch(`${documentUrl}/${documentId}`, { cache: 'no-store' }).then(async (response) => {
     if (!response.ok) {
       throw await readError(response, 'Failed to fetch document');
     }

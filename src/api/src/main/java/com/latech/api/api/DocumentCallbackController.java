@@ -48,9 +48,16 @@ public class DocumentCallbackController {
             return ResponseEntity.notFound().build();
         }
 
+        // possible scenario when connection in frontend is initialized and document gets initially loaded into socket server room
+        // sends callback after 2 seconds regardless if something changed or not
+        // this if prevents that one unnecessary db write
+        if ( documentOpt.get().getContent().equals( documentCallbackDto.getData() ) ) {
+            return ResponseEntity.ok().build();
+        }
+
         log.info( "Saving document state ..." );
-        log.info( "Room: " + documentCallbackDto.getRoom() );
-        log.info( "Data: " + documentCallbackDto.getData() );
+        log.info( "Room: {}", documentCallbackDto.getRoom() );
+        log.debug( "Data: {}", documentCallbackDto.getData() );
 
         Document document = documentOpt.get();
         document.setContent( documentCallbackDto.getData() );

@@ -15,4 +15,8 @@ public interface DocumentImageRepository extends JpaRepository<DocumentImage, UU
     Optional<DocumentImage> findByDocumentIdAndImageId ( UUID documentId, UUID imageId );
 
     void deleteByDocumentIdAndImageId ( UUID documentId, UUID imageId );
+
+    boolean existsByDocumentIdAndUserSuppliedName(UUID documentId, String name);
+
+    boolean existsByDocumentIdAndImageId(UUID documentId, UUID imageId);
 }

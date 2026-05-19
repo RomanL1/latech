@@ -6,7 +6,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./Caddyfile.staging:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
     extra_hosts:
@@ -18,15 +18,15 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/romanl1/latech/frontend:latest
+    image: ghcr.io/romanl1/latech/frontend:staging
     container_name: frontend
     environment:
-      - VITE_API_HOST=https://latech.app/api
-      - WEBSOCKET_SERVER_URL=wss://latech.app/ws
+      - VITE_API_HOST=https://staging.latech.app/api
+      - WEBSOCKET_SERVER_URL=wss://staging.latech.app/ws
     restart: always
 
   renderer:
-    image: ghcr.io/romanl1/latech/renderer:latest
+    image: ghcr.io/romanl1/latech/renderer:staging
     container_name: renderer
     environment:
       - 'PORT=8090'
@@ -68,7 +68,7 @@ services:
     #     condition: service_healthy
     #   renderer:
     #     condition: service_healthy
-    image: ghcr.io/romanl1/latech/socket-server:latest
+    image: ghcr.io/romanl1/latech/socket-server:staging
     environment:
       - CALLBACK_URL=http://api:5001/api/document/callback
       - CALLBACK_OBJECT_NAME=latech
@@ -78,7 +78,7 @@ services:
     restart: always
 
   api:
-    image: ghcr.io/romanl1/latech/api:latest
+    image: ghcr.io/romanl1/latech/api:staging
     container_name: api
     environment:
       - 'PORT=5001'
@@ -90,7 +90,7 @@ services:
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/latech'
       - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
       - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
-      - 'FRONTEND_URL=https://latech.app'
+      - 'FRONTEND_URL=https://staging.latech.app'
       - 'SEAWEEDFS_HOST=seaweedfs'
       - 'SEAWEEDFS_PORT=8333'
       - 'SEAWEEDFS_BUCKET=latech'

@@ -23,6 +23,7 @@ import java.util.UUID;
 public class DocumentSessionService {
 
     private final DocumentSessionRepository documentSessionRepository;
+    private final DocumentSessionCache documentSessionCache;
     private final SecureTokenService secureTokenService;
 
     @Value( "${latech.document-session.cookie-name:doc_session}" )
@@ -74,14 +75,14 @@ public class DocumentSessionService {
 
         String tokenHash = secureTokenService.hashToken( rawToken.get() );
 
-        Optional<DocumentSession> session =
-                documentSessionRepository.findByTokenHashAndDocument_Id( tokenHash, documentId );
+        Optional<DocumentSession> session = documentSessionCache.findSession( tokenHash, documentId );
 
         if ( session.isEmpty() ) {
             return false;
         }
 
         if ( session.get().getExpiresAt().isBefore( Instant.now() ) ) {
+            documentSessionCache.evict( tokenHash, documentId );
             documentSessionRepository.delete( session.get() );
             return false;
         }
@@ -94,6 +95,7 @@ public class DocumentSessionService {
 
         rawToken.ifPresent( token -> {
             String tokenHash = secureTokenService.hashToken( token );
+            documentSessionCache.evict( tokenHash, documentId );
             documentSessionRepository.deleteByTokenHashAndDocument_Id( tokenHash, documentId );
         } );
 

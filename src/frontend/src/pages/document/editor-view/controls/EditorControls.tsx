@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { EditorControlType } from './EditorControlType';
 import HeadingControl from './heading-control/HeadingControl';
-import FontsizeControl from './fontsize-control/FontsizeControl';
 
 interface EditorControlsProps {
   onClick?: (controlType: EditorControlType) => void;
@@ -28,7 +27,6 @@ const EditorControls = ({ onClick }: EditorControlsProps) => {
   return (
     <div className={styles.container}>
       <HeadingControl />
-      <FontsizeControl />
       <Separator orientation="vertical" />
 
       <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.BOLD)}>

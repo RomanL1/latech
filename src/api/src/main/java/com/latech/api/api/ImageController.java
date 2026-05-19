@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -83,6 +84,9 @@ public class ImageController {
                         file
                 ) );
             }
+        } catch ( FileAlreadyExistsException e){
+            log.error("Exception while renaming - filename already exists. ", e);
+            return ResponseEntity.status( 409 ).body("Error while uploading: Filename already exists");
         } catch ( IOException e ) {
             log.error( "Exception while uploading file", e );
             return ResponseEntity.internalServerError().body( "Error while uploading file" );
@@ -118,12 +122,12 @@ public class ImageController {
             return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).body( null );
         }
 
-        Optional<DocumentImage> picture = documentImageService.getPictureFromDocumentAndImageId(
+        Optional<DocumentImage> documentImage = documentImageService.getPictureFromDocumentAndImageId(
                 docId,
                 imageId
         );
 
-        if ( picture.isEmpty() ) {
+        if ( documentImage.isEmpty() ) {
             return ResponseEntity.notFound().build();
         }
 
@@ -133,7 +137,7 @@ public class ImageController {
             return ResponseEntity.notFound().build();
         }
 
-        MediaType mediaType = MediaType.parseMediaType( picture.get().getMimeType() );
+        MediaType mediaType = MediaType.parseMediaType( documentImage.get().getMimeType() );
 
         return ResponseEntity.ok()
                 .contentType( mediaType )
@@ -161,11 +165,11 @@ public class ImageController {
             return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
-        DocumentImage updatedImage = this.documentImageService.updatePicture(
-                docId,
-                imageId,
-                file.getName()
-        );
+        if (this.documentImageService.pictureExistsWithDocumentIdAndImageName( docId, file.getName() )){
+            return ResponseEntity.status(409).body( "Failed to rename image, a file with that name already exists." );
+        }
+
+        DocumentImage updatedImage = this.documentImageService.updatePicture( docId, imageId, file.getName() );
 
         DocumentImageDto imageDto = DocumentImageDto.builder()
                 .id( updatedImage.getImageId() )
@@ -226,7 +230,10 @@ public class ImageController {
             return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
-        Boolean deleted = this.imageService.deleteImage( docId, imageId );
+        boolean deleted = false;
+        if ( this.documentImageService.pictureExistsWithDocumentIdAndImageId( docId, imageId ) ) {
+            deleted = this.imageService.deleteImage( docId, imageId );
+        }
 
         if ( !deleted ) {
             return ResponseEntity.status( 500 ).body( "Failed to delete image" );
