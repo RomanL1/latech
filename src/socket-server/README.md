@@ -1,61 +1,42 @@
 # Socket Server
 
-This service provides the Yjs WebSocket backend for LaTeCH. It is based on
-`y-websocket`, but adds a Latech-specific authorization check before a client
-may join a document room.
-
-## What it does
-
-- accepts WebSocket connections for collaborative editing
-- authorizes each connection through the API
-- optionally sends debounced document updates back to the API
+Yjs WebSocket backend for LaTeCH. This service accepts collaboration
+connections, authorizes them through the API, and can send document updates
+back to the API.
 
 ## Local start
 
-Install dependencies:
-
-```sh
-npm install
-```
-
-Start the server:
-
 ```powershell
+npm install
 $env:HOST="localhost"
 $env:PORT="3000"
 $env:API_INTERNAL_URL="http://localhost:5001"
-$env:INTERNAL_AUTH_SECRET="d1994d751e106da55475cc5aadfb3e742b2c849bdb961b420a934e094108965f"
+$env:INTERNAL_AUTH_SECRET="changeme"
 npm start
 ```
 
-To enable document persistence callbacks as well:
+Optional callback setup:
 
 ```powershell
 $env:CALLBACK_URL="http://localhost:5001/api/document/callback"
 $env:CALLBACK_OBJECT_NAME="latech"
-npm start
 ```
 
-## Docker
+## Docker / Compose
 
-The Dockerfile already defines these defaults for local development:
+Current repo defaults:
 
-```txt
-HOST=0.0.0.0
-PORT=3000
-API_INTERNAL_URL=http://api:5001
-INTERNAL_AUTH_SECRET=d1994d751e106da55475cc5aadfb3e742b2c849bdb961b420a934e094108965f
-```
+- Dockerfile sets `HOST=0.0.0.0`, `PORT=3000`, `API_INTERNAL_URL=http://api:5001`
+- `compose.yml` sets `API_INTERNAL_URL=http://api:5001`
+- `compose.yml` sets `INTERNAL_AUTH_SECRET=changeme`
+- `compose.yml` enables callbacks with `CALLBACK_URL=http://api:5001/api/document/callback`
 
-Build and run:
+Build manually:
 
 ```sh
 docker build -t latech-socket-server .
-docker run -p 3000:3000 latech-socket-server
+docker run -p 3000:3000 -e INTERNAL_AUTH_SECRET=changeme latech-socket-server
 ```
-
-In the repository `compose.yml`, the socket server talks to the API service as
-`http://api:5001`.
 
 ## Environment variables
 
@@ -63,34 +44,34 @@ In the repository `compose.yml`, the socket server talks to the API service as
 |---|---:|---|---|
 | `HOST` | No | `localhost` | Bind host |
 | `PORT` | No | `3000` | Bind port |
-| `API_INTERNAL_URL` | No | `http://localhost:5001` | Base URL of the API used for WebSocket authorization |
-| `INTERNAL_AUTH_SECRET` | Yes | none | Shared secret between API and socket server |
+| `API_INTERNAL_URL` | No | `http://localhost:5001` | API base URL used for WebSocket authorization |
+| `INTERNAL_AUTH_SECRET` | Yes | empty | Shared secret used for WebSocket auth and callbacks |
 | `CALLBACK_URL` | No | none | API endpoint for document persistence callbacks |
-| `CALLBACK_OBJECT_NAME` | Yes, if callback is enabled | none | Yjs text object that should be persisted |
-| `CALLBACK_TIMEOUT` | No | `5000` | Callback HTTP timeout in ms |
+| `CALLBACK_OBJECT_NAME` | Yes, if callback is enabled | none | Yjs text object to persist |
+| `CALLBACK_TIMEOUT` | No | `5000` | Callback timeout in ms |
 | `CALLBACK_DEBOUNCE_WAIT` | No | `2000` | Debounce wait in ms |
-| `CALLBACK_DEBOUNCE_MAXWAIT` | No | `10000` | Maximum debounce wait in ms |
+| `CALLBACK_DEBOUNCE_MAXWAIT` | No | `10000` | Max debounce wait in ms |
 
-## WebSocket authorization
+## Authorization flow
 
-Before a client joins a room, the server calls:
+Before accepting a WebSocket upgrade, the server calls:
 
 ```txt
 POST /internal/document/{documentId}/authorize-ws
 ```
 
-It forwards the browser cookies and the `X-Internal-Secret` header to the API.
-If the API does not return `200`, the WebSocket upgrade is rejected.
+It forwards the request cookies together with `X-Internal-Secret`. If the API
+does not return `200`, the connection is rejected.
 
-The shared secret must match the API configuration:
+The API uses the same secret via:
 
 ```properties
-latech.internal.auth-secret=${LATECH_INTERNAL_AUTH_SECRET:d1994d751e106da55475cc5aadfb3e742b2c849bdb961b420a934e094108965f}
+latech.internal.auth-secret=${INTERNAL_AUTH_SECRET:d1994d751e106da55475cc5aadfb3e742b2c849bdb961b420a934e094108965f}
 ```
 
 ## Callback payload
 
-If `CALLBACK_URL` is configured, the server sends updates in this shape:
+If callbacks are enabled, the server sends:
 
 ```json
 {
@@ -99,7 +80,7 @@ If `CALLBACK_URL` is configured, the server sends updates in this shape:
 }
 ```
 
-The request also includes `X-Internal-Secret`.
+The request includes `X-Internal-Secret`.
 
 ## License
 
