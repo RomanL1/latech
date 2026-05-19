@@ -81,8 +81,7 @@ public class DocumentSessionService {
             return false;
         }
 
-        if ( session.get().getExpiresAt().isBefore( Instant.now() ) ||
-                session.get().getExpiresAt().equals( Instant.now() ) ) {
+        if ( session.get().getExpiresAt().isBefore( Instant.now() ) ) {
             documentSessionRepository.delete( session.get() );
             return false;
         }
