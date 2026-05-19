@@ -12,23 +12,15 @@ export const isCallbackSet = !!CALLBACK_URL
  * @param {import('./utils.js').WSSharedDoc} doc
  */
 export const callbackHandler = (doc) => {
+  const content = doc.getText(CALLBACK_OBJECT_NAME).toJSON()
+  if (content === doc._lastCallbackContent) return
+  doc._lastCallbackContent = content
+
   const room = doc.name.split('/').pop() // Handles both 'ws/:roomId' and ':roomId'
-  const dataToSend = {
-    room,
-    data: doc.getText(CALLBACK_OBJECT_NAME).toJSON()
-  }
+  const dataToSend = { room, data: content }
 
   console.log("data:", dataToSend)
 
-  // For simplicity, we only send the content of a single Y.Text object in the callback request.
-  // const sharedObjectList = Object.keys(CALLBACK_OBJECTS)
-  // sharedObjectList.forEach(sharedObjectName => {
-  //   const sharedObjectType = CALLBACK_OBJECTS[sharedObjectName]
-  //   dataToSend.data[sharedObjectName] = {
-  //     type: sharedObjectType,
-  //     content: getContent(sharedObjectName, sharedObjectType, doc).toJSON()
-  //   }
-  // })
   CALLBACK_URL && callbackRequest(CALLBACK_URL, CALLBACK_TIMEOUT, dataToSend)
 }
 

@@ -12,6 +12,7 @@ import { callbackHandler, isCallbackSet } from './callback.js'
 
 const CALLBACK_DEBOUNCE_WAIT = parseInt(process.env.CALLBACK_DEBOUNCE_WAIT || '2000')
 const CALLBACK_DEBOUNCE_MAXWAIT = parseInt(process.env.CALLBACK_DEBOUNCE_MAXWAIT || '10000')
+const DOC_GRACE_PERIOD_MS = parseInt(process.env.DOC_GRACE_PERIOD_MS || '30000')
 
 const debouncer = eventloop.createDebouncer(CALLBACK_DEBOUNCE_WAIT, CALLBACK_DEBOUNCE_MAXWAIT)
 
@@ -139,7 +140,15 @@ export class WSSharedDoc extends Y.Doc {
  * @param {boolean} gc - whether to allow gc on the doc (applies only when created)
  * @return {WSSharedDoc}
  */
-export const getYDoc = (docname, gc = true) => map.setIfUndefined(docs, docname, () => {
+export const getYDoc = (docname, gc = true) => {
+  const existing = docs.get(docname)
+  if (existing !== undefined) {
+    if (existing._cleanupTimer != null) {
+      clearTimeout(existing._cleanupTimer)
+      existing._cleanupTimer = null
+    }
+    return existing
+  }
   const doc = new WSSharedDoc(docname)
   doc.gc = gc
   if (persistence !== null) {
@@ -147,7 +156,7 @@ export const getYDoc = (docname, gc = true) => map.setIfUndefined(docs, docname,
   }
   docs.set(docname, doc)
   return doc
-})
+}
 
 /**
  * @param {any} conn
@@ -196,12 +205,25 @@ const closeConn = (doc, conn) => {
     const controlledIds = doc.conns.get(conn)
     doc.conns.delete(conn)
     awarenessProtocol.removeAwarenessStates(doc.awareness, Array.from(controlledIds), null)
-    if (doc.conns.size === 0 && persistence !== null) {
-      // if persisted, we store state and destroy ydocument
-      persistence.writeState(doc.name, doc).then(() => {
-        doc.destroy()
-      })
-      docs.delete(doc.name)
+    if (doc.conns.size === 0) {
+      if (persistence !== null) {
+        persistence.writeState(doc.name, doc).then(() => {
+          doc.destroy()
+          docs.delete(doc.name)
+        })
+      } else {
+        if (isCallbackSet) {
+          callbackHandler(doc)
+        }
+        doc._cleanupTimer = setTimeout(() => {
+          console.log(`Timer tirggered for doc ${doc.name}. Checking connections...`)
+          if (doc.conns.size === 0) {
+            console.log(`Destroying doc ${doc.name} after grace period.`)
+            doc.destroy()
+            docs.delete(doc.name)
+          }
+        }, DOC_GRACE_PERIOD_MS)
+      }
     }
   }
   conn.close()

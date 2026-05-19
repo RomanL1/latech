@@ -38,8 +38,8 @@ export function saveTemplate(document: DocumentCreation): Promise<CreateDocument
     });
 }
 
-async function getDocument(documentId: string): Promise<Document> {
-  return fetch(`${documentUrl}/${documentId}`).then((response) => {
+export async function getDocument(documentId: string): Promise<Document> {
+  return fetch(`${documentUrl}/${documentId}`, { cache: 'no-store' }).then((response) => {
     if (!response.ok) {
       return response.json().then((errorData) => {
         throw new Error(errorData.message || 'Failed to fetch document');
