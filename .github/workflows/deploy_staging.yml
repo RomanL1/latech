@@ -1,0 +1,199 @@
+name: Deploy Staging (Manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # API application
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build & test with Gradle
+        run: ./gradlew build --no-daemon
+
+  # Renderer application
+  renderer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/renderer
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build & test with Gradle
+        run: ./gradlew build --no-daemon
+
+  # Frontend application
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun ci
+
+      - name: Lint with ESLint
+        run: bun run lint:check
+
+      - name: Lint with Prettier
+        run: bun run prettier:check
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Build
+        run: bun run build:ci
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs:
+      - api
+      - renderer
+      - frontend
+    strategy:
+      matrix:
+        component: [api, renderer, frontend, socket-server]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Downcase REPO
+        run: |
+          echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+      - name: Build and push ${{ matrix.component }} image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./src/${{ matrix.component }}
+          push: true
+          tags: ghcr.io/${{ env.REPO }}/${{ matrix.component }}:staging
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    needs:
+      - build-and-push
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Copy deploy files to Droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          source: "deploy.staging.yml,Caddyfile.staging,src/renderer/src/main/resources/tex-renderer-Dockerfile"
+          target: "/opt/latech"
+
+      - name: Deploy to Staging Droplet via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/latech
+
+            echo "RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}" > .env
+            echo "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}" >> .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+            echo "SEAWEEDFS_ACCESS_KEY=${{ secrets.SEAWEEDFS_ACCESS_KEY }}" >> .env
+            echo "SEAWEEDFS_SECRET_KEY=${{ secrets.SEAWEEDFS_SECRET_KEY }}" >> .env
+            echo "DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)" >> .env
+
+            docker build -t tex-renderer-image -f src/renderer/src/main/resources/tex-renderer-Dockerfile .
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            docker compose -f deploy.staging.yml pull
+            docker compose -f deploy.staging.yml up -d --remove-orphans
+            docker image prune -f

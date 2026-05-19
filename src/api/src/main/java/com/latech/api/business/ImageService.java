@@ -4,7 +4,9 @@ import com.latech.api.model.db.DocumentImage;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.UUID;
 
 @Service
@@ -19,6 +21,9 @@ public class ImageService {
     }
 
     public DocumentImage uploadImage ( UUID documentId, String name, MultipartFile file ) throws IOException {
+        if (this.documentImageService.pictureExistsWithDocumentIdAndImageName( documentId, name )){
+            throw new FileAlreadyExistsException( name, "", "A file with the name " + name + " already exists." );
+        }
         String mimeType = file.getContentType();
         DocumentImage entry = this.documentImageService.registerPicture( documentId, name, mimeType );
         this.s3StorageService.upload( documentId, entry.getImageId(), file.getInputStream(), file.getSize() );

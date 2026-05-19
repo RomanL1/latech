@@ -1,4 +1,4 @@
-latech.app {
+staging.latech.app {
     # Proxy WebSocket connections
     handle /ws/* {
         uri strip_prefix /ws
@@ -16,7 +16,7 @@ latech.app {
     }
 }
 
-portainer.latech.app {
+staging.portainer.latech.app {
     reverse_proxy https://host.docker.internal:9443 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}

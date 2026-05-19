@@ -22,8 +22,5 @@ public class TemplateSeedCommand implements ApplicationRunner {
     public void run ( ApplicationArguments args ) throws Exception {
         int processedTemplates = templateSeedService.seedFromClasspathManifest();
         log.info( "Template seed completed. Processed {} template(s).", processedTemplates );
-
-        int exitCode = SpringApplication.exit( applicationContext, () -> 0 );
-        System.exit( exitCode );
     }
 }
