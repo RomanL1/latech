@@ -15,11 +15,16 @@ $env:INTERNAL_AUTH_SECRET="changeme"
 npm start
 ```
 
-Optional callback setup:
+Local start with callbacks:
 
 ```powershell
+$env:HOST="localhost"
+$env:PORT="3000"
+$env:API_INTERNAL_URL="http://localhost:5001"
+$env:INTERNAL_AUTH_SECRET="changeme"
 $env:CALLBACK_URL="http://localhost:5001/api/document/callback"
 $env:CALLBACK_OBJECT_NAME="latech"
+npm start
 ```
 
 ## Docker / Compose
@@ -31,11 +36,28 @@ Current repo defaults:
 - `compose.yml` sets `INTERNAL_AUTH_SECRET=changeme`
 - `compose.yml` enables callbacks with `CALLBACK_URL=http://api:5001/api/document/callback`
 
+In Compose, `http://api:5001` works because `api` is the service name on the
+Docker network.
+
 Build manually:
 
 ```sh
 docker build -t latech-socket-server .
-docker run -p 3000:3000 -e INTERNAL_AUTH_SECRET=changeme latech-socket-server
+docker run -p 3000:3000 \
+  -e API_INTERNAL_URL=http://host.docker.internal:5001 \
+  -e INTERNAL_AUTH_SECRET=changeme \
+  latech-socket-server
+```
+
+If you also want callbacks outside Compose:
+
+```sh
+docker run -p 3000:3000 \
+  -e API_INTERNAL_URL=http://host.docker.internal:5001 \
+  -e INTERNAL_AUTH_SECRET=changeme \
+  -e CALLBACK_URL=http://host.docker.internal:5001/api/document/callback \
+  -e CALLBACK_OBJECT_NAME=latech \
+  latech-socket-server
 ```
 
 ## Environment variables
