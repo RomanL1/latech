@@ -20,6 +20,7 @@ public class DocumentAuthService {
 
     private final DocumentRepository documentRepository;
     private final DocumentSessionService documentSessionService;
+    private final DocumentPasswordCache documentPasswordCache;
     private final PasswordEncoder passwordEncoder;
 
     public String hashDocumentPassword ( String rawPassword ) {
@@ -35,16 +36,16 @@ public class DocumentAuthService {
             String rawPassword,
             HttpServletResponse response
     ) {
-        Document document = documentRepository.findById( documentId )
-                .orElseThrow( EntityNotFoundException::new );
-
-        if ( !StringUtils.hasText( document.getPassword() ) ) {
+        if ( !documentPasswordCache.isPasswordProtected( documentId ) ) {
             return true;
         }
 
         if ( !StringUtils.hasText( rawPassword ) ) {
             return false;
         }
+
+        Document document = documentRepository.findById( documentId )
+                .orElseThrow( EntityNotFoundException::new );
 
         boolean passwordMatches = passwordEncoder.matches( rawPassword, document.getPassword() );
 
@@ -58,10 +59,7 @@ public class DocumentAuthService {
     }
 
     public boolean hasAccess ( UUID documentId, HttpServletRequest request ) {
-        Document document = documentRepository.findById( documentId )
-                .orElseThrow( EntityNotFoundException::new );
-
-        if ( !StringUtils.hasText( document.getPassword() ) ) {
+        if ( !documentPasswordCache.isPasswordProtected( documentId ) ) {
             return true;
         }
 
