@@ -73,9 +73,8 @@ services:
       - CALLBACK_URL=http://api:5001/api/document/callback
       - CALLBACK_OBJECT_NAME=latech
       - 'INTERNAL_AUTH_SECRET=${INTERNAL_AUTH_SECRET}'
+      - API_INTERNAL_URL=http://api:5001
     container_name: socket-server
-    ports:
-      - 3000:3000
     restart: always
 
   api:
