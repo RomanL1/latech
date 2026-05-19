@@ -9,6 +9,7 @@ import { ThemeContext } from '@radix-ui/themes';
 import Cursors from './cursor/Cursors';
 import { generateColor } from '@marko19907/string-to-color';
 import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
+import { getDocument } from '../../../features/documents/api';
 import styles from './LatexEditor.module.css';
 
 export type AwarenessUser = {
@@ -66,11 +67,13 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
       trackedOrigins: new Set([binding]),
     });
 
-    yProvider.on('sync', (isSynced) => {
+    yProvider.on('sync', async (isSynced) => {
       if (!isSynced) return;
       const current = yText.toString();
-      if (current.length === 0 && content) {
-        yText.insert(0, content.replace(/\r\n/g, '\n'));
+      if (current.length === 0) {
+        const fresh = await getDocument(roomId);
+        const text = fresh.content?.replace(/\r\n/g, '\n') ?? '';
+        if (text) yText.insert(0, text);
       } else if (current.includes('\r\n')) {
         yDoc.transact(() => {
           yText.delete(0, current.length);
@@ -161,7 +164,7 @@ function LatexEditor({ content, roomId, onAwarenessChange, onCurrentAwarenessCha
       undoManager.destroy();
       window.removeEventListener('beforeunload', handleWindowUnload);
     };
-  }, [editor, monaco, roomId, content, onAwarenessChange, onCurrentAwarenessChange]);
+  }, [editor, monaco, roomId, onAwarenessChange, onCurrentAwarenessChange]);
 
   useEffect(() => {
     if (!yProvider) return;
