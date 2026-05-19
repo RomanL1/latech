@@ -12,12 +12,12 @@ public class DocumentSessionCleanupService {
 
     private final DocumentSessionService documentSessionService;
 
-    @Scheduled(fixedDelayString = "${latech.document-session.cleanup-ms:3600000}")
-    public void cleanupExpiredSessions() {
+    @Scheduled( fixedDelayString = "${latech.document-session.cleanup-ms:3600000}" )
+    public void cleanupExpiredSessions () {
         long deletedSessions = documentSessionService.deleteExpiredSessions();
 
-        if (deletedSessions > 0) {
-            log.info("Deleted {} expired document sessions", deletedSessions);
+        if ( deletedSessions > 0 ) {
+            log.info( "Deleted {} expired document sessions", deletedSessions );
         }
     }
 }

@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -27,25 +26,25 @@ public class PdfRenderedStreamController {
     private final RenderedPDFTopicService renderedPdfTopicService;
     private final DocumentAuthService documentAuthService;
 
-    @GetMapping("/{docId}/stream-updates")
-    public ResponseEntity<SseEmitter> streamUpdates(
+    @GetMapping( "/{docId}/stream-updates" )
+    public ResponseEntity<SseEmitter> streamUpdates (
             @PathVariable String docId,
-            HttpServletRequest request) {
+            HttpServletRequest request ) {
 
-        if (ObjectUtils.isEmpty(docId)) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().build();
         }
 
-        UUID documentId = UUID.fromString( docId);
+        UUID documentId = UUID.fromString( docId );
 
-        if (!documentAuthService.hasAccess(documentId, request)) {
-            return ResponseEntity.status( HttpStatus.UNAUTHORIZED).build();
+        if ( !documentAuthService.hasAccess( documentId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
-        final SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        final SseEmitter emitter = new SseEmitter( Long.MAX_VALUE );
 
-        renderedPdfTopicService.subscribeTo(docId, emitter);
+        renderedPdfTopicService.subscribeTo( docId, emitter );
 
-        return ResponseEntity.ok(emitter);
+        return ResponseEntity.ok( emitter );
     }
 }

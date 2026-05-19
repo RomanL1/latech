@@ -31,7 +31,7 @@ public class ImageService {
 
     public Boolean deleteImage ( UUID documentId, UUID imageId ) {
         Boolean deleted = this.s3StorageService.delete( documentId, imageId );
-        if (deleted) {
+        if ( deleted ) {
             this.documentImageService.deletePicture( documentId, imageId );
         }
         return deleted;

@@ -1,12 +1,16 @@
 package com.latech.api.api;
 
 import com.latech.api.business.*;
-import com.latech.api.model.api.*;
+import com.latech.api.model.api.DocumentCreateRequestDto;
+import com.latech.api.model.api.DocumentCreateResponseDto;
+import com.latech.api.model.api.DocumentDto;
+import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.model.db.DocumentImage;
 import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
 import com.latech.api.repository.TemplateRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,18 +18,17 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Limit;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.util.List;
@@ -126,7 +129,6 @@ public class DocumentController {
     }
 
 
-
     @PostMapping( "/{docId}/render" )
     public ResponseEntity<Void> initiateDocumentRender (
             @PathVariable String docId,
@@ -177,7 +179,7 @@ public class DocumentController {
                 .setDocumentId( document.getId().toString() )
                 .setLatexContent( document.getContent() != null ? document.getContent() : "" );
 
-        for ( DocumentImage image : documentImages ) {
+        for (DocumentImage image : documentImages) {
             documentRecordBuilder.putImages(
                     String.valueOf( image.getImageId() ),
                     image.getUserSuppliedName()

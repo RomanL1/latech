@@ -14,26 +14,26 @@ public class SecureTokenService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public String generateToken() {
+    public String generateToken () {
         byte[] bytes = new byte[TOKEN_BYTES];
-        secureRandom.nextBytes(bytes);
+        secureRandom.nextBytes( bytes );
 
         return Base64.getUrlEncoder()
                 .withoutPadding()
-                .encodeToString(bytes);
+                .encodeToString( bytes );
     }
 
-    public String hashToken(String rawToken) {
+    public String hashToken ( String rawToken ) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(rawToken.getBytes());
+            MessageDigest digest = MessageDigest.getInstance( "SHA-256" );
+            byte[] hash = digest.digest( rawToken.getBytes() );
 
             return Base64.getUrlEncoder()
                     .withoutPadding()
-                    .encodeToString(hash);
+                    .encodeToString( hash );
 
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 is not available", e);
+        } catch ( NoSuchAlgorithmException e ) {
+            throw new IllegalStateException( "SHA-256 is not available", e );
         }
     }
 }

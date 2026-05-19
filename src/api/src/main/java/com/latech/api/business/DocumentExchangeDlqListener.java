@@ -29,7 +29,7 @@ public class DocumentExchangeDlqListener {
 
         String originalQueue = headers.get( "x-death" ) != null
                 ? ( (java.util.List<Map<String, Object>>) headers.get( "x-death" ) )
-                  .get( 0 ).get( "queue" ).toString()
+                .get( 0 ).get( "queue" ).toString()
                 : "unknown";
 
         String exceptionMessage = (String) headers.getOrDefault( "x-exception-message", "no exception captured" );
@@ -38,12 +38,12 @@ public class DocumentExchangeDlqListener {
             record = DocumentRecord.parseFrom( message.getBody() );
         } catch ( InvalidProtocolBufferException e ) {
             log.error( "Error while parsing message body of deadletterqueued message with original exceptionMessage: "
-                    + exceptionMessage +
-                    "\n exception while trying to parse body: " + e );
+                               + exceptionMessage +
+                               "\n exception while trying to parse body: " + e );
         }
 
         log.error( "Dead letter received — renderId={}, documentId={}, originalQueue={}",
-                record.getRenderId(), record.getDocumentId(), originalQueue );
+                   record.getRenderId(), record.getDocumentId(), originalQueue );
         UUID documentId = UUID.fromString( record.getDocumentId() );
         this.ongoingCompileTracker.jobFinished( documentId );
         Document document = this.documentRepository.findById( documentId ).orElseThrow();

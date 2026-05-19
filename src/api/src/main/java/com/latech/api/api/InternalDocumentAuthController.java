@@ -15,60 +15,60 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("internal/document")
+@RequestMapping( "internal/document" )
 public class InternalDocumentAuthController {
 
     private static final String INTERNAL_SECRET_HEADER = "X-Internal-Secret";
 
     private final DocumentAuthService documentAuthService;
 
-    @Value("${latech.internal.auth-secret:}")
+    @Value( "${latech.internal.auth-secret:}" )
     private String internalAuthSecret;
 
-    @PostMapping("/{docId}/authorize-ws")
-    public ResponseEntity<Void> authorizeWebSocket(
+    @PostMapping( "/{docId}/authorize-ws" )
+    public ResponseEntity<Void> authorizeWebSocket (
             @PathVariable String docId,
-            @RequestHeader(value = INTERNAL_SECRET_HEADER, required = false) String providedSecret,
+            @RequestHeader( value = INTERNAL_SECRET_HEADER, required = false ) String providedSecret,
             HttpServletRequest request
     ) {
-        UUID documentId = parseDocumentId(docId);
+        UUID documentId = parseDocumentId( docId );
 
-        if (documentId == null) {
+        if ( documentId == null ) {
             return ResponseEntity.badRequest().build();
         }
 
-        if (!isValidInternalSecret(providedSecret)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if ( !isValidInternalSecret( providedSecret ) ) {
+            return ResponseEntity.status( HttpStatus.FORBIDDEN ).build();
         }
 
         try {
-            boolean authorized = documentAuthService.hasAccess(documentId, request);
+            boolean authorized = documentAuthService.hasAccess( documentId, request );
 
-            if (!authorized) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            if ( !authorized ) {
+                return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
             }
 
             return ResponseEntity.ok().build();
 
-        } catch (EntityNotFoundException e) {
+        } catch ( EntityNotFoundException e ) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    private boolean isValidInternalSecret(String providedSecret) {
-        return StringUtils.hasText(internalAuthSecret)
-                && StringUtils.hasText(providedSecret)
-                && internalAuthSecret.equals(providedSecret);
+    private boolean isValidInternalSecret ( String providedSecret ) {
+        return StringUtils.hasText( internalAuthSecret )
+                && StringUtils.hasText( providedSecret )
+                && internalAuthSecret.equals( providedSecret );
     }
 
-    private UUID parseDocumentId(String docId) {
-        if (ObjectUtils.isEmpty(docId)) {
+    private UUID parseDocumentId ( String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
             return null;
         }
 
         try {
-            return UUID.fromString(docId);
-        } catch (IllegalArgumentException e) {
+            return UUID.fromString( docId );
+        } catch ( IllegalArgumentException e ) {
             return null;
         }
     }

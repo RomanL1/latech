@@ -22,63 +22,63 @@ public class DocumentAuthService {
     private final DocumentSessionService documentSessionService;
     private final PasswordEncoder passwordEncoder;
 
-    public String hashDocumentPassword(String rawPassword) {
-        if (!StringUtils.hasText(rawPassword)) {
+    public String hashDocumentPassword ( String rawPassword ) {
+        if ( !StringUtils.hasText( rawPassword ) ) {
             return null;
         }
 
-        return passwordEncoder.encode(rawPassword);
+        return passwordEncoder.encode( rawPassword );
     }
 
-    public boolean unlockDocument(
+    public boolean unlockDocument (
             UUID documentId,
             String rawPassword,
             HttpServletResponse response
     ) {
-        Document document = documentRepository.findById(documentId)
-                .orElseThrow(EntityNotFoundException::new);
+        Document document = documentRepository.findById( documentId )
+                .orElseThrow( EntityNotFoundException::new );
 
-        if (!StringUtils.hasText(document.getPassword())) {
+        if ( !StringUtils.hasText( document.getPassword() ) ) {
             return true;
         }
 
-        if (!StringUtils.hasText(rawPassword)) {
+        if ( !StringUtils.hasText( rawPassword ) ) {
             return false;
         }
 
-        boolean passwordMatches = passwordEncoder.matches(rawPassword, document.getPassword());
+        boolean passwordMatches = passwordEncoder.matches( rawPassword, document.getPassword() );
 
-        if (!passwordMatches) {
+        if ( !passwordMatches ) {
             return false;
         }
 
-        documentSessionService.createSession(document, response);
+        documentSessionService.createSession( document, response );
 
         return true;
     }
 
-    public boolean hasAccess(UUID documentId, HttpServletRequest request) {
-        Document document = documentRepository.findById(documentId)
-                .orElseThrow(EntityNotFoundException::new);
+    public boolean hasAccess ( UUID documentId, HttpServletRequest request ) {
+        Document document = documentRepository.findById( documentId )
+                .orElseThrow( EntityNotFoundException::new );
 
-        if (!StringUtils.hasText(document.getPassword())) {
+        if ( !StringUtils.hasText( document.getPassword() ) ) {
             return true;
         }
 
-        return documentSessionService.hasValidSession(documentId, request);
+        return documentSessionService.hasValidSession( documentId, request );
     }
 
-    public void requireAccess(UUID documentId, HttpServletRequest request) {
-        if (!hasAccess(documentId, request)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    public void requireAccess ( UUID documentId, HttpServletRequest request ) {
+        if ( !hasAccess( documentId, request ) ) {
+            throw new ResponseStatusException( HttpStatus.UNAUTHORIZED );
         }
     }
 
-    public void logout(
+    public void logout (
             UUID documentId,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        documentSessionService.logout(documentId, request, response);
+        documentSessionService.logout( documentId, request, response );
     }
 }

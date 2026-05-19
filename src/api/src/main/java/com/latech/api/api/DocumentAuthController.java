@@ -16,22 +16,22 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/document")
+@RequestMapping( "api/document" )
 public class DocumentAuthController {
 
     private final DocumentAuthService documentAuthService;
 
-    @PostMapping("/{docId}/unlock")
-    public ResponseEntity<Void> unlockDocument(
+    @PostMapping( "/{docId}/unlock" )
+    public ResponseEntity<Void> unlockDocument (
             @PathVariable String docId,
             @RequestBody DocumentUnlockRequestDto requestDto,
             HttpServletResponse response
     ) {
-        UUID documentId = parseDocumentId(docId);
+        UUID documentId = parseDocumentId( docId );
 
-        if (documentId == null ||
-                ObjectUtils.isEmpty(requestDto) ||
-                ObjectUtils.isEmpty(requestDto.password())) {
+        if ( documentId == null ||
+                ObjectUtils.isEmpty( requestDto ) ||
+                ObjectUtils.isEmpty( requestDto.password() ) ) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -42,69 +42,69 @@ public class DocumentAuthController {
                     response
             );
 
-            if (!unlocked) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            if ( !unlocked ) {
+                return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
             }
 
             return ResponseEntity.ok().build();
 
-        } catch (EntityNotFoundException e) {
+        } catch ( EntityNotFoundException e ) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @GetMapping("/{docId}/auth-status")
-    public ResponseEntity<DocumentAuthStatusDto> getAuthStatus(
+    @GetMapping( "/{docId}/auth-status" )
+    public ResponseEntity<DocumentAuthStatusDto> getAuthStatus (
             @PathVariable String docId,
             HttpServletRequest request
     ) {
-        UUID documentId = parseDocumentId(docId);
+        UUID documentId = parseDocumentId( docId );
 
-        if (documentId == null) {
+        if ( documentId == null ) {
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            boolean authenticated = documentAuthService.hasAccess(documentId, request);
+            boolean authenticated = documentAuthService.hasAccess( documentId, request );
 
-            if (!authenticated) {
+            if ( !authenticated ) {
                 return ResponseEntity
-                        .status(HttpStatus.UNAUTHORIZED)
-                        .body(new DocumentAuthStatusDto(false));
+                        .status( HttpStatus.UNAUTHORIZED )
+                        .body( new DocumentAuthStatusDto( false ) );
             }
 
-            return ResponseEntity.ok(new DocumentAuthStatusDto(true));
+            return ResponseEntity.ok( new DocumentAuthStatusDto( true ) );
 
-        } catch (EntityNotFoundException e) {
+        } catch ( EntityNotFoundException e ) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @PostMapping("/{docId}/logout")
-    public ResponseEntity<Void> logoutDocument(
+    @PostMapping( "/{docId}/logout" )
+    public ResponseEntity<Void> logoutDocument (
             @PathVariable String docId,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        UUID documentId = parseDocumentId(docId);
+        UUID documentId = parseDocumentId( docId );
 
-        if (documentId == null) {
+        if ( documentId == null ) {
             return ResponseEntity.badRequest().build();
         }
 
-        documentAuthService.logout(documentId, request, response);
+        documentAuthService.logout( documentId, request, response );
 
         return ResponseEntity.ok().build();
     }
 
-    private UUID parseDocumentId(String docId) {
-        if (ObjectUtils.isEmpty(docId)) {
+    private UUID parseDocumentId ( String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
             return null;
         }
 
         try {
-            return UUID.fromString(docId);
-        } catch (IllegalArgumentException e) {
+            return UUID.fromString( docId );
+        } catch ( IllegalArgumentException e ) {
             return null;
         }
     }
