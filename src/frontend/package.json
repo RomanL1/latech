@@ -14,7 +14,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@embedpdf/react-pdf-viewer": "2.14.0",
     "@hookform/resolvers": "5.2.2",
     "@marko19907/string-to-color": "1.0.2",
     "@monaco-editor/react": "4.7.0",
@@ -26,6 +25,7 @@
     "react-dom": "19.2.4",
     "react-dropzone": "15.0.0",
     "react-hook-form": "7.72.0",
+    "react-pdf": "^10.4.1",
     "react-resizable-panels": "4.7.6",
     "react-router": "7.13.1",
     "unique-names-generator": "4.7.1",
