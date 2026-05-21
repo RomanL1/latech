@@ -1,9 +1,10 @@
 package com.latech.api.api;
 
-import com.latech.api.business.*;
+import com.latech.api.business.DocumentService;
+import com.latech.api.business.OngoingCompileTracker;
+import com.latech.api.business.PdfRenderedNotifier;
 import com.latech.api.model.api.*;
 import com.latech.api.model.db.Document;
-import com.latech.api.model.db.DocumentImage;
 import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
 import com.latech.api.repository.TemplateRepository;
@@ -37,11 +38,10 @@ public class DocumentController {
     private final DocumentRepository documentRepository;
     private final TemplateRepository templateRepository;
     private final com.latech.api.repository.RenderHistoryRepository renderHistoryRepository;
-    private final DocumentProducer documentProducer;
     private final S3Client s3Client;
-    private final DocumentImageService documentImageService;
     private final PdfRenderedNotifier pdfRenderedNotifier;
     private final OngoingCompileTracker ongoingCompileTracker;
+    private final DocumentService documentService;
 
     @Value( "${seaweedfs.bucket}" )
     private String bucket;
@@ -156,30 +156,18 @@ public class DocumentController {
 
         //if we already queued a document for compilation
         if ( !this.ongoingCompileTracker.tryStartJob( documentId ) ) {
-            log.info("Compilation already queued for docId: " + documentId);
+            log.info( "Compilation already queued for docId: " + documentId );
             return ResponseEntity.accepted().build();
         }
 
         //if a previous request was unable to be compiled 3 times, and there have been no changes since.
         if ( document.getCompileAbandonedAt() != null &&
                 document.getCompileAbandonedAt().isAfter( document.getLastChange() ) ) {
-            log.info("unprocessable Content: no changes since last 3 tries of compilation.");
+            log.info( "unprocessable Content: no changes since last 3 tries of compilation." );
             return ResponseEntity.unprocessableContent().build();
         }
 
-        List<DocumentImage> documentImages = this.documentImageService.getPicturesForDocument( documentId );
-
-        DocumentRecord.Builder documentRecordBuilder = DocumentRecord.newBuilder()
-                .setRenderId( UUID.randomUUID().toString() )
-                .setDocumentId( document.getId().toString() )
-                .setLatexContent( document.getContent() != null ? document.getContent() : "" );
-
-        for (DocumentImage image : documentImages) {
-            documentRecordBuilder.putImages( String.valueOf( image.getImageId() ), image.getUserSuppliedName() );
-        }
-        DocumentRecord documentRecord = documentRecordBuilder.build();
-
-        documentProducer.publishDocumentReadyToRender( documentRecord );
+        documentService.sendRenderRequest( documentId, document.getContent() );
 
         return ResponseEntity.accepted().build();
     }
