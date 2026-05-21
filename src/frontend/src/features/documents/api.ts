@@ -176,4 +176,3 @@ export function useDownloadImage(documentId: string): UseMutationResult<void, Er
       }),
   });
 }
-
