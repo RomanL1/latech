@@ -65,8 +65,8 @@ public class PDFStreamTopicService {
         }
     }
 
-    public void notifyTimestamps ( final String docId, final DocumentTimestampsDto timestamps ) {
-        List<SseEmitter> group = docRegistry.get( docId );
+    public void notifyTimestamps ( final UUID docId, final DocumentTimestampsDto timestamps ) {
+        List<SseEmitter> group = docRegistry.get( docId.toString() );
         if ( group != null ) {
             group.forEach( emitter -> {
                 try {

@@ -1,5 +1,6 @@
 package com.latech.api.api;
 
+import com.latech.api.business.DocumentService;
 import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.model.api.DocumentCallbackDto;
 import com.latech.api.model.api.DocumentTimestampsDto;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class DocumentCallbackController {
     private final DocumentRepository documentRepository;
     private final PDFStreamTopicService pdfStreamTopicService;
+    private final DocumentService documentService;
 
     @PostMapping
     public ResponseEntity<Void> saveDocumentState ( @RequestBody DocumentCallbackDto documentCallbackDto ) {
@@ -32,9 +34,9 @@ public class DocumentCallbackController {
             return ResponseEntity.badRequest().build();
         }
 
-        String docId = documentCallbackDto.getRoom();
+        UUID docId = UUID.fromString( documentCallbackDto.getRoom() );
 
-        Optional<Document> documentOpt = documentRepository.findById( UUID.fromString( docId ) );
+        Optional<Document> documentOpt = documentRepository.findById( docId );
         if ( documentOpt.isEmpty() ) {
             return ResponseEntity.notFound().build();
         }
@@ -58,6 +60,8 @@ public class DocumentCallbackController {
         pdfStreamTopicService.notifyTimestamps( docId,
                                                 new DocumentTimestampsDto( document.getLastChange(),
                                                                            document.getLastCompile() ) );
+
+        documentService.sendRenderRequest( docId, document.getContent() );
 
         return ResponseEntity.ok().build();
     }
