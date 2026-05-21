@@ -145,6 +145,7 @@ export function getPDFRenderedEventSource(docId: string): ResilientEventSource {
 }
 
 export const COMPILE_FINISHED_MESSAGE_TYPE = 'compile-finished';
+export const DOCUMENT_TIMESTAMPS_MESSAGE_TYPE = 'document-timestamps';
 
 export interface PDFReadyMessageDto {
   docId: string;
@@ -152,6 +153,7 @@ export interface PDFReadyMessageDto {
   logMessage: string | null;
   downloadPath: string | null;
   timestampUTC: number;
+  lastChange: string | null;
 }
 
 export interface RenderHistoryDto {

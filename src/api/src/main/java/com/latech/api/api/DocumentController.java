@@ -150,7 +150,7 @@ public class DocumentController {
                 document.getLastChange() != null &&
                 document.getPdfPath() != null &&
                 document.getLastCompile().isAfter( document.getLastChange() ) ) {
-            this.pdfRenderedNotifier.publish( docId, document.getPdfPath(), true, "" );
+            this.pdfRenderedNotifier.publish( docId, document.getPdfPath(), true, "", document.getLastChange() );
             return ResponseEntity.accepted().build();
         }
 

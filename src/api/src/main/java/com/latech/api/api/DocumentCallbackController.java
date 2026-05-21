@@ -1,6 +1,8 @@
 package com.latech.api.api;
 
+import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.model.api.DocumentCallbackDto;
+import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @RequestMapping( "api/document/callback" )
 public class DocumentCallbackController {
     private final DocumentRepository documentRepository;
+    private final PDFStreamTopicService pdfStreamTopicService;
 
     @PostMapping
     public ResponseEntity<Void> saveDocumentState ( @RequestBody DocumentCallbackDto documentCallbackDto ) {
@@ -51,6 +54,10 @@ public class DocumentCallbackController {
         document.setContent( documentCallbackDto.getData() );
         document.setLastChange( Instant.now() );
         documentRepository.save( document );
+
+        pdfStreamTopicService.notifyTimestamps( docId,
+                                                new DocumentTimestampsDto( document.getLastChange(),
+                                                                           document.getLastCompile() ) );
 
         return ResponseEntity.ok().build();
     }
