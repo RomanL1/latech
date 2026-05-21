@@ -73,7 +73,6 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pageEls = useRef<Map<number, HTMLDivElement>>(new Map());
-  const pageVisibility = useRef<Map<number, number>>(new Map());
 
   const setPageRef = useCallback((pageNum: number) => (el: HTMLDivElement | null) => {
     if (el) pageEls.current.set(pageNum, el);
@@ -95,23 +94,20 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
   useEffect(() => {
     const root = scrollContainerRef.current;
     if (!root || numPages === 0) return;
-    pageVisibility.current.clear();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          const page = parseInt((e.target as HTMLElement).dataset.page ?? '0');
-          if (page > 0) pageVisibility.current.set(page, e.intersectionRatio);
-        });
-        let bestPage = 1, maxRatio = -1;
-        pageVisibility.current.forEach((ratio, page) => {
-          if (ratio > maxRatio) { maxRatio = ratio; bestPage = page; }
-        });
-        if (maxRatio > 0) setCurrentPage(bestPage);
-      },
-      { root, threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] },
-    );
-    pageEls.current.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+
+    const onScroll = () => {
+      const rootRect = root.getBoundingClientRect();
+      let bestPage = 1, bestOverlap = -1;
+      pageEls.current.forEach((el, page) => {
+        const rect = el.getBoundingClientRect();
+        const overlap = Math.max(0, Math.min(rect.bottom, rootRect.bottom) - Math.max(rect.top, rootRect.top));
+        if (overlap > bestOverlap) { bestOverlap = overlap; bestPage = page; }
+      });
+      setCurrentPage(bestPage);
+    };
+
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => root.removeEventListener('scroll', onScroll);
   }, [numPages]);
 
   useEffect(() => {
