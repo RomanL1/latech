@@ -1,5 +1,7 @@
 package com.latech.api.business;
 
+import com.latech.api.model.api.AutoRenderSettingDto;
+import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.api.PDFReadyMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
@@ -17,12 +19,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 @NullMarked
 @Slf4j
-public class RenderedPDFTopicService {
+public class PDFStreamTopicService {
     //key -> docId
     //value -> list of emitters
     private final ConcurrentHashMap<String, CopyOnWriteArrayList<SseEmitter>> docRegistry;
 
-    public RenderedPDFTopicService () {
+    public PDFStreamTopicService () {
         docRegistry = new ConcurrentHashMap<>();
     }
 
@@ -55,6 +57,41 @@ public class RenderedPDFTopicService {
                                           .id( UUID.randomUUID().toString() )
                                           .name( "compile-finished" )
                                           .data( pdfReadyMessage, MediaType.APPLICATION_JSON )
+                                          .build() );
+                } catch ( Exception e ) {
+                    log.error( "Emitter error: {}", e.getMessage() );
+                    docRegistry.get( docId ).remove( emitter );
+                }
+            } );
+        }
+    }
+
+    public void notifyTimestamps ( final String docId, final DocumentTimestampsDto timestamps ) {
+        List<SseEmitter> group = docRegistry.get( docId );
+        if ( group != null ) {
+            group.forEach( emitter -> {
+                try {
+                    emitter.send( SseEmitter.event()
+                                          .name( "document-timestamps" )
+                                          .data( timestamps, MediaType.APPLICATION_JSON )
+                                          .build() );
+                } catch ( Exception e ) {
+                    log.error( "Emitter error: {}", e.getMessage() );
+                    docRegistry.get( docId ).remove( emitter );
+                }
+            } );
+        }
+    }
+
+    public void notifyAutoRenderSetting ( final String docId, final boolean autoRenderEnabled ) {
+        List<SseEmitter> group = docRegistry.get( docId );
+        if ( group != null ) {
+            group.forEach( emitter -> {
+                try {
+                    emitter.send( SseEmitter.event()
+                                          .name( "auto-render-setting" )
+                                          .data( new AutoRenderSettingDto( autoRenderEnabled ),
+                                                 MediaType.APPLICATION_JSON )
                                           .build() );
                 } catch ( Exception e ) {
                     log.error( "Emitter error: {}", e.getMessage() );

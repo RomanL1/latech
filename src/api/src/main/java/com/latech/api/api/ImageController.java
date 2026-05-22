@@ -79,14 +79,14 @@ public class ImageController {
         try {
             for (MultipartFile file : files) {
                 entities.add( this.imageService.uploadImage(
-                        docId,
+                         docId ,
                         file.getOriginalFilename(),
                         file
                 ) );
             }
-        } catch ( FileAlreadyExistsException e){
-            log.error("Exception while renaming - filename already exists. ", e);
-            return ResponseEntity.status( 409 ).body("Error while uploading: Filename already exists");
+        } catch ( FileAlreadyExistsException e ) {
+            log.error( "Exception while renaming - filename already exists. ", e );
+            return ResponseEntity.status( 409 ).body( "Error while uploading: Filename already exists" );
         } catch ( IOException e ) {
             log.error( "Exception while uploading file", e );
             return ResponseEntity.internalServerError().body( "Error while uploading file" );
@@ -150,7 +150,7 @@ public class ImageController {
     public ResponseEntity<?> updateImage (
             @PathVariable UUID docId,
             @PathVariable UUID imageId,
-            @RequestBody DocumentImageUpdateRequestDto file,
+            @RequestBody DocumentImageUpdateRequestDto file ,
             HttpServletRequest request ) {
 
         if ( ObjectUtils.isEmpty( docId ) ) {
@@ -165,8 +165,8 @@ public class ImageController {
             return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
-        if (this.documentImageService.pictureExistsWithDocumentIdAndImageName( docId, file.getName() )){
-            return ResponseEntity.status(409).body( "Failed to rename image, a file with that name already exists." );
+        if ( this.documentImageService.pictureExistsWithDocumentIdAndImageName( docId, file.getName() ) ) {
+            return ResponseEntity.status( 409 ).body( "Failed to rename image, a file with that name already exists." );
         }
 
         DocumentImage updatedImage = this.documentImageService.updatePicture( docId, imageId, file.getName() );

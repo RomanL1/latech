@@ -49,6 +49,6 @@ public class DocumentExchangeDlqListener {
         Document document = this.documentRepository.findById( documentId ).orElseThrow();
         document.setCompileAbandonedAt( Instant.now() );
         this.documentRepository.save( document );
-        this.pdfRenderedNotifier.publish( record.getDocumentId(), "", false, "Error while compiling pdf" );
+        this.pdfRenderedNotifier.publish( record.getDocumentId(), "", false, "Error while compiling pdf", document.getLastChange() );
     }
 }

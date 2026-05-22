@@ -22,4 +22,5 @@ export interface Document {
   name?: string;
   content?: string;
   secured: boolean;
+  autoRenderEnabled: boolean;
 }

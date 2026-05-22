@@ -9,7 +9,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.InputStream;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -50,38 +49,25 @@ public class S3StorageService {
         log.error( "Failed to initialize bucket after {} attempts", maxRetries );
     }
 
-    public void upload ( UUID documentId, UUID fileId, InputStream data, long contentLength ) {
+    public void upload ( PutObjectRequest putObjectRequest, InputStream inputStream, long contentLength ) {
         s3Client.putObject(
-                PutObjectRequest.builder()
-                        .bucket( bucket )
-                        .key( documentId + "/" + fileId )
-                        .build(),
-                RequestBody.fromInputStream( data, contentLength ) );
+                putObjectRequest,
+                RequestBody.fromInputStream( inputStream, contentLength ) );
     }
 
-    public byte[] download ( UUID documentId, UUID fileId ) {
+    public byte[] download ( GetObjectRequest getObjectRequest ) {
         return s3Client.getObjectAsBytes(
-                        GetObjectRequest.builder()
-                                .bucket( bucket )
-                                .key( documentId + "/" + fileId )
-                                .build() )
-                .asByteArray();
+                        getObjectRequest ).asByteArray();
     }
 
-    public boolean delete ( UUID documentId, UUID fileId ) {
-        String key = documentId + "/" + fileId;
-
+    public boolean delete ( DeleteObjectRequest deleteObjectRequest ) {
         try {
-            s3Client.deleteObject(
-                    DeleteObjectRequest.builder()
-                            .bucket( bucket )
-                            .key( key )
-                            .build() );
+            s3Client.deleteObject( deleteObjectRequest );
 
             return true;
 
         } catch ( S3Exception e ) {
-            log.error( "Failed to delete object from S3: {}", key, e );
+            log.error( "Failed to delete object from S3: {}", deleteObjectRequest.key(), e );
             return false;
         }
     }

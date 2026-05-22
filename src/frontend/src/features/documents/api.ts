@@ -204,6 +204,10 @@ interface DownloadImageDto {
   imageName: string;
 }
 
+export function getThumbnailUrl(documentId: string): string {
+  return `${documentUrl}/${documentId}/thumbnail`;
+}
+
 export function useDownloadImage(documentId: string): UseMutationResult<void, Error, DownloadImageDto> {
   return useMutation<void, Error, DownloadImageDto>({
     mutationFn: ({ imageId, imageName }) =>
@@ -217,20 +221,5 @@ export function useDownloadImage(documentId: string): UseMutationResult<void, Er
         a.remove();
         URL.revokeObjectURL(url);
       }),
-  });
-}
-
-export interface DocumentTimestampsDto {
-  lastChange: string | null;
-  lastCompile: string | null;
-}
-
-export function getDocumentTimestamps(docId: string): Promise<DocumentTimestampsDto> {
-  return apiFetch(`${documentUrl}/${docId}/timestamps`).then(async (res) => {
-    if (!res.ok) {
-      throw await readError(res, 'Failed to fetch document timestamps');
-    }
-
-    return res.json() as Promise<DocumentTimestampsDto>;
   });
 }

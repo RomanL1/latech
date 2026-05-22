@@ -87,6 +87,7 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
       }
 
       await refetch();
+      setActiveTab('preview');
     };
 
     const onError = (error: Event) => {

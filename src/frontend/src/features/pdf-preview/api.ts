@@ -164,6 +164,8 @@ export function getPDFRenderedEventSource(docId: string): ResilientEventSource {
 }
 
 export const COMPILE_FINISHED_MESSAGE_TYPE = 'compile-finished';
+export const DOCUMENT_TIMESTAMPS_MESSAGE_TYPE = 'document-timestamps';
+export const AUTO_RENDER_SETTING_MESSAGE_TYPE = 'auto-render-setting';
 
 export interface PDFReadyMessageDto {
   docId: string;
@@ -171,6 +173,21 @@ export interface PDFReadyMessageDto {
   logMessage: string | null;
   downloadPath: string | null;
   timestampUTC: number;
+  lastChange: string | null;
+}
+
+export interface AutoRenderSettingDto {
+  autoRenderEnabled: boolean;
+}
+
+export async function setAutoRender(docId: string, enabled: boolean): Promise<void> {
+  return fetch(`${documentUrl}${docId}/auto-render`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ autoRenderEnabled: enabled }),
+  }).then((res) => {
+    if (!res.ok) throw new Error('Failed to update auto-render setting');
+  });
 }
 
 export interface RenderHistoryDto {
