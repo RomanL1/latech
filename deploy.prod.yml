@@ -97,6 +97,7 @@ services:
       - 'SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}'
       - 'SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}'
       - 'INTERNAL_AUTH_SECRET=${INTERNAL_AUTH_SECRET}'
+      - 'DOCUMENT_SESSION_COOKIE_SECURE=true'
     depends_on:
       - postgres
       - rabbitmq

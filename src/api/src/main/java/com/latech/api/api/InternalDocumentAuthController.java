@@ -1,14 +1,13 @@
 package com.latech.api.api;
 
 import com.latech.api.business.DocumentAuthService;
+import com.latech.api.business.InternalSecretValidatorService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -21,9 +20,7 @@ public class InternalDocumentAuthController {
     private static final String INTERNAL_SECRET_HEADER = "X-Internal-Secret";
 
     private final DocumentAuthService documentAuthService;
-
-    @Value( "${latech.internal.auth-secret:}" )
-    private String internalAuthSecret;
+    private final InternalSecretValidatorService internalSecretValidatorService;
 
     @PostMapping( "/{docId}/authorize-ws" )
     public ResponseEntity<Void> authorizeWebSocket (
@@ -37,7 +34,7 @@ public class InternalDocumentAuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        if ( !isValidInternalSecret( providedSecret ) ) {
+        if ( !internalSecretValidatorService.isValidInternalSecret( providedSecret ) ) {
             return ResponseEntity.status( HttpStatus.FORBIDDEN ).build();
         }
 
@@ -53,12 +50,6 @@ public class InternalDocumentAuthController {
         } catch ( EntityNotFoundException e ) {
             return ResponseEntity.notFound().build();
         }
-    }
-
-    private boolean isValidInternalSecret ( String providedSecret ) {
-        return StringUtils.hasText( internalAuthSecret )
-                && StringUtils.hasText( providedSecret )
-                && internalAuthSecret.equals( providedSecret );
     }
 
     private UUID parseDocumentId ( String docId ) {

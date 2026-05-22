@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -32,7 +31,6 @@ public class PdfStreamController {
     private final DocumentRepository documentRepository;
     private final DocumentAuthService documentAuthService;
 
-    @Nullable
     @GetMapping( "/{docId}/stream-updates" )
     public ResponseEntity<SseEmitter> streamUpdates ( @PathVariable String docId, HttpServletRequest request ) {
         if ( ObjectUtils.isEmpty( docId ) ) {
@@ -41,7 +39,7 @@ public class PdfStreamController {
 
         UUID id = UUID.fromString( docId );
         Optional<Document> _document = documentRepository.findById( id );
-        if ( ObjectUtils.isEmpty( _document ) ) {
+        if ( _document.isEmpty() ) {
             return ResponseEntity.status( HttpStatus.NOT_FOUND ).build();
         }
 
@@ -57,7 +55,7 @@ public class PdfStreamController {
         pdfStreamTopicService.notifyTimestamps( id.toString(), new DocumentTimestampsDto( document.getLastChange(),
                                                                                           document.getLastCompile() ) );
         pdfStreamTopicService.notifyAutoRenderSetting( id.toString(), document.isAutoRenderEnabled() );
-        
+
         return ResponseEntity.ok( emitter );
     }
 }

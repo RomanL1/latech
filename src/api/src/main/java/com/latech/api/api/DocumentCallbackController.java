@@ -1,6 +1,7 @@
 package com.latech.api.api;
 
 import com.latech.api.business.DocumentService;
+import com.latech.api.business.InternalSecretValidatorService;
 import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.model.api.DocumentCallbackDto;
 import com.latech.api.model.api.DocumentTimestampsDto;
@@ -8,11 +9,9 @@ import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -28,20 +27,16 @@ public class DocumentCallbackController {
     private final DocumentRepository documentRepository;
     private final PDFStreamTopicService pdfStreamTopicService;
     private final DocumentService documentService;
-    @Value( "${latech.internal.auth-secret:}" )
-    private String internalAuthSecret;
+    private final InternalSecretValidatorService internalSecretValidatorService;
 
     @PostMapping
-    public ResponseEntity<Void> saveDocumentState (
-            @RequestHeader( value = INTERNAL_SECRET_HEADER, required = false ) String providedSecret,
-            @RequestBody DocumentCallbackDto documentCallbackDto ) {
+    public ResponseEntity<Void> saveDocumentState ( @RequestHeader( value = INTERNAL_SECRET_HEADER, required = false ) String providedSecret, @RequestBody DocumentCallbackDto documentCallbackDto ) {
 
-        if ( !isValidInternalSecret( providedSecret ) ) {
+        if ( !internalSecretValidatorService.isValidInternalSecret( providedSecret ) ) {
             return ResponseEntity.status( HttpStatus.FORBIDDEN ).build();
         }
 
-        if ( ObjectUtils.isEmpty( documentCallbackDto ) ||
-                ObjectUtils.isEmpty( documentCallbackDto.getRoom() ) ) {
+        if ( ObjectUtils.isEmpty( documentCallbackDto ) || ObjectUtils.isEmpty( documentCallbackDto.getRoom() ) ) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -69,20 +64,13 @@ public class DocumentCallbackController {
 
         documentRepository.save( document );
 
-        pdfStreamTopicService.notifyTimestamps( docId.toString(),
-                                                new DocumentTimestampsDto( document.getLastChange(),
-                                                                           document.getLastCompile() ) );
+        pdfStreamTopicService.notifyTimestamps( docId.toString(), new DocumentTimestampsDto( document.getLastChange(),
+                                                                                             document.getLastCompile() ) );
 
         if ( document.isAutoRenderEnabled() ) {
             documentService.sendRenderRequest( docId, document.getContent() );
         }
 
         return ResponseEntity.ok().build();
-    }
-
-    private boolean isValidInternalSecret ( String providedSecret ) {
-        return StringUtils.hasText( internalAuthSecret )
-                && StringUtils.hasText( providedSecret )
-                && internalAuthSecret.equals( providedSecret );
     }
 }

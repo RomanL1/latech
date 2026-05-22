@@ -36,7 +36,7 @@ public class DocumentAuthService {
             String rawPassword,
             HttpServletResponse response
     ) {
-        if ( !documentPasswordCache.isPasswordProtected( documentId ) ) {
+        if ( documentPasswordCache.isUnsecured( documentId ) ) {
             return true;
         }
 
@@ -59,7 +59,7 @@ public class DocumentAuthService {
     }
 
     public boolean hasAccess ( UUID documentId, HttpServletRequest request ) {
-        if ( !documentPasswordCache.isPasswordProtected( documentId ) ) {
+        if ( documentPasswordCache.isUnsecured( documentId ) ) {
             return true;
         }
 
