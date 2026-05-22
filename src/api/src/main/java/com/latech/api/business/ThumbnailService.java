@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -60,6 +61,7 @@ public class ThumbnailService {
 
                 String fileName = getThumbnailFileName( documentId );
 
+                //put overwrites if exists
                 PutObjectRequest request = PutObjectRequest.builder().bucket( bucket ).key( fileName ).build();
                 s3StorageService.upload( request, new ByteArrayInputStream( imageBytes ), imageBytes.length );
             }
@@ -69,11 +71,13 @@ public class ThumbnailService {
         }
     }
 
-    public void getThumbnailForDocument( UUID documentId ) {
-
+    public byte[] getThumbnailForDocument ( UUID documentId ) {
+        GetObjectRequest request = GetObjectRequest.builder().bucket( bucket ).key( getThumbnailFileName( documentId ) )
+                .build();
+        return s3StorageService.download( request );
     }
 
-    private String getThumbnailFileName ( UUID documentId ) {
+    public String getThumbnailFileName ( UUID documentId ) {
         return documentId + "-thumbnail.png";
     }
 }

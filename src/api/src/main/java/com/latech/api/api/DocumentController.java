@@ -3,7 +3,11 @@ package com.latech.api.api;
 import com.latech.api.business.DocumentService;
 import com.latech.api.business.OngoingCompileTracker;
 import com.latech.api.business.PdfRenderedNotifier;
-import com.latech.api.model.api.*;
+import com.latech.api.business.ThumbnailService;
+import com.latech.api.model.api.DocumentCreateRequestDto;
+import com.latech.api.model.api.DocumentCreateResponseDto;
+import com.latech.api.model.api.DocumentDto;
+import com.latech.api.model.api.DocumentSecuredRequestDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
@@ -11,6 +15,7 @@ import com.latech.api.repository.TemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Limit;
@@ -42,6 +47,7 @@ public class DocumentController {
     private final PdfRenderedNotifier pdfRenderedNotifier;
     private final OngoingCompileTracker ongoingCompileTracker;
     private final DocumentService documentService;
+    private final ThumbnailService thumbnailService;
 
     @Value( "${seaweedfs.bucket}" )
     private String bucket;
@@ -210,6 +216,30 @@ public class DocumentController {
         List<RenderHistory> history =
                 renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc( documentId, Limit.of( 50 ) );
         return ResponseEntity.ok( history );
+    }
+
+    @GetMapping( "/{docId}/thumbnail" )
+    public ResponseEntity<Resource> getThumbnail ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+
+        String filename = thumbnailService.getThumbnailFileName( documentId );
+        byte[] imageBytes = thumbnailService.getThumbnailForDocument( documentId );
+
+        if ( imageBytes == null || imageBytes.length == 0 ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new ByteArrayResource( imageBytes );
+
+        return ResponseEntity.ok()
+                .contentType( MediaType.IMAGE_PNG )
+                .contentLength( imageBytes.length )
+                .header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"" )
+                .body( resource );
     }
 
 }
