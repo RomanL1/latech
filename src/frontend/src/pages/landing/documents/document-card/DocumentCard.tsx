@@ -1,5 +1,7 @@
 import { Card, Inset } from '@radix-ui/themes';
 import { FileTextIcon } from 'lucide-react';
+import { useState } from 'react';
+import { getThumbnailUrl } from '../../../../features/documents/api';
 import type { DocumentMetadata } from '../../../../features/documents/document';
 import styles from './DocumentCard.module.css';
 
@@ -8,9 +10,23 @@ export interface DocumentCardProps {
 }
 
 export function DocumentCard({ document }: DocumentCardProps) {
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
+  const thumbnailUrl = getThumbnailUrl(document.documentId);
+
   return (
     <Card className={styles.card}>
-      <Inset className={styles.image} clip="padding-box" side="top"></Inset>
+      <Inset className={styles.image} clip="padding-box" side="top">
+        {!thumbnailFailed && (
+          <img
+            className={`${styles.thumbnail} ${thumbnailLoaded ? styles.thumbnailLoaded : ''}`}
+            src={thumbnailUrl}
+            alt=""
+            onLoad={() => setThumbnailLoaded(true)}
+            onError={() => setThumbnailFailed(true)}
+          />
+        )}
+      </Inset>
       <Inset className={styles.infoRow} clip="padding-box" side="bottom">
         <FileTextIcon className={styles.icon} />
         <div className={styles.info}>
