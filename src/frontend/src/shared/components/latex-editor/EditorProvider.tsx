@@ -1,8 +1,7 @@
 import { useMonaco } from '@monaco-editor/react';
 import { generateColor } from '@marko19907/string-to-color';
-import { ThemeContext } from '@radix-ui/themes';
 import { editor as MonacoEditor, KeyCode, KeyMod } from 'monaco-editor';
-import { type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
 import { MonacoBinding } from 'y-monaco';
 import * as awarenessProtocol from 'y-protocols/awareness';
@@ -24,13 +23,6 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const [awarenessUsers, setAwarenessUsers] = useState<AwarenessUserList>(new Map());
   const [currentAwarenessUser, setCurrentAwarenessUser] = useState<AwarenessUser | null>(null);
   const monaco = useMonaco();
-  const context = useContext(ThemeContext);
-
-  useEffect(() => {
-    if (!monaco) return;
-
-    monaco.editor.setTheme(context?.appearance === 'dark' ? 'vs-dark' : 'vs-light');
-  }, [monaco, context?.appearance]);
 
   useEffect(() => {
     if (!monaco || !editor) return;
