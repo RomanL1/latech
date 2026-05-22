@@ -5,6 +5,11 @@ import com.latech.api.business.OngoingCompileTracker;
 import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.business.PdfRenderedNotifier;
 import com.latech.api.model.api.*;
+import com.latech.api.business.ThumbnailService;
+import com.latech.api.model.api.DocumentCreateRequestDto;
+import com.latech.api.model.api.DocumentCreateResponseDto;
+import com.latech.api.model.api.DocumentDto;
+import com.latech.api.model.api.DocumentSecuredRequestDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
@@ -12,6 +17,7 @@ import com.latech.api.repository.TemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Limit;
@@ -44,6 +50,7 @@ public class DocumentController {
     private final OngoingCompileTracker ongoingCompileTracker;
     private final DocumentService documentService;
     private final PDFStreamTopicService pdfStreamTopicService;
+    private final ThumbnailService thumbnailService;
 
     @Value( "${seaweedfs.bucket}" )
     private String bucket;
@@ -233,6 +240,42 @@ public class DocumentController {
         List<RenderHistory> history =
                 renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc( documentId, Limit.of( 50 ) );
         return ResponseEntity.ok( history );
+    }
+
+    @GetMapping( "/{docId}/timestamps" )
+    public ResponseEntity<DocumentTimestampsDto> getTimestamps ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        return documentRepository.findById( documentId )
+                .map( doc -> ResponseEntity.ok(
+                        new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
+                .orElseGet( () -> ResponseEntity.notFound().build() );
+    }
+
+    @GetMapping( "/{docId}/thumbnail" )
+    public ResponseEntity<Resource> getThumbnail ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+
+        String filename = thumbnailService.getThumbnailFileName( documentId );
+        Optional<byte[]> thumbnail = thumbnailService.getThumbnailForDocument( documentId );
+        if ( thumbnail.isEmpty() ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new ByteArrayResource( thumbnail.get() );
+
+        return ResponseEntity.ok()
+                .contentType( MediaType.IMAGE_PNG )
+                .contentLength( thumbnail.get().length )
+                .header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"" )
+                .body( resource );
     }
 
 }

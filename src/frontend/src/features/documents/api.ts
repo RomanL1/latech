@@ -161,6 +161,10 @@ interface DownloadImageDto {
   imageName: string;
 }
 
+export function getThumbnailUrl(documentId: string): string {
+  return `${documentUrl}/${documentId}/thumbnail`;
+}
+
 export function useDownloadImage(documentId: string): UseMutationResult<void, Error, DownloadImageDto> {
   return useMutation<void, Error, DownloadImageDto>({
     mutationFn: ({ imageId, imageName }) =>
