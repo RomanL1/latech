@@ -72,7 +72,6 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
           text.insert(0, current.replace(/\r\n/g, '\n'));
         });
       }
-      model.setEOL(monaco.editor.EndOfLineSequence.LF);
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {

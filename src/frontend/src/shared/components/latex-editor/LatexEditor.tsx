@@ -9,7 +9,7 @@ interface LatexEditorProps {
 }
 
 function LatexEditor({ content }: LatexEditorProps) {
-  const { awarenessUsers, isConnected, setEditor } = useEditor();
+  const { isConnected, setEditor } = useEditor();
 
   const handleMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     setEditor(editor);
@@ -17,7 +17,7 @@ function LatexEditor({ content }: LatexEditorProps) {
 
   return (
     <div className={styles.container}>
-      {isConnected && <Cursors awarenessUsers={awarenessUsers} />}
+      {isConnected && <Cursors />}
       <Editor
         height="100%"
         defaultValue={content}
