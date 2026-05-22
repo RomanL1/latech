@@ -31,11 +31,11 @@ public class PdfRenderedConsumer {
     public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag ) throws Exception {
         try {
             PdfMetadata payload = PdfMetadata.parseFrom( payloadBytes );
-            log.info( "Pdf rendered renderId: " + payload.getRenderId() );
-            log.info( "Pdf rendered documentId: " + payload.getDocumentId() );
-            log.info( "Pdf rendered timestamp: " + payload.getRenderedTimestamp() );
-            log.info( "Pdf rendered status: " + payload.getStatus() );
-            log.info( "Pdf rendered log message: " + payload.getLogMessage() );
+            log.info( "Pdf rendered renderId: {}", payload.getRenderId() );
+            log.info( "Pdf rendered documentId: {}", payload.getDocumentId() );
+            log.info( "Pdf rendered timestamp: {}", payload.getRenderedTimestamp() );
+            log.info( "Pdf rendered status: {}", payload.getStatus() );
+            log.debug( "Pdf rendered log message: {}", payload.getLogMessage() );
 
             Document document = documentRepository.findById( UUID.fromString( payload.getDocumentId() ) ).orElseThrow();
             Instant compiledAtTimestamp = Instant.ofEpochSecond( payload.getRenderedTimestamp().getSeconds(),
