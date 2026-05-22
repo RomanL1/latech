@@ -12,21 +12,20 @@ import {
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
 import CurrentEditors from './current-editors/CurrentEditors';
-import type { AwarenessUser, AwarenessUserList } from '../../../../shared/components/latex-editor/LatexEditor';
+import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
 
 interface EditorHeaderProps {
   file: Document | undefined;
   pdfEventSource: ResilientEventSource | null;
-  awarenessUsers: AwarenessUserList;
-  currentAwarenessUsers: AwarenessUser | null;
 }
 
-const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUsers }: EditorHeaderProps) => {
+const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const docId = file?.id;
   const [isCompiling, setIsCompiling] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
+  const { awarenessUsers, currentAwarenessUser } = useEditor();
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 60000);
@@ -93,11 +92,7 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
       <Separator orientation="vertical" />
       <EditorControls />
       <Separator orientation="vertical" />
-      <CurrentEditors
-        className={styles.currentEditors}
-        editors={awarenessUsers}
-        currentEditor={currentAwarenessUsers}
-      />
+      <CurrentEditors className={styles.currentEditors} editors={awarenessUsers} currentEditor={currentAwarenessUser} />
       <div style={{ marginRight: '12px', textAlign: 'right' }}>
         {lastChangedAt && now !== null && (
           <Text size="2" color="gray" as="div" style={{ lineHeight: 1.2 }}>

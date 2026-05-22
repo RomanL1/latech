@@ -1,11 +1,8 @@
 import { useMemo } from 'react';
-import type { AwarenessUserList } from '../LatexEditor';
+import { useEditor } from '../EditorContext';
 
-interface CursorsProps {
-  awarenessUsers: AwarenessUserList;
-}
-
-const Cursors = ({ awarenessUsers }: CursorsProps) => {
+const Cursors = () => {
+  const { awarenessUsers } = useEditor();
   const styleSheet = useMemo(() => {
     let cursorStyles = '';
 
