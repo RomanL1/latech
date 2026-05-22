@@ -57,11 +57,13 @@ public class DocumentCallbackController {
         document.setLastChange( Instant.now() );
         documentRepository.save( document );
 
-        pdfStreamTopicService.notifyTimestamps( docId,
+        pdfStreamTopicService.notifyTimestamps( docId.toString(),
                                                 new DocumentTimestampsDto( document.getLastChange(),
                                                                            document.getLastCompile() ) );
 
-        documentService.sendRenderRequest( docId, document.getContent() );
+        if ( document.isAutoRenderEnabled() ) {
+            documentService.sendRenderRequest( docId, document.getContent() );
+        }
 
         return ResponseEntity.ok().build();
     }

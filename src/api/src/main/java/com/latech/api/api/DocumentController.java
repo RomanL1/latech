@@ -2,7 +2,9 @@ package com.latech.api.api;
 
 import com.latech.api.business.DocumentService;
 import com.latech.api.business.OngoingCompileTracker;
+import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.business.PdfRenderedNotifier;
+import com.latech.api.model.api.*;
 import com.latech.api.business.ThumbnailService;
 import com.latech.api.model.api.DocumentCreateRequestDto;
 import com.latech.api.model.api.DocumentCreateResponseDto;
@@ -47,6 +49,7 @@ public class DocumentController {
     private final PdfRenderedNotifier pdfRenderedNotifier;
     private final OngoingCompileTracker ongoingCompileTracker;
     private final DocumentService documentService;
+    private final PDFStreamTopicService pdfStreamTopicService;
     private final ThumbnailService thumbnailService;
 
     @Value( "${seaweedfs.bucket}" )
@@ -66,6 +69,7 @@ public class DocumentController {
                 .name( document.getName() )
                 .content( document.getContent() )
                 .secured( secured )
+                .autoRenderEnabled( document.isAutoRenderEnabled() )
                 .build();
         return dto;
     }
@@ -203,6 +207,26 @@ public class DocumentController {
         }
     }
 
+    @PatchMapping( "/{docId}/auto-render" )
+    public ResponseEntity<Void> setAutoRender ( @PathVariable String docId,
+            @RequestBody AutoRenderSettingDto dto ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        Document document = documentRepository.findById( documentId ).orElse( null );
+        if ( document == null ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        document.setAutoRenderEnabled( dto.autoRenderEnabled() );
+        documentRepository.save( document );
+        pdfStreamTopicService.notifyAutoRenderSetting( documentId.toString(), dto.autoRenderEnabled() );
+
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping( "/{docId}/history" )
     public ResponseEntity<List<RenderHistory>> getRenderHistory ( @PathVariable String docId ) {
         if ( ObjectUtils.isEmpty( docId ) ) {
@@ -216,6 +240,19 @@ public class DocumentController {
         List<RenderHistory> history =
                 renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc( documentId, Limit.of( 50 ) );
         return ResponseEntity.ok( history );
+    }
+
+    @GetMapping( "/{docId}/timestamps" )
+    public ResponseEntity<DocumentTimestampsDto> getTimestamps ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        return documentRepository.findById( documentId )
+                .map( doc -> ResponseEntity.ok(
+                        new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
+                .orElseGet( () -> ResponseEntity.notFound().build() );
     }
 
     @GetMapping( "/{docId}/thumbnail" )

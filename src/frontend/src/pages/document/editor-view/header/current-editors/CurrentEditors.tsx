@@ -1,6 +1,6 @@
 import { Text } from '@radix-ui/themes';
 import styles from './CurrentEditor.module.css';
-import type { AwarenessUser, AwarenessUserList } from '../../../../../shared/components/latex-editor/LatexEditor';
+import type { AwarenessUser, AwarenessUserList } from '../../../../../shared/components/latex-editor/EditorContext';
 
 interface CurrentEditorProps {
   className?: string;

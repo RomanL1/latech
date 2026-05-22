@@ -1,32 +1,36 @@
 import { LucideFileCodeCorner, LucidePlay } from 'lucide-react';
 import styles from './EditorHeader.module.css';
-import { Button, Separator, Spinner, Text } from '@radix-ui/themes';
+import { Button, Separator, Spinner, Switch, Text } from '@radix-ui/themes';
 import { useState, useEffect } from 'react';
 import EditorControls from '../controls/EditorControls';
 import type { Document } from '../../../../features/documents/document';
 import {
   requestPDFRender,
+  setAutoRender,
   COMPILE_FINISHED_MESSAGE_TYPE,
   DOCUMENT_TIMESTAMPS_MESSAGE_TYPE,
+  AUTO_RENDER_SETTING_MESSAGE_TYPE,
   type PDFReadyMessageDto,
+  type AutoRenderSettingDto,
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
 import CurrentEditors from './current-editors/CurrentEditors';
-import type { AwarenessUser, AwarenessUserList } from '../../../../shared/components/latex-editor/LatexEditor';
+import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import EditorNavigationButtons from './navigation-buttons/EditorNavigationButtons';
 
 interface EditorHeaderProps {
   file: Document | undefined;
   pdfEventSource: ResilientEventSource | null;
-  awarenessUsers: AwarenessUserList;
-  currentAwarenessUsers: AwarenessUser | null;
 }
 
-const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUsers }: EditorHeaderProps) => {
+const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const docId = file?.id;
   const [isCompiling, setIsCompiling] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
+  const [autoRenderEnabled, setAutoRenderEnabled] = useState<boolean>(file?.autoRenderEnabled ?? true);
+  const { awarenessUsers, currentAwarenessUser } = useEditor();
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 60000);
@@ -49,12 +53,19 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
       setLastRenderedAt(new Date(data.timestampUTC).toISOString());
     };
 
+    const onAutoRenderSetting = (event: MessageEvent) => {
+      const data = JSON.parse(event.data as string) as AutoRenderSettingDto;
+      setAutoRenderEnabled(data.autoRenderEnabled);
+    };
+
     pdfEventSource.addEventListener(DOCUMENT_TIMESTAMPS_MESSAGE_TYPE, onTimestamps);
     pdfEventSource.addEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
+    pdfEventSource.addEventListener(AUTO_RENDER_SETTING_MESSAGE_TYPE, onAutoRenderSetting);
 
     return () => {
       pdfEventSource.removeEventListener(DOCUMENT_TIMESTAMPS_MESSAGE_TYPE, onTimestamps);
       pdfEventSource.removeEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
+      pdfEventSource.removeEventListener(AUTO_RENDER_SETTING_MESSAGE_TYPE, onAutoRenderSetting);
     };
   }, [docId, pdfEventSource]);
 
@@ -66,6 +77,17 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
     } catch (e) {
       console.error('Failed to request render', e);
       setIsCompiling(false);
+    }
+  };
+
+  const handleAutoRenderToggle = async (checked: boolean) => {
+    if (!docId) return;
+    setAutoRenderEnabled(checked);
+    try {
+      await setAutoRender(docId, checked);
+    } catch (e) {
+      console.error('Failed to update auto-render setting', e);
+      setAutoRenderEnabled(!checked);
     }
   };
 
@@ -91,13 +113,11 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
       <LucideFileCodeCorner size={20} />
       <Text size="2">{file?.name}</Text>
       <Separator orientation="vertical" />
+      <EditorNavigationButtons />
+      <Separator orientation="vertical" />
       <EditorControls />
       <Separator orientation="vertical" />
-      <CurrentEditors
-        className={styles.currentEditors}
-        editors={awarenessUsers}
-        currentEditor={currentAwarenessUsers}
-      />
+      <CurrentEditors className={styles.currentEditors} editors={awarenessUsers} currentEditor={currentAwarenessUser} />
       <div style={{ marginRight: '12px', textAlign: 'right' }}>
         {lastChangedAt && now !== null && (
           <Text size="2" color="gray" as="div" style={{ lineHeight: 1.2 }}>
@@ -110,6 +130,12 @@ const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUs
           </Text>
         )}
       </div>
+      <Separator orientation="vertical" />
+      <Text as="label" size="2" style={{ display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}>
+        <Switch size="1" checked={autoRenderEnabled} onCheckedChange={handleAutoRenderToggle} />
+        Auto-render
+      </Text>
+      <Separator orientation="vertical" />
       <Button disabled={isCompiling} onClick={handleOnCompileClick} size="2">
         <Spinner loading={isCompiling} />
         {!isCompiling && <LucidePlay size="19" />}

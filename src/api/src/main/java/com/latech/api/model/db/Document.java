@@ -35,4 +35,7 @@ public class Document {
     private String pdfPath;
 
     private Instant compileAbandonedAt;
+
+    @Column( nullable = false )
+    private boolean autoRenderEnabled = true;
 }

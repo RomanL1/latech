@@ -1,8 +1,5 @@
 import { Group, Panel, type PanelImperativeHandle } from 'react-resizable-panels';
-import LatexEditor, {
-  type AwarenessUser,
-  type AwarenessUserList,
-} from '../../../shared/components/latex-editor/LatexEditor';
+import LatexEditor from '../../../shared/components/latex-editor/LatexEditor';
 import PDFPreview from '../../../shared/components/pdf-preview/PDFPreview';
 import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
@@ -10,6 +7,7 @@ import EditorHeader from './header/EditorHeader';
 import { useRef, useEffect, useState } from 'react';
 import type { Document } from '../../../features/documents/document';
 import { getPDFRenderedEventSource, type ResilientEventSource } from '../../../features/pdf-preview/api';
+import { EditorProvider } from '../../../shared/components/latex-editor/EditorProvider';
 
 interface EditorViewProps {
   file: Document | undefined;
@@ -19,8 +17,6 @@ interface EditorViewProps {
 const EditorView = ({ file, documentId }: EditorViewProps) => {
   const rightPanelRef = useRef<PanelImperativeHandle | null>(null);
   const [pdfEventSource, setPdfEventSource] = useState<ResilientEventSource | null>(null);
-  const [awarenessUsers, setAwarenessUsers] = useState<AwarenessUserList>(new Map());
-  const [currentAwarenessUsers, setCurrentAwarenessUsers] = useState<AwarenessUser | null>(null);
 
   useEffect(() => {
     if (!documentId) return;
@@ -50,35 +46,27 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
     }
   };
 
+  if (!documentId) {
+    return <div className={styles.container}>No file selected</div>;
+  }
+
   return (
-    <div className={styles.container}>
-      <EditorHeader
-        file={file}
-        pdfEventSource={pdfEventSource}
-        awarenessUsers={awarenessUsers}
-        currentAwarenessUsers={currentAwarenessUsers}
-      />
-      <Group className={styles.panelGroup}>
-        <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          <div style={{ height: '100%' }} onKeyDown={(e) => e.stopPropagation()}>
-            {documentId ? (
-              <LatexEditor
-                roomId={documentId}
-                content={file?.content ?? ''}
-                onAwarenessChange={setAwarenessUsers}
-                onCurrentAwarenessChange={setCurrentAwarenessUsers}
-              />
-            ) : (
-              'No file selected'
-            )}
-          </div>
-        </Panel>
-        <ResizeSeparator onClick={handleSeparatorClick} />
-        <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>
-          {documentId ? <PDFPreview docId={documentId} pdfEventSource={pdfEventSource} /> : 'No file selected'}
-        </Panel>
-      </Group>
-    </div>
+    <EditorProvider roomId={documentId}>
+      <div className={styles.container}>
+        <EditorHeader file={file} pdfEventSource={pdfEventSource} />
+        <Group className={styles.panelGroup}>
+          <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
+            <div style={{ height: '100%' }} onKeyDown={(e) => e.stopPropagation()}>
+              <LatexEditor content={file?.content ?? ''} />
+            </div>
+          </Panel>
+          <ResizeSeparator onClick={handleSeparatorClick} />
+          <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>
+            <PDFPreview docId={documentId} pdfEventSource={pdfEventSource} />
+          </Panel>
+        </Group>
+      </div>
+    </EditorProvider>
   );
 };
 
