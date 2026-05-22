@@ -1,23 +1,26 @@
-import { Button, Separator, Spinner, Text } from '@radix-ui/themes';
 import { LucideFileCodeCorner, LucidePlay } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { getDocumentTimestamps } from '../../../../features/documents/api';
+import styles from './EditorHeader.module.css';
+import { Button, Separator, Spinner, Text } from '@radix-ui/themes';
+import { useState, useEffect, useCallback } from 'react';
+import EditorControls from '../controls/EditorControls';
 import type { Document } from '../../../../features/documents/document';
 import {
-  COMPILE_FINISHED_MESSAGE_TYPE,
   requestPDFRender,
+  COMPILE_FINISHED_MESSAGE_TYPE,
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
-import EditorControls from '../controls/EditorControls';
+import { getDocumentTimestamps } from '../../../../features/documents/api';
 import CurrentEditors from './current-editors/CurrentEditors';
-import styles from './EditorHeader.module.css';
+import type { AwarenessUser, AwarenessUserList } from '../../../../shared/components/latex-editor/LatexEditor';
 
 interface EditorHeaderProps {
   file: Document | undefined;
   pdfEventSource: ResilientEventSource | null;
+  awarenessUsers: AwarenessUserList;
+  currentAwarenessUsers: AwarenessUser | null;
 }
 
-const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
+const EditorHeader = ({ file, pdfEventSource, awarenessUsers, currentAwarenessUsers }: EditorHeaderProps) => {
   const docId = file?.id;
   const [isCompiling, setIsCompiling] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
@@ -100,7 +103,11 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
       <Separator orientation="vertical" />
       <EditorControls />
       <Separator orientation="vertical" />
-      <CurrentEditors className={styles.currentEditors} />
+      <CurrentEditors
+        className={styles.currentEditors}
+        editors={awarenessUsers}
+        currentEditor={currentAwarenessUsers}
+      />
       <div style={{ marginRight: '12px', textAlign: 'right' }}>
         {lastChangedAt && now !== null && (
           <Text size="2" color="gray" as="div" style={{ lineHeight: 1.2 }}>
