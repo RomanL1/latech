@@ -1,8 +1,7 @@
 import { useMonaco } from '@monaco-editor/react';
 import { generateColor } from '@marko19907/string-to-color';
-import { ThemeContext } from '@radix-ui/themes';
 import { editor as MonacoEditor, KeyCode, KeyMod } from 'monaco-editor';
-import { type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
 import { MonacoBinding } from 'y-monaco';
 import * as awarenessProtocol from 'y-protocols/awareness';
