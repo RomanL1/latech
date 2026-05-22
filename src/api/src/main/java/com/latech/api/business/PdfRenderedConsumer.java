@@ -26,6 +26,7 @@ public class PdfRenderedConsumer {
     private final DocumentRepository documentRepository;
     private final RenderHistoryRepository renderHistoryRepository;
     private final OngoingCompileTracker ongoingCompileTracker;
+    private final ThumbnailService thumbnailService;
 
     @RabbitListener( queues = PDF_RENDERED )
     public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag ) throws Exception {
@@ -66,6 +67,7 @@ public class PdfRenderedConsumer {
             this.ongoingCompileTracker.jobFinished( document.getId() );
             this.pdfRenderedNotifier.publish( payload.getDocumentId(), payload.getFilePath(), true,
                                               payload.getLogMessage(), document.getLastChange() );
+            this.thumbnailService.extractAndSaveThumbnailForDocument( UUID.fromString( payload.getDocumentId() ) );
             log.info( "Notified topic: {}", payload.getDocumentId() );
         } catch ( Exception e ) {
             log.error( e.getMessage() );

@@ -227,17 +227,16 @@ public class DocumentController {
         UUID documentId = UUID.fromString( docId );
 
         String filename = thumbnailService.getThumbnailFileName( documentId );
-        byte[] imageBytes = thumbnailService.getThumbnailForDocument( documentId );
-
-        if ( imageBytes == null || imageBytes.length == 0 ) {
+        Optional<byte[]> thumbnail = thumbnailService.getThumbnailForDocument( documentId );
+        if ( thumbnail.isEmpty() ) {
             return ResponseEntity.notFound().build();
         }
 
-        Resource resource = new ByteArrayResource( imageBytes );
+        Resource resource = new ByteArrayResource( thumbnail.get() );
 
         return ResponseEntity.ok()
                 .contentType( MediaType.IMAGE_PNG )
-                .contentLength( imageBytes.length )
+                .contentLength( thumbnail.get().length )
                 .header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"" )
                 .body( resource );
     }
