@@ -6,18 +6,10 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
+import { apiFetch } from '../../shared/apiFetch';
+
 const apiHost = window.ENV.VITE_API_HOST;
 const documentUrl = `${apiHost}/document/`;
-
-function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  return fetch(input, {
-    ...init,
-    credentials: 'include',
-    headers: {
-      ...init?.headers,
-    },
-  });
-}
 
 // post trigger PDF render
 export async function requestPDFRender(docId: string): Promise<void> {

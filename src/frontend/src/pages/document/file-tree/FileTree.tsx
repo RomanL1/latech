@@ -60,16 +60,12 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
   };
 
   const handleOnDownload = (item: DocumentFile) => {
-    if (!selectedFile) return;
-
     if (item.type === 'image') {
       downloadMutation.mutateAsync({ imageId: item.file.id, imageName: item.file.name });
     }
   };
 
   const onDelete = (item: DocumentFile) => {
-    if (!selectedFile) return;
-
     if (item.type === 'image') {
       deleteQuery.mutateAsync(item.file.id).then(() => {
         setSelectedFile(undefined);
@@ -78,8 +74,6 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
   };
 
   const handleOnNameChange = (item: DocumentFile, newName: string) => {
-    if (!selectedFile) return;
-
     if (item.type === 'image') {
       renameMutation.mutateAsync({ imageId: item.file.id, newName });
     }
@@ -145,7 +139,7 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
 
           {unlockMutation.isError ? (
             <Text size="2" color="red">
-              Wrong password or access denied.
+              {unlockMutation.error?.message ?? 'Wrong password or access denied.'}
             </Text>
           ) : null}
         </Flex>

@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 import type { Document, DocumentCreation, DocumentImage } from './document';
 import { storeDocument } from './store';
+import { apiFetch } from '../../shared/apiFetch';
 
 const apiHost = window.ENV.VITE_API_HOST;
 const documentUrl = `${apiHost}/document`;
@@ -23,16 +24,6 @@ async function readError(response: Response, fallback: string): Promise<Error> {
   } catch {
     return new Error(fallback);
   }
-}
-
-function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  return fetch(input, {
-    ...init,
-    credentials: 'include',
-    headers: {
-      ...init?.headers,
-    },
-  });
 }
 
 export function saveTemplate(document: DocumentCreation): Promise<CreateDocumentResponse> {
