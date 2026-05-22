@@ -66,11 +66,13 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
       <EditorHeader file={file} pdfEventSource={pdfEventSource} />
       <Group className={styles.panelGroup}>
         <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
-          {documentId ? (
-            <LatexEditor content={file?.content ?? ''} users={editorService.users} onEditorMounted={mountEditor} />
-          ) : (
-            'No file selected'
-          )}
+          <div style={{ height: '100%' }} onKeyDown={(e) => e.stopPropagation()}>
+            {documentId ? (
+              <LatexEditor content={file?.content ?? ''} users={editorService.users} onEditorMounted={mountEditor} />
+            ) : (
+              'No file selected'
+            )}
+          </div>
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
         <Panel collapsible className={styles.panel} minSize="20%" panelRef={rightPanelRef}>

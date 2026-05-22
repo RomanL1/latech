@@ -1,5 +1,5 @@
 import { generateColor } from '@marko19907/string-to-color';
-import { KeyCode, KeyMod, editor as monaco } from 'monaco-editor';
+import { editor, KeyCode, KeyMod, editor as monaco } from 'monaco-editor';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useState, type EffectCallback } from 'react';
 import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
@@ -45,6 +45,8 @@ export function EditorProvider({ children }: PropsWithChildren) {
       const model = monacoEditor?.getModel();
       if (!monacoEditor || !model) return () => {};
 
+      model.setEOL(editor.EndOfLineSequence.LF);
+
       // Connect to Yjs document
       const yDoc = new Doc();
       const yText = yDoc.getText('latech');
@@ -52,12 +54,21 @@ export function EditorProvider({ children }: PropsWithChildren) {
 
       // Initialize the editor content with the provided content if the Yjs document is empty
       yProvider.on('sync', (isSynced) => {
-        if (isSynced && yText.toString().length === 0 && initialContent) {
-          yText.insert(0, initialContent);
+        if (!isSynced) return;
+
+        const current = yText.toString();
+        if (current.length === 0 && initialContent) {
+          yText.insert(0, initialContent.replace(/\r\n/g, '\n'));
+        } else if (current.includes('\r\n')) {
+          yDoc.transact(() => {
+            yText.delete(0, current.length);
+            yText.insert(0, current.replace(/\r\n/g, '\n'));
+          });
         }
+        model.setEOL(editor.EndOfLineSequence.LF);
       });
 
-      // Setup undo/redo commands
+      // Setup editor commands
       const binding = new MonacoBinding(yText, model, new Set([monacoEditor]), yProvider.awareness);
       const undoManager = new UndoManager(yText, {
         trackedOrigins: new Set([binding]),
@@ -68,6 +79,10 @@ export function EditorProvider({ children }: PropsWithChildren) {
 
       monacoEditor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyY, () => {
         undoManager.redo();
+      });
+
+      monacoEditor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyC, () => {
+        monacoEditor.trigger('keyboard', 'editor.action.clipboardCopyAction', null);
       });
 
       // Cursor positioning
