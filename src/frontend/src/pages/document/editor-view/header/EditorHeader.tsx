@@ -13,6 +13,7 @@ import {
 } from '../../../../features/pdf-preview/api';
 import CurrentEditors from './current-editors/CurrentEditors';
 import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import EditorNavigationButtons from './navigation-buttons/EditorNavigationButtons';
 
 interface EditorHeaderProps {
   file: Document | undefined;
@@ -89,6 +90,8 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
     <div className={styles.container} onMouseDown={preventFocusLoss} role="toolbar">
       <LucideFileCodeCorner size={20} />
       <Text size="2">{file?.name}</Text>
+      <Separator orientation="vertical" />
+      <EditorNavigationButtons />
       <Separator orientation="vertical" />
       <EditorControls />
       <Separator orientation="vertical" />
