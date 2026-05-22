@@ -34,7 +34,8 @@ public class PdfStreamController {
             return null;
         }
 
-        Optional<Document> _document = documentRepository.findById( UUID.fromString( docId ) );
+        UUID id = UUID.fromString( docId );
+        Optional<Document> _document = documentRepository.findById( id );
         if ( ObjectUtils.isEmpty( _document ) ) {
             return null;
         }
@@ -43,9 +44,10 @@ public class PdfStreamController {
 
         final SseEmitter emitter = new SseEmitter( Long.MAX_VALUE );
 
-        pdfStreamTopicService.subscribeTo( docId, emitter );
-        pdfStreamTopicService.notifyTimestamps( docId, new DocumentTimestampsDto( document.getLastChange(),
-                                                                                  document.getLastCompile() ) );
+        pdfStreamTopicService.subscribeTo( id.toString(), emitter );
+        pdfStreamTopicService.notifyTimestamps( id.toString(), new DocumentTimestampsDto( document.getLastChange(),
+                                                                                          document.getLastCompile() ) );
+        pdfStreamTopicService.notifyAutoRenderSetting( id.toString(), document.isAutoRenderEnabled() );
         return emitter;
     }
 }
