@@ -24,13 +24,6 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const [awarenessUsers, setAwarenessUsers] = useState<AwarenessUserList>(new Map());
   const [currentAwarenessUser, setCurrentAwarenessUser] = useState<AwarenessUser | null>(null);
   const monaco = useMonaco();
-  const context = useContext(ThemeContext);
-
-  useEffect(() => {
-    if (!monaco) return;
-
-    monaco.editor.setTheme(context?.appearance === 'dark' ? 'vs-dark' : 'vs-light');
-  }, [monaco, context?.appearance]);
 
   useEffect(() => {
     if (!monaco || !editor) return;
