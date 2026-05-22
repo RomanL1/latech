@@ -224,17 +224,4 @@ public class DocumentController {
         return ResponseEntity.ok( history );
     }
 
-    @GetMapping( "/{docId}/timestamps" )
-    public ResponseEntity<DocumentTimestampsDto> getTimestamps ( @PathVariable String docId ) {
-        if ( ObjectUtils.isEmpty( docId ) ) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        UUID documentId = UUID.fromString( docId );
-        return documentRepository.findById( documentId )
-                .map( doc -> ResponseEntity.ok(
-                        new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
-                .orElseGet( () -> ResponseEntity.notFound().build() );
-    }
-
 }
