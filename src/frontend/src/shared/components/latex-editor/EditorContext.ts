@@ -22,6 +22,8 @@ export interface EditorContextValue {
   yDoc: Y.Doc | null;
   yProvider: WebsocketProvider | null;
   yText: Y.Text | null;
+  undo: () => void;
+  redo: () => void;
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);
