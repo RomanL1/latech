@@ -2,6 +2,7 @@ package com.latech.api.api;
 
 import com.latech.api.business.DocumentService;
 import com.latech.api.business.OngoingCompileTracker;
+import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.business.PdfRenderedNotifier;
 import com.latech.api.model.api.*;
 import com.latech.api.model.db.Document;
@@ -42,6 +43,7 @@ public class DocumentController {
     private final PdfRenderedNotifier pdfRenderedNotifier;
     private final OngoingCompileTracker ongoingCompileTracker;
     private final DocumentService documentService;
+    private final PDFStreamTopicService pdfStreamTopicService;
 
     @Value( "${seaweedfs.bucket}" )
     private String bucket;
@@ -60,6 +62,7 @@ public class DocumentController {
                 .name( document.getName() )
                 .content( document.getContent() )
                 .secured( secured )
+                .autoRenderEnabled( document.isAutoRenderEnabled() )
                 .build();
         return dto;
     }
@@ -195,6 +198,26 @@ public class DocumentController {
         } catch ( NoSuchKeyException e ) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PatchMapping( "/{docId}/auto-render" )
+    public ResponseEntity<Void> setAutoRender ( @PathVariable String docId,
+            @RequestBody AutoRenderSettingDto dto ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        Document document = documentRepository.findById( documentId ).orElse( null );
+        if ( document == null ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        document.setAutoRenderEnabled( dto.autoRenderEnabled() );
+        documentRepository.save( document );
+        pdfStreamTopicService.notifyAutoRenderSetting( documentId.toString(), dto.autoRenderEnabled() );
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping( "/{docId}/history" )

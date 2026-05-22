@@ -45,8 +45,9 @@ public class PdfStreamController {
         final SseEmitter emitter = new SseEmitter( Long.MAX_VALUE );
 
         pdfStreamTopicService.subscribeTo( id.toString(), emitter );
-        pdfStreamTopicService.notifyTimestamps( id, new DocumentTimestampsDto( document.getLastChange(),
-                                                                               document.getLastCompile() ) );
+        pdfStreamTopicService.notifyTimestamps( id.toString(), new DocumentTimestampsDto( document.getLastChange(),
+                                                                                          document.getLastCompile() ) );
+        pdfStreamTopicService.notifyAutoRenderSetting( id.toString(), document.isAutoRenderEnabled() );
         return emitter;
     }
 }

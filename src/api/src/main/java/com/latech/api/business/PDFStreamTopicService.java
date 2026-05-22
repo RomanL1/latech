@@ -1,5 +1,6 @@
 package com.latech.api.business;
 
+import com.latech.api.model.api.AutoRenderSettingDto;
 import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.api.PDFReadyMessageDto;
 import lombok.extern.slf4j.Slf4j;
@@ -65,14 +66,32 @@ public class PDFStreamTopicService {
         }
     }
 
-    public void notifyTimestamps ( final UUID docId, final DocumentTimestampsDto timestamps ) {
-        List<SseEmitter> group = docRegistry.get( docId.toString() );
+    public void notifyTimestamps ( final String docId, final DocumentTimestampsDto timestamps ) {
+        List<SseEmitter> group = docRegistry.get( docId );
         if ( group != null ) {
             group.forEach( emitter -> {
                 try {
                     emitter.send( SseEmitter.event()
                                           .name( "document-timestamps" )
                                           .data( timestamps, MediaType.APPLICATION_JSON )
+                                          .build() );
+                } catch ( Exception e ) {
+                    log.error( "Emitter error: {}", e.getMessage() );
+                    docRegistry.get( docId ).remove( emitter );
+                }
+            } );
+        }
+    }
+
+    public void notifyAutoRenderSetting ( final String docId, final boolean autoRenderEnabled ) {
+        List<SseEmitter> group = docRegistry.get( docId );
+        if ( group != null ) {
+            group.forEach( emitter -> {
+                try {
+                    emitter.send( SseEmitter.event()
+                                          .name( "auto-render-setting" )
+                                          .data( new AutoRenderSettingDto( autoRenderEnabled ),
+                                                 MediaType.APPLICATION_JSON )
                                           .build() );
                 } catch ( Exception e ) {
                     log.error( "Emitter error: {}", e.getMessage() );
