@@ -150,7 +150,7 @@ public class DocumentController {
                 document.getLastChange() != null &&
                 document.getPdfPath() != null &&
                 document.getLastCompile().isAfter( document.getLastChange() ) ) {
-            this.pdfRenderedNotifier.publish( docId, document.getPdfPath(), true, "" );
+            this.pdfRenderedNotifier.publish( docId, document.getPdfPath(), true, "", document.getLastChange() );
             return ResponseEntity.accepted().build();
         }
 
@@ -222,19 +222,6 @@ public class DocumentController {
         List<RenderHistory> history =
                 renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc( documentId, Limit.of( 50 ) );
         return ResponseEntity.ok( history );
-    }
-
-    @GetMapping( "/{docId}/timestamps" )
-    public ResponseEntity<DocumentTimestampsDto> getTimestamps ( @PathVariable String docId ) {
-        if ( ObjectUtils.isEmpty( docId ) ) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        UUID documentId = UUID.fromString( docId );
-        return documentRepository.findById( documentId )
-                .map( doc -> ResponseEntity.ok(
-                        new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
-                .orElseGet( () -> ResponseEntity.notFound().build() );
     }
 
 }

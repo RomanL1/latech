@@ -1,15 +1,16 @@
 import { LucideFileCodeCorner, LucidePlay } from 'lucide-react';
 import styles from './EditorHeader.module.css';
 import { Button, Separator, Spinner, Text } from '@radix-ui/themes';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import EditorControls from '../controls/EditorControls';
 import type { Document } from '../../../../features/documents/document';
 import {
   requestPDFRender,
   COMPILE_FINISHED_MESSAGE_TYPE,
+  DOCUMENT_TIMESTAMPS_MESSAGE_TYPE,
+  type PDFReadyMessageDto,
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
-import { getDocumentTimestamps } from '../../../../features/documents/api';
 import CurrentEditors from './current-editors/CurrentEditors';
 import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
 
@@ -26,46 +27,35 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const [now, setNow] = useState<number>(() => Date.now());
   const { awarenessUsers, currentAwarenessUser } = useEditor();
 
-  const fetchTimestamps = useCallback(async () => {
-    if (!docId) return;
-    try {
-      const timestamps = await getDocumentTimestamps(docId);
-      setLastRenderedAt(timestamps.lastCompile);
-      setLastChangedAt(timestamps.lastChange);
-    } catch (e) {
-      console.error('Failed to fetch timestamps', e);
-    }
-  }, [docId]);
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(Date.now());
-      void fetchTimestamps(); // Poll latest stats from backend too
-    }, 60000); // update every 1 minute
+    const interval = setInterval(() => setNow(Date.now()), 60000);
     return () => clearInterval(interval);
-  }, [fetchTimestamps]);
-
-  useEffect(() => {
-    const init = async () => {
-      await fetchTimestamps();
-    };
-    void init();
-  }, [fetchTimestamps]);
+  }, []);
 
   useEffect(() => {
     if (!docId || !pdfEventSource) return;
 
-    const onCompileFinished = () => {
-      setIsCompiling(false);
-      void fetchTimestamps();
+    const onTimestamps = (event: MessageEvent) => {
+      const data = JSON.parse(event.data as string) as { lastChange: string | null; lastCompile: string | null };
+      setLastChangedAt(data.lastChange);
+      setLastRenderedAt(data.lastCompile);
     };
 
+    const onCompileFinished = (event: MessageEvent) => {
+      const data = JSON.parse(event.data as string) as PDFReadyMessageDto;
+      setIsCompiling(false);
+      setLastChangedAt(data.lastChange);
+      setLastRenderedAt(new Date(data.timestampUTC).toISOString());
+    };
+
+    pdfEventSource.addEventListener(DOCUMENT_TIMESTAMPS_MESSAGE_TYPE, onTimestamps);
     pdfEventSource.addEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
 
     return () => {
+      pdfEventSource.removeEventListener(DOCUMENT_TIMESTAMPS_MESSAGE_TYPE, onTimestamps);
       pdfEventSource.removeEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
     };
-  }, [docId, fetchTimestamps, pdfEventSource]);
+  }, [docId, pdfEventSource]);
 
   const handleOnCompileClick = async () => {
     if (!docId) return;

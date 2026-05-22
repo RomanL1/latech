@@ -54,7 +54,8 @@ public class PdfRenderedConsumer {
                 log.warn(
                         "Compilation failed for renderId: " + payload.getRenderId() + " documentId: " + payload.getDocumentId() );
                 this.ongoingCompileTracker.jobFinished( document.getId() );
-                this.pdfRenderedNotifier.publish( payload.getDocumentId(), "", false, payload.getLogMessage() );
+                this.pdfRenderedNotifier.publish( payload.getDocumentId(), "", false, payload.getLogMessage(),
+                                                  document.getLastChange() );
                 return;
             }
 
@@ -64,7 +65,7 @@ public class PdfRenderedConsumer {
             this.documentRepository.save( document );
             this.ongoingCompileTracker.jobFinished( document.getId() );
             this.pdfRenderedNotifier.publish( payload.getDocumentId(), payload.getFilePath(), true,
-                                              payload.getLogMessage() );
+                                              payload.getLogMessage(), document.getLastChange() );
             log.info( "Notified topic: {}", payload.getDocumentId() );
         } catch ( Exception e ) {
             log.error( e.getMessage() );
