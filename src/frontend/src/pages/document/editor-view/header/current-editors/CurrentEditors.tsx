@@ -1,17 +1,17 @@
 import { Text } from '@radix-ui/themes';
 import styles from './CurrentEditor.module.css';
-import type { AwarenessUser, AwarenessUserList } from '../../../../../shared/components/latex-editor/LatexEditor';
+import { useEditorService } from '../../../../../shared/context/editor';
 
 interface CurrentEditorProps {
   className?: string;
-  editors: AwarenessUserList;
-  currentEditor?: AwarenessUser | null;
 }
 
-const CurrentEditors = ({ className = '', editors, currentEditor }: CurrentEditorProps) => {
-  const editorList = Array.from(editors.values()).filter((e) => e.user);
+const CurrentEditors = ({ className = '' }: CurrentEditorProps) => {
+  const { users, currentUser } = useEditorService();
+
+  const editorList = Array.from(users.values()).filter((e) => e.user);
   const otherEditorCount = editorList.length - 2;
-  const filteredEditors = currentEditor ? editorList.filter((e) => e.clientId !== currentEditor.clientId) : editorList;
+  const filteredEditors = currentUser ? editorList.filter((e) => e.clientId !== currentUser.clientId) : editorList;
 
   return (
     <div className={`${className} ${styles.container}`}>
