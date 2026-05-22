@@ -1,6 +1,7 @@
 package com.latech.renderer.business;
 
 import com.latech.renderer.model.CompileJob;
+import com.latech.renderer.model.JobStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
@@ -42,7 +43,11 @@ public class FileWorker {
         for (String imageUUID : imagesMap.keySet()){
             String s3ImageKey = compileJob.getDocumentId() + "/" + imageUUID;
             String userSuppliedName = imagesMap.get( imageUUID );
-            Path imagePath = compileJob.getCompileDir().resolve( userSuppliedName );
+            Path imagePath = compileJob.getCompileDir().resolve( userSuppliedName ).normalize();
+            if (!imagePath.startsWith( compileJob.getCompileDir() )){
+                compileJob.setJobStatus( JobStatus.FAILED );
+                throw new SecurityException("Path traversal in image name: " + userSuppliedName);
+            }
             this.s3Service.getFileAndSaveToPath( s3ImageKey, imagePath );
         }
     }

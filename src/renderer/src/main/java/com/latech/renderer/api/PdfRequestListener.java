@@ -66,7 +66,7 @@ public class PdfRequestListener {
             // don't forget to create something that signals to api in the @PostConstruct that the OngoingCompileTracker has to be reset.
             this.compileJobOrchestrator.submit( payload );
         } catch ( Exception e ) {
-            log.error( e.getMessage() );
+            log.error( "Error while trying to submit a render request to compileJobOrchestrator. ", e );
             throw e;
         }
     }

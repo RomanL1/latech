@@ -2,6 +2,7 @@ package com.latech.renderer.business;
 
 import com.latech.renderer.model.DockerEvent;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
@@ -19,6 +20,8 @@ public class DockerEventsListener {
     private final CompileJobOrchestrator compileJobOrchestrator;
     private final ExecutorService virtualExecutor;
     private final ObjectMapper objectMapper;
+    private volatile Process dockerEvents;
+    private volatile boolean running = true;
 
     public DockerEventsListener(CompileJobOrchestrator compileJobOrchestrator, ObjectMapper objectMapper){
         this.compileJobOrchestrator = compileJobOrchestrator;
@@ -31,10 +34,19 @@ public class DockerEventsListener {
         startListening();
     }
 
+    @PreDestroy
+    public void stop(){
+        this.running = false;
+        if (this.dockerEvents != null){
+            this.dockerEvents.destroyForcibly();
+        }
+        this.virtualExecutor.shutdownNow();
+    }
+
     public void startListening(){
         this.virtualExecutor.submit(() -> {
             try {
-                Process events = new ProcessBuilder(
+                this.dockerEvents = new ProcessBuilder(
                         "docker", "events",
                         "--filter", "event=die",
                         "--filter", "event=start",
@@ -42,7 +54,7 @@ public class DockerEventsListener {
                 ).start();
 
                 try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(events.getInputStream()))) {
+                        new InputStreamReader(this.dockerEvents.getInputStream()))) {
                     String line;
                     while ( (line = reader.readLine()) != null ) {
                         DockerEvent event = parse( line );
@@ -53,9 +65,6 @@ public class DockerEventsListener {
                     }
                 }
                 log.warn("docker events process died, restarting...");
-                Thread.sleep(500);
-                startListening();
-
             } catch (Exception ex) {
                 log.error("docker events listener failed", ex);
                 try {
@@ -64,7 +73,9 @@ public class DockerEventsListener {
                     throw new RuntimeException( e );
                 }
             }finally{
-                startListening();
+                if (this.running) {
+                    startListening();
+                }
             }
         });
     }

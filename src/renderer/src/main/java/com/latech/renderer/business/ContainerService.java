@@ -6,17 +6,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Slf4j
 @Component
 public class ContainerService {
 
-    @Value( "${ContainerCreatingPDFJobWorker.hostSideWorkDirPath}" )
+    @Value( "${ContainerService.hostSideWorkDirPath}" )
     private String hostSideWorkDirPath;
 
-    @Value( "timeout -k 2 10")
+    @Value("${ContainerService.containerTimeoutValue}")
     private String containerTimeoutValue;
 
     public ContainerService(){}
@@ -61,6 +60,7 @@ public class ContainerService {
             new ProcessBuilder("docker", "stop", "-t", "2", containerName).start();
         } catch (IOException e) {
             log.error("Failed to stop container {}", containerName, e);
+            throw new RuntimeException( "Failed to stop container " + containerName + ";\n", e);
         }
     }
 }

@@ -41,8 +41,8 @@ public class CompileJobOrchestrator {
         this.containerService = containerService;
         this.fileWorker = fileWorker;
         this.pdfCompiledMessageProducer = pdfCompiledMessageProducer;
-        this.s3Semaphore = new Semaphore( 10 );
-        this.compileContainerSemaphore = new Semaphore( 2 );
+        this.s3Semaphore = new Semaphore( 10, true );
+        this.compileContainerSemaphore = new Semaphore( 2, true );
     }
 
     public void submit( DocumentRecord documentRecord){
@@ -79,8 +79,10 @@ public class CompileJobOrchestrator {
                 }
                 compileJob.setJobStatus( JobStatus.FILE_SETUP_DONE );
                 transition( compileJob );
-            } catch ( InterruptedException | IOException e ) {
+            } catch ( InterruptedException e ) {
                 Thread.currentThread().interrupt();
+                throw new RuntimeException( e );
+            } catch ( IOException e ){
                 throw new RuntimeException( e );
             }
         }, this.workerPool)
@@ -124,8 +126,8 @@ public class CompileJobOrchestrator {
 
     public void onContainerExit(String renderId, int exitCode) {
         CompletableFuture.runAsync(() -> {
-            this.compileContainerSemaphore.release();
             CompileJob compileJob = ongoingCompileJobs.get( UUID.fromString( renderId ) );
+            this.compileContainerSemaphore.release();
             long containerEndTime = System.currentTimeMillis();
 
             Instant instantNow = Instant.now();
@@ -309,10 +311,11 @@ public class CompileJobOrchestrator {
                 .filter(job -> Instant.ofEpochMilli( job.getContainerStartTime()).isBefore(cutoff))
                 .forEach(job -> {
                     log.warn("job {} timed out in FILE_SETUP_DONE (-> compiling) state, killing container: {}", job.getRenderId(), job.getContainerName());
-                    this.compileContainerSemaphore.release();
-                    job.setJobStatus(JobStatus.RETRYING);
-                    this.containerService.stopContainer( job.getContainerName() );
-                    transition(job);
+                    try {
+                        this.containerService.stopContainer( job.getContainerName() );
+                    }catch ( RuntimeException e){
+                        log.error("failed to stop container for job with renderId {}", job.getRenderId());
+                    }
                 });
     }
 }
