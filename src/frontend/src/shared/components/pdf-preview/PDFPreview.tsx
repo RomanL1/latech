@@ -34,7 +34,7 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
     const exportPlugin = registry.getPlugin<ExportPlugin>('export')?.provides();
 
     if (exportPlugin) {
-      return exportPlugin
+      return exportPlugin;
     }
 
     console.warn('Export plugin not available in registry');
