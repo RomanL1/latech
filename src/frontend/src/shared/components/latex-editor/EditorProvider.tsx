@@ -9,6 +9,7 @@ import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
 import { EditorContext, type AwarenessUser, type AwarenessUserList, type EditorContextValue } from './EditorContext';
+import { useKeyboardSaveContext } from '../../../pages/document/provider/KeyboardSaveContext';
 
 interface EditorProviderProps {
   children: ReactNode;
@@ -23,6 +24,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const [awarenessUsers, setAwarenessUsers] = useState<AwarenessUserList>(new Map());
   const [currentAwarenessUser, setCurrentAwarenessUser] = useState<AwarenessUser | null>(null);
   const monaco = useMonaco();
+  const { triggerSave } = useKeyboardSaveContext();
 
   useEffect(() => {
     if (!monaco || !editor) return;
@@ -74,6 +76,10 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyY, () => {
       undoManager.redo();
+    });
+
+    editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => {
+      triggerSave();
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyC, () => {

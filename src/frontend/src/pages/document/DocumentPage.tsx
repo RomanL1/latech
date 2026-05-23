@@ -9,6 +9,7 @@ import FileTree from './file-tree/FileTree';
 import type { Document, DocumentImage } from '../../features/documents/document';
 import EditorView from './editor-view/EditorView';
 import { useNavigate } from 'react-router';
+import KeyboardSaveProvider from './provider/KeyboardSaveProvider';
 
 export type DocumentFile = { type: 'image'; file: DocumentImage } | { type: 'tex'; file: Document };
 
@@ -55,42 +56,44 @@ export function DocumentPage() {
   };
 
   return (
-    <Tabs.Root
-      defaultValue="file"
-      orientation="vertical"
-      value={selectedTab}
-      onValueChange={handleTabChange}
-      className={styles.tabsRoot}
-    >
-      <Tabs.List className={styles.tabsList}>
-        <FileBracesCornerIcon className={styles.homeIcon} onClick={handleHomeClick} size={30} />
-        <Tabs.Trigger value="file">
-          <LucideFile />
-        </Tabs.Trigger>
-        <Tabs.Trigger value="settings">
-          <LucideSettings />
-        </Tabs.Trigger>
-      </Tabs.List>
-
-      <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
-        <Panel id="navigation" collapsible minSize="20%" panelRef={leftPanelRef}>
-          <Tabs.Content value="file" className={styles.tabsContent}>
-            <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
-          </Tabs.Content>
-          <Tabs.Content value="settings" className={styles.tabsContent}>
+    <KeyboardSaveProvider>
+      <Tabs.Root
+        defaultValue="file"
+        orientation="vertical"
+        value={selectedTab}
+        onValueChange={handleTabChange}
+        className={styles.tabsRoot}
+      >
+        <Tabs.List className={styles.tabsList}>
+          <FileBracesCornerIcon className={styles.homeIcon} onClick={handleHomeClick} size={30} />
+          <Tabs.Trigger value="file">
+            <LucideFile />
+          </Tabs.Trigger>
+          <Tabs.Trigger value="settings">
             <LucideSettings />
-            Settings content
-          </Tabs.Content>
-        </Panel>
-        <ResizeSeparator onClick={handleSeparatorClick} />
-        <Panel id="main" minSize="20%">
-          {selectedFile && selectedFile.type === 'image' ? (
-            <ImagePreview selectedFile={selectedFile.file} />
-          ) : selectedFile && selectedFile.type === 'tex' ? (
-            <EditorView documentId={selectedFile.file.id} file={selectedFile?.file} />
-          ) : null}
-        </Panel>
-      </Group>
-    </Tabs.Root>
+          </Tabs.Trigger>
+        </Tabs.List>
+
+        <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
+          <Panel id="navigation" collapsible minSize="20%" panelRef={leftPanelRef}>
+            <Tabs.Content value="file" className={styles.tabsContent}>
+              <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
+            </Tabs.Content>
+            <Tabs.Content value="settings" className={styles.tabsContent}>
+              <LucideSettings />
+              Settings content
+            </Tabs.Content>
+          </Panel>
+          <ResizeSeparator onClick={handleSeparatorClick} />
+          <Panel id="main" minSize="20%">
+            {selectedFile && selectedFile.type === 'image' ? (
+              <ImagePreview selectedFile={selectedFile.file} />
+            ) : selectedFile && selectedFile.type === 'tex' ? (
+              <EditorView documentId={selectedFile.file.id} file={selectedFile?.file} />
+            ) : null}
+          </Panel>
+        </Group>
+      </Tabs.Root>
+    </KeyboardSaveProvider>
   );
 }

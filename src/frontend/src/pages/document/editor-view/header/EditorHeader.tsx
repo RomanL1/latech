@@ -12,6 +12,7 @@ import {
 import { getDocumentTimestamps } from '../../../../features/documents/api';
 import CurrentEditors from './current-editors/CurrentEditors';
 import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import { useKeyboardSaveContext } from '../../provider/KeyboardSaveContext';
 
 interface EditorHeaderProps {
   file: Document | undefined;
@@ -25,6 +26,7 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
   const { awarenessUsers, currentAwarenessUser } = useEditor();
+  const { buttonRef } = useKeyboardSaveContext();
 
   const fetchTimestamps = useCallback(async () => {
     if (!docId) return;
@@ -115,7 +117,7 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
           </Text>
         )}
       </div>
-      <Button disabled={isCompiling} onClick={handleOnCompileClick} size="2">
+      <Button ref={buttonRef} disabled={isCompiling} onClick={handleOnCompileClick} size="2">
         <Spinner loading={isCompiling} />
         {!isCompiling && <LucidePlay size="19" />}
         {buttonText}
