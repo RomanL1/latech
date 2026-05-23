@@ -12,23 +12,21 @@ import {
   LucideUnderline,
 } from 'lucide-react';
 import { LatexMacro, useEditor } from '../../../../shared/components/latex-editor/EditorContext';
-import { EditorControlType } from './EditorControlType';
 import FontSizeControl from './font-size/FontSizeControl';
 
-interface EditorControlsProps {
-  onClick?: (controlType: EditorControlType) => void;
-}
-
-const EditorControls = ({ onClick }: EditorControlsProps) => {
+const EditorControls = () => {
   const { toggleSurroundingMacro } = useEditor();
-
-  const handleOnClick = (controlType: EditorControlType) => {
-    console.log('FISCH');
-    onClick?.(controlType);
-  };
 
   function toggleBold() {
     toggleSurroundingMacro(new LatexMacro('textbf', false));
+  }
+
+  function toggleItalic() {
+    toggleSurroundingMacro(new LatexMacro('textit', false));
+  }
+
+  function toggleUnderline() {
+    toggleSurroundingMacro(new LatexMacro('underline', false));
   }
 
   return (
@@ -39,10 +37,10 @@ const EditorControls = ({ onClick }: EditorControlsProps) => {
       <IconButton size="1" variant="ghost" onClick={() => toggleBold()} title="Bold">
         <LucideBold size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.ITALIC)}>
+      <IconButton size="1" variant="ghost" onClick={() => toggleItalic()} title="Italic">
         <LucideItalic size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.UNDERLINE)}>
+      <IconButton size="1" variant="ghost" onClick={() => toggleUnderline()} title="Underline">
         <LucideUnderline size={16} />
       </IconButton>
       <Separator orientation="vertical" />
