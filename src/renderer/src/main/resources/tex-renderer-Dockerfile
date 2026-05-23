@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-latex-recommended \
     texlive-fonts-recommended \
     texlive-science \
+    texlive-plain-generic \
     lmodern \
     && rm -rf /var/lib/apt/lists/*
 
