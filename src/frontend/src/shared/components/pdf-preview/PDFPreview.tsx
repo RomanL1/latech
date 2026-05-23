@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import {
   useGetRenderedPDF,
   COMPILE_FINISHED_MESSAGE_TYPE,
@@ -7,8 +7,10 @@ import {
   type RenderHistoryDto,
   type ResilientEventSource,
 } from '../../../features/pdf-preview/api';
-import { Flex, Text, Box, Tabs, ScrollArea, ThemeContext } from '@radix-ui/themes';
-import { PDFViewer } from '@embedpdf/react-pdf-viewer';
+import { Flex, Text, Box, Tabs, ScrollArea, ThemeContext, IconButton } from '@radix-ui/themes';
+import { PDFViewer, type PDFViewerRef } from '@embedpdf/react-pdf-viewer';
+import { LucideDownload } from 'lucide-react';
+import { ExportPlugin } from '@embedpdf/plugin-export/svelte';
 
 interface PDFPreviewProps {
   docId: string;
@@ -20,6 +22,29 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
   const [latestSuccess, setLatestSuccess] = useState<boolean | null>(null);
   const [history, setHistory] = useState<RenderHistoryDto[]>([]);
   const [activeTab, setActiveTab] = useState('preview');
+  const viewerRef = useRef<PDFViewerRef>(null);
+
+  const getExportScope = async () => {
+    const registry = await viewerRef.current?.registry;
+    if (!registry) {
+      console.warn('PDF viewer registry not available yet');
+      return null;
+    }
+
+    const exportPlugin = registry.getPlugin<ExportPlugin>('export')?.provides();
+
+    if (exportPlugin) {
+      return exportPlugin
+    }
+
+    console.warn('Export plugin not available in registry');
+    return null;
+  };
+
+  const handleClickDownload = async () => {
+    const scope = await getExportScope();
+    scope?.download();
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -125,7 +150,7 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
         <Tabs.Root
           value={activeTab}
           onValueChange={setActiveTab}
-          style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+          style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
         >
           <Box style={{ flexShrink: 0, backgroundColor: 'var(--color-panel)' }}>
             <Tabs.List>
@@ -166,6 +191,7 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
                         'pan',
                       ],
                     }}
+                    ref={viewerRef}
                   />
                 </div>
               ) : (
@@ -250,6 +276,15 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
               </ScrollArea>
             </Tabs.Content>
           </Box>
+          <IconButton
+            variant="ghost"
+            size="2"
+            style={{ position: 'absolute', top: '9px', right: '15px' }}
+            onClick={handleClickDownload}
+            disabled={!pdfUrl}
+          >
+            <LucideDownload size={20} />
+          </IconButton>
         </Tabs.Root>
       </Box>
     </Flex>
