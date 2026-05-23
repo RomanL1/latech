@@ -3,4 +3,6 @@ variables:
   - name: baseUrl
     value: http://localhost:5001
   - name: docId
-    value: 787590c4-2912-4768-b1b4-f360e5ae8e3a
+    value: 064f4996-7b66-480f-bc00-00920beb52a4
+  - name: imageId
+    value: e0e82895-9c70-46f0-9c88-92f3dba542f4

@@ -50,11 +50,14 @@ public class S3StorageService {
     }
 
     public void upload ( PutObjectRequest putObjectRequest, InputStream inputStream, long contentLength ) {
-        s3Client.putObject( putObjectRequest, RequestBody.fromInputStream( inputStream, contentLength ) );
+        s3Client.putObject(
+                putObjectRequest,
+                RequestBody.fromInputStream( inputStream, contentLength ) );
     }
 
     public byte[] download ( GetObjectRequest getObjectRequest ) {
-        return s3Client.getObjectAsBytes( getObjectRequest ).asByteArray();
+        return s3Client.getObjectAsBytes(
+                        getObjectRequest ).asByteArray();
     }
 
     public boolean delete ( DeleteObjectRequest deleteObjectRequest ) {

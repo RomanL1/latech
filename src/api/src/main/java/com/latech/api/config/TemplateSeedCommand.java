@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "latech.templates.seed.enabled", havingValue = "true")
+@ConditionalOnProperty( name = "latech.templates.seed.enabled", havingValue = "true" )
 public class TemplateSeedCommand implements ApplicationRunner {
     private final TemplateSeedService templateSeedService;
     private final ConfigurableApplicationContext applicationContext;

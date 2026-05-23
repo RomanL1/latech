@@ -36,6 +36,7 @@ jobs:
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
             echo "SEAWEEDFS_ACCESS_KEY=${{ secrets.SEAWEEDFS_ACCESS_KEY }}" >> .env
             echo "SEAWEEDFS_SECRET_KEY=${{ secrets.SEAWEEDFS_SECRET_KEY }}" >> .env
+            echo "INTERNAL_AUTH_SECRET=${{ secrets.INTERNAL_AUTH_SECRET }}" >> .env
             echo "DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)" >> .env
 
             docker build -t tex-renderer-image -f src/renderer/src/main/resources/tex-renderer-Dockerfile .

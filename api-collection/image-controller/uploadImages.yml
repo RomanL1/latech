@@ -14,7 +14,7 @@ http:
       - name: files
         type: file
         value:
-          - /Users/gregorlazzarato/Downloads/Unbenanntes Diagramm.drawio (1).png
+          - /Users/roman/Downloads/customer.jpeg
   auth: inherit
 
 runtime:

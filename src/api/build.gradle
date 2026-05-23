@@ -48,11 +48,13 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-amqp-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'com.h2database:h2'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'
     implementation 'org.jspecify:jspecify:1.0.0'
     implementation("software.amazon.awssdk:s3:2.42.32")
     implementation platform('software.amazon.awssdk:bom:2.42.32')
     implementation 'org.apache.pdfbox:pdfbox:3.0.7'
+    implementation("org.springframework.security:spring-security-crypto")
 }
 
 
