@@ -24,6 +24,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const [currentAwarenessUser, setCurrentAwarenessUser] = useState<AwarenessUser | null>(null);
   const monaco = useMonaco();
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
+  const editorControlRef = useRef({ name: 'editor-control' });
 
   const undo = useMemo(() => {
     return () => {
@@ -84,7 +85,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       yDoc.transact(() => {
         yText.delete(startOffset, endOffset - startOffset);
         yText.insert(startOffset, insertedText);
-      });
+      }, editorControlRef.current);
 
       // Adjust cursor position
       const cursorOffset = startOffset + prefix.length + currentText.length + (currentText ? suffix.length : 0);
@@ -117,7 +118,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
     const binding = new MonacoBinding(text, model, new Set([editor]), provider.awareness);
     const undoManager = new Y.UndoManager(text, {
-      trackedOrigins: new Set([binding]),
+      trackedOrigins: new Set([binding, editorControlRef.current]),
     });
 
     // Expose undo manager to the outer scope for use in undo/redo functions
