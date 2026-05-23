@@ -4,7 +4,6 @@ import { KeyboardSaveContext } from './KeyboardSaveContext';
 const KeyboardSaveProvider = ({ children }: { children: React.ReactNode }) => {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-
   const triggerSave = () => {
     buttonRef.current?.click();
   };
