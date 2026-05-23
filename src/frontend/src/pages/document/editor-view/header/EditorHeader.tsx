@@ -1,18 +1,23 @@
 import { LucideFileCodeCorner, LucidePlay } from 'lucide-react';
 import styles from './EditorHeader.module.css';
-import { Button, Separator, Spinner, Text } from '@radix-ui/themes';
-import { useState, useEffect, useCallback } from 'react';
+import { Button, Separator, Spinner, Switch, Text } from '@radix-ui/themes';
+import { useState, useEffect } from 'react';
 import EditorControls from '../controls/EditorControls';
 import type { Document } from '../../../../features/documents/document';
 import {
   requestPDFRender,
+  setAutoRender,
   COMPILE_FINISHED_MESSAGE_TYPE,
+  DOCUMENT_TIMESTAMPS_MESSAGE_TYPE,
+  AUTO_RENDER_SETTING_MESSAGE_TYPE,
+  type PDFReadyMessageDto,
+  type AutoRenderSettingDto,
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
-import { getDocumentTimestamps } from '../../../../features/documents/api';
 import CurrentEditors from './current-editors/CurrentEditors';
 import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
 import { useKeyboardSaveContext } from '../../provider/KeyboardSaveContext';
+import EditorNavigationButtons from './navigation-buttons/EditorNavigationButtons';
 
 interface EditorHeaderProps {
   file: Document | undefined;
@@ -25,6 +30,7 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
+  const [autoRenderEnabled, setAutoRenderEnabled] = useState<boolean>(file?.autoRenderEnabled ?? true);
   const { awarenessUsers, currentAwarenessUser } = useEditor();
   const { buttonRef } = useKeyboardSaveContext();
 
@@ -40,34 +46,41 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   }, [docId]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(Date.now());
-      void fetchTimestamps(); // Poll latest stats from backend too
-    }, 60000); // update every 1 minute
+    const interval = setInterval(() => setNow(Date.now()), 60000);
     return () => clearInterval(interval);
-  }, [fetchTimestamps]);
-
-  useEffect(() => {
-    const init = async () => {
-      await fetchTimestamps();
-    };
-    void init();
-  }, [fetchTimestamps]);
+  }, []);
 
   useEffect(() => {
     if (!docId || !pdfEventSource) return;
 
-    const onCompileFinished = () => {
-      setIsCompiling(false);
-      void fetchTimestamps();
+    const onTimestamps = (event: MessageEvent) => {
+      const data = JSON.parse(event.data as string) as { lastChange: string | null; lastCompile: string | null };
+      setLastChangedAt(data.lastChange);
+      setLastRenderedAt(data.lastCompile);
     };
 
+    const onCompileFinished = (event: MessageEvent) => {
+      const data = JSON.parse(event.data as string) as PDFReadyMessageDto;
+      setIsCompiling(false);
+      setLastChangedAt(data.lastChange);
+      setLastRenderedAt(new Date(data.timestampUTC).toISOString());
+    };
+
+    const onAutoRenderSetting = (event: MessageEvent) => {
+      const data = JSON.parse(event.data as string) as AutoRenderSettingDto;
+      setAutoRenderEnabled(data.autoRenderEnabled);
+    };
+
+    pdfEventSource.addEventListener(DOCUMENT_TIMESTAMPS_MESSAGE_TYPE, onTimestamps);
     pdfEventSource.addEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
+    pdfEventSource.addEventListener(AUTO_RENDER_SETTING_MESSAGE_TYPE, onAutoRenderSetting);
 
     return () => {
+      pdfEventSource.removeEventListener(DOCUMENT_TIMESTAMPS_MESSAGE_TYPE, onTimestamps);
       pdfEventSource.removeEventListener(COMPILE_FINISHED_MESSAGE_TYPE, onCompileFinished);
+      pdfEventSource.removeEventListener(AUTO_RENDER_SETTING_MESSAGE_TYPE, onAutoRenderSetting);
     };
-  }, [docId, fetchTimestamps, pdfEventSource]);
+  }, [docId, pdfEventSource]);
 
   const handleOnCompileClick = async () => {
     if (!docId) return;
@@ -77,6 +90,17 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
     } catch (e) {
       console.error('Failed to request render', e);
       setIsCompiling(false);
+    }
+  };
+
+  const handleAutoRenderToggle = async (checked: boolean) => {
+    if (!docId) return;
+    setAutoRenderEnabled(checked);
+    try {
+      await setAutoRender(docId, checked);
+    } catch (e) {
+      console.error('Failed to update auto-render setting', e);
+      setAutoRenderEnabled(!checked);
     }
   };
 
@@ -102,6 +126,8 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
       <LucideFileCodeCorner size={20} />
       <Text size="2">{file?.name}</Text>
       <Separator orientation="vertical" />
+      <EditorNavigationButtons />
+      <Separator orientation="vertical" />
       <EditorControls />
       <Separator orientation="vertical" />
       <CurrentEditors className={styles.currentEditors} editors={awarenessUsers} currentEditor={currentAwarenessUser} />
@@ -117,6 +143,12 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
           </Text>
         )}
       </div>
+      <Separator orientation="vertical" />
+      <Text as="label" size="2" style={{ display: 'flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}>
+        <Switch size="1" checked={autoRenderEnabled} onCheckedChange={handleAutoRenderToggle} />
+        Auto-render
+      </Text>
+      <Separator orientation="vertical" />
       <Button ref={buttonRef} disabled={isCompiling} onClick={handleOnCompileClick} size="2">
         <Spinner loading={isCompiling} />
         {!isCompiling && <LucidePlay size="19" />}

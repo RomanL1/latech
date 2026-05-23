@@ -26,16 +26,17 @@ public class PdfRenderedConsumer {
     private final DocumentRepository documentRepository;
     private final RenderHistoryRepository renderHistoryRepository;
     private final OngoingCompileTracker ongoingCompileTracker;
+    private final ThumbnailService thumbnailService;
 
     @RabbitListener( queues = PDF_RENDERED )
     public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag ) throws Exception {
         try {
             PdfMetadata payload = PdfMetadata.parseFrom( payloadBytes );
-            log.info( "Pdf rendered renderId: " + payload.getRenderId() );
-            log.info( "Pdf rendered documentId: " + payload.getDocumentId() );
-            log.info( "Pdf rendered timestamp: " + payload.getRenderedTimestamp() );
-            log.info( "Pdf rendered status: " + payload.getStatus() );
-            log.info( "Pdf rendered log message: " + payload.getLogMessage() );
+            log.info( "Pdf rendered renderId: {}", payload.getRenderId() );
+            log.info( "Pdf rendered documentId: {}", payload.getDocumentId() );
+            log.info( "Pdf rendered timestamp: {}", payload.getRenderedTimestamp() );
+            log.info( "Pdf rendered status: {}", payload.getStatus() );
+            log.debug( "Pdf rendered log message: {}", payload.getLogMessage() );
 
             Document document = documentRepository.findById( UUID.fromString( payload.getDocumentId() ) ).orElseThrow();
             Instant compiledAtTimestamp = Instant.ofEpochSecond( payload.getRenderedTimestamp().getSeconds(),
@@ -54,7 +55,8 @@ public class PdfRenderedConsumer {
                 log.warn(
                         "Compilation failed for renderId: " + payload.getRenderId() + " documentId: " + payload.getDocumentId() );
                 this.ongoingCompileTracker.jobFinished( document.getId() );
-                this.pdfRenderedNotifier.publish( payload.getDocumentId(), "", false, payload.getLogMessage() );
+                this.pdfRenderedNotifier.publish( payload.getDocumentId(), "", false, payload.getLogMessage(),
+                                                  document.getLastChange() );
                 return;
             }
 
@@ -64,7 +66,8 @@ public class PdfRenderedConsumer {
             this.documentRepository.save( document );
             this.ongoingCompileTracker.jobFinished( document.getId() );
             this.pdfRenderedNotifier.publish( payload.getDocumentId(), payload.getFilePath(), true,
-                                              payload.getLogMessage() );
+                                              payload.getLogMessage(), document.getLastChange() );
+            this.thumbnailService.extractAndSaveThumbnailForDocument( UUID.fromString( payload.getDocumentId() ) );
             log.info( "Notified topic: {}", payload.getDocumentId() );
         } catch ( Exception e ) {
             log.error( e.getMessage() );

@@ -1,7 +1,7 @@
 import { useMonaco } from '@monaco-editor/react';
 import { generateColor } from '@marko19907/string-to-color';
 import { editor as MonacoEditor, KeyCode, KeyMod } from 'monaco-editor';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
 import { MonacoBinding } from 'y-monaco';
 import * as awarenessProtocol from 'y-protocols/awareness';
@@ -24,6 +24,19 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const [awarenessUsers, setAwarenessUsers] = useState<AwarenessUserList>(new Map());
   const [currentAwarenessUser, setCurrentAwarenessUser] = useState<AwarenessUser | null>(null);
   const monaco = useMonaco();
+  const undoManagerRef = useRef<Y.UndoManager | null>(null);
+
+  const undo = useMemo(() => {
+    return () => {
+      undoManagerRef.current?.undo();
+    };
+  }, [undoManagerRef]);
+
+  const redo = useMemo(() => {
+    return () => {
+      undoManagerRef.current?.redo();
+    };
+  }, [undoManagerRef]);
   const { triggerSave } = useKeyboardSaveContext();
 
   useEffect(() => {
@@ -52,6 +65,9 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     const undoManager = new Y.UndoManager(text, {
       trackedOrigins: new Set([binding]),
     });
+
+    // Expose undo manager to the outer scope for use in undo/redo functions
+    undoManagerRef.current = undoManager;
 
     provider.on('sync', async (isSynced: boolean) => {
       if (!isSynced) return;
@@ -199,8 +215,10 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       yDoc,
       yProvider,
       yText,
+      undo,
+      redo,
     }),
-    [awarenessUsers, currentAwarenessUser, editor, yDoc, yProvider, yText],
+    [awarenessUsers, currentAwarenessUser, editor, yDoc, yProvider, yText, undo, redo],
   );
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;

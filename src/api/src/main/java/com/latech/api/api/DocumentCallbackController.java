@@ -1,6 +1,9 @@
 package com.latech.api.api;
 
+import com.latech.api.business.DocumentService;
+import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.model.api.DocumentCallbackDto;
+import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,8 @@ import java.util.UUID;
 @RequestMapping( "api/document/callback" )
 public class DocumentCallbackController {
     private final DocumentRepository documentRepository;
+    private final PDFStreamTopicService pdfStreamTopicService;
+    private final DocumentService documentService;
 
     @PostMapping
     public ResponseEntity<Void> saveDocumentState ( @RequestBody DocumentCallbackDto documentCallbackDto ) {
@@ -29,9 +34,9 @@ public class DocumentCallbackController {
             return ResponseEntity.badRequest().build();
         }
 
-        String docId = documentCallbackDto.getRoom();
+        UUID docId = UUID.fromString( documentCallbackDto.getRoom() );
 
-        Optional<Document> documentOpt = documentRepository.findById( UUID.fromString( docId ) );
+        Optional<Document> documentOpt = documentRepository.findById( docId );
         if ( documentOpt.isEmpty() ) {
             return ResponseEntity.notFound().build();
         }
@@ -51,6 +56,14 @@ public class DocumentCallbackController {
         document.setContent( documentCallbackDto.getData() );
         document.setLastChange( Instant.now() );
         documentRepository.save( document );
+
+        pdfStreamTopicService.notifyTimestamps( docId.toString(),
+                                                new DocumentTimestampsDto( document.getLastChange(),
+                                                                           document.getLastCompile() ) );
+
+        if ( document.isAutoRenderEnabled() ) {
+            documentService.sendRenderRequest( docId, document.getContent() );
+        }
 
         return ResponseEntity.ok().build();
     }

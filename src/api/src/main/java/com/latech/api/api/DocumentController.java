@@ -1,15 +1,23 @@
 package com.latech.api.api;
 
-import com.latech.api.business.*;
+import com.latech.api.business.DocumentService;
+import com.latech.api.business.OngoingCompileTracker;
+import com.latech.api.business.PDFStreamTopicService;
+import com.latech.api.business.PdfRenderedNotifier;
 import com.latech.api.model.api.*;
+import com.latech.api.business.ThumbnailService;
+import com.latech.api.model.api.DocumentCreateRequestDto;
+import com.latech.api.model.api.DocumentCreateResponseDto;
+import com.latech.api.model.api.DocumentDto;
+import com.latech.api.model.api.DocumentSecuredRequestDto;
 import com.latech.api.model.db.Document;
-import com.latech.api.model.db.DocumentImage;
 import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
 import com.latech.api.repository.TemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Limit;
@@ -37,11 +45,12 @@ public class DocumentController {
     private final DocumentRepository documentRepository;
     private final TemplateRepository templateRepository;
     private final com.latech.api.repository.RenderHistoryRepository renderHistoryRepository;
-    private final DocumentProducer documentProducer;
     private final S3Client s3Client;
-    private final DocumentImageService documentImageService;
     private final PdfRenderedNotifier pdfRenderedNotifier;
     private final OngoingCompileTracker ongoingCompileTracker;
+    private final DocumentService documentService;
+    private final PDFStreamTopicService pdfStreamTopicService;
+    private final ThumbnailService thumbnailService;
 
     @Value( "${seaweedfs.bucket}" )
     private String bucket;
@@ -60,6 +69,7 @@ public class DocumentController {
                 .name( document.getName() )
                 .content( document.getContent() )
                 .secured( secured )
+                .autoRenderEnabled( document.isAutoRenderEnabled() )
                 .build();
         return dto;
     }
@@ -150,36 +160,24 @@ public class DocumentController {
                 document.getLastChange() != null &&
                 document.getPdfPath() != null &&
                 document.getLastCompile().isAfter( document.getLastChange() ) ) {
-            this.pdfRenderedNotifier.publish( docId, document.getPdfPath(), true, "" );
+            this.pdfRenderedNotifier.publish( docId, document.getPdfPath(), true, "", document.getLastChange() );
             return ResponseEntity.accepted().build();
         }
 
         //if we already queued a document for compilation
         if ( !this.ongoingCompileTracker.tryStartJob( documentId ) ) {
-            log.info("Compilation already queued for docId: " + documentId);
+            log.info( "Compilation already queued for docId: " + documentId );
             return ResponseEntity.accepted().build();
         }
 
         //if a previous request was unable to be compiled 3 times, and there have been no changes since.
         if ( document.getCompileAbandonedAt() != null &&
                 document.getCompileAbandonedAt().isAfter( document.getLastChange() ) ) {
-            log.info("unprocessable Content: no changes since last 3 tries of compilation.");
+            log.info( "unprocessable Content: no changes since last 3 tries of compilation." );
             return ResponseEntity.unprocessableContent().build();
         }
 
-        List<DocumentImage> documentImages = this.documentImageService.getPicturesForDocument( documentId );
-
-        DocumentRecord.Builder documentRecordBuilder = DocumentRecord.newBuilder()
-                .setRenderId( UUID.randomUUID().toString() )
-                .setDocumentId( document.getId().toString() )
-                .setLatexContent( document.getContent() != null ? document.getContent() : "" );
-
-        for (DocumentImage image : documentImages) {
-            documentRecordBuilder.putImages( String.valueOf( image.getImageId() ), image.getUserSuppliedName() );
-        }
-        DocumentRecord documentRecord = documentRecordBuilder.build();
-
-        documentProducer.publishDocumentReadyToRender( documentRecord );
+        documentService.sendRenderRequest( documentId, document.getContent() );
 
         return ResponseEntity.accepted().build();
     }
@@ -209,6 +207,26 @@ public class DocumentController {
         }
     }
 
+    @PatchMapping( "/{docId}/auto-render" )
+    public ResponseEntity<Void> setAutoRender ( @PathVariable String docId,
+            @RequestBody AutoRenderSettingDto dto ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+        Document document = documentRepository.findById( documentId ).orElse( null );
+        if ( document == null ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        document.setAutoRenderEnabled( dto.autoRenderEnabled() );
+        documentRepository.save( document );
+        pdfStreamTopicService.notifyAutoRenderSetting( documentId.toString(), dto.autoRenderEnabled() );
+
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping( "/{docId}/history" )
     public ResponseEntity<List<RenderHistory>> getRenderHistory ( @PathVariable String docId ) {
         if ( ObjectUtils.isEmpty( docId ) ) {
@@ -235,6 +253,29 @@ public class DocumentController {
                 .map( doc -> ResponseEntity.ok(
                         new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
                 .orElseGet( () -> ResponseEntity.notFound().build() );
+    }
+
+    @GetMapping( "/{docId}/thumbnail" )
+    public ResponseEntity<Resource> getThumbnail ( @PathVariable String docId ) {
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+
+        String filename = thumbnailService.getThumbnailFileName( documentId );
+        Optional<byte[]> thumbnail = thumbnailService.getThumbnailForDocument( documentId );
+        if ( thumbnail.isEmpty() ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new ByteArrayResource( thumbnail.get() );
+
+        return ResponseEntity.ok()
+                .contentType( MediaType.IMAGE_PNG )
+                .contentLength( thumbnail.get().length )
+                .header( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"" )
+                .body( resource );
     }
 
 }

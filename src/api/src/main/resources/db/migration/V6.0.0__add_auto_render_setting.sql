@@ -1,0 +1,1 @@
+ALTER TABLE document ADD COLUMN auto_render_enabled BOOLEAN NOT NULL DEFAULT TRUE;

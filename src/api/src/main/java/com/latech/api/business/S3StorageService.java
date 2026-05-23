@@ -6,15 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
-import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.InputStream;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -22,70 +16,55 @@ public class S3StorageService {
 
     private final S3Client s3Client;
 
-    @Value("${seaweedfs.bucket}")
+    @Value( "${seaweedfs.bucket}" )
     private String bucket;
 
-    public S3StorageService(S3Client s3Client) {
+    public S3StorageService ( S3Client s3Client ) {
         this.s3Client = s3Client;
     }
 
     @PostConstruct
-    void init() {
+    void init () {
         int maxRetries = 10;
         int retryDelayMs = 5000;
         for (int i = 0; i < maxRetries; i++) {
             try {
-                s3Client.createBucket(b -> b.bucket(this.bucket));
-                log.info("Successfully initialized bucket: {}", this.bucket);
+                s3Client.createBucket( b -> b.bucket( this.bucket ) );
+                log.info( "Successfully initialized bucket: {}", this.bucket );
                 return;
-            } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e) {
-                log.info("Bucket already exists, that's fine.");
+            } catch ( BucketAlreadyOwnedByYouException | BucketAlreadyExistsException e ) {
+                log.info( "Bucket already exists, that's fine." );
                 return;
-            } catch (Exception e) {
-                log.warn("Failed to create bucket (attempt {}/{}). Retrying in {}ms: {}", i + 1, maxRetries, retryDelayMs, e.getMessage());
+            } catch ( Exception e ) {
+                log.warn( "Failed to create bucket (attempt {}/{}). Retrying in {}ms: {}", i + 1, maxRetries,
+                          retryDelayMs, e.getMessage() );
                 try {
-                    Thread.sleep(retryDelayMs);
-                } catch (InterruptedException ie) {
+                    Thread.sleep( retryDelayMs );
+                } catch ( InterruptedException ie ) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException("Interrupted while waiting to initialize bucket", ie);
+                    throw new RuntimeException( "Interrupted while waiting to initialize bucket", ie );
                 }
             }
         }
-        log.error("Failed to initialize bucket after {} attempts", maxRetries);
+        log.error( "Failed to initialize bucket after {} attempts", maxRetries );
     }
 
-    public void upload(UUID documentId, UUID fileId, InputStream data, long contentLength) {
-        s3Client.putObject(
-                PutObjectRequest.builder()
-                        .bucket(bucket)
-                        .key(documentId + "/" + fileId)
-                        .build(),
-                RequestBody.fromInputStream(data, contentLength));
+    public void upload ( PutObjectRequest putObjectRequest, InputStream inputStream, long contentLength ) {
+        s3Client.putObject( putObjectRequest, RequestBody.fromInputStream( inputStream, contentLength ) );
     }
 
-    public byte[] download(UUID documentId, UUID fileId) {
-        return s3Client.getObjectAsBytes(
-                GetObjectRequest.builder()
-                        .bucket(bucket)
-                        .key(documentId + "/" + fileId)
-                        .build())
-                .asByteArray();
+    public byte[] download ( GetObjectRequest getObjectRequest ) {
+        return s3Client.getObjectAsBytes( getObjectRequest ).asByteArray();
     }
 
-    public boolean delete(UUID documentId, UUID fileId) {
-        String key = documentId + "/" + fileId;
-
+    public boolean delete ( DeleteObjectRequest deleteObjectRequest ) {
         try {
-            s3Client.deleteObject(
-                    DeleteObjectRequest.builder()
-                            .bucket(bucket)
-                            .key(key)
-                            .build());
+            s3Client.deleteObject( deleteObjectRequest );
 
             return true;
 
-        } catch (S3Exception e) {
-            log.error("Failed to delete object from S3: {}", key, e);
+        } catch ( S3Exception e ) {
+            log.error( "Failed to delete object from S3: {}", deleteObjectRequest.key(), e );
             return false;
         }
     }

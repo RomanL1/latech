@@ -14,4 +14,5 @@ public class DocumentDto {
     private String name;
     private Boolean secured;
     private String content;
+    private Boolean autoRenderEnabled;
 }
