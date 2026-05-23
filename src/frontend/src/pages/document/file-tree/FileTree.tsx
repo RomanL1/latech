@@ -1,5 +1,5 @@
-import { Button, Flex, IconButton, Skeleton, Text, TextField } from '@radix-ui/themes';
-import { FileCodeCorner, LucideFileImage, LucideX } from 'lucide-react';
+import { Flex, IconButton, Skeleton, Text } from '@radix-ui/themes';
+import { FileCodeCorner, LucideFileImage, LucideX, LockIcon } from 'lucide-react';
 import styles from './FileTree.module.css';
 import FileTreeItem from './item/FileTreeItem';
 import UploadImageDialog from './upload-image-dialog/UploadImageDialog';
@@ -9,11 +9,10 @@ import {
   useGetDocument,
   useGetImages,
   useRenameImage,
-  useUnlockDocument,
 } from '../../../features/documents/api';
 import { useParams } from 'react-router';
 import type { DocumentFile } from '../DocumentPage';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 interface FileTreeProps {
   setSelectedFile: (file: DocumentFile | undefined) => void;
@@ -30,12 +29,9 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
 
   const { data: images = [], isLoading: isImageLoading } = useGetImages(documentId, documentUnlocked);
 
-  const unlockMutation = useUnlockDocument(documentId);
   const deleteQuery = useDeleteImage(documentId);
   const downloadMutation = useDownloadImage(documentId);
   const renameMutation = useRenameImage(documentId);
-
-  const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (isDocumentLoading || !document) return;
@@ -47,17 +43,6 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
 
     setSelectedFile({ type: 'tex', file: document });
   }, [isDocumentLoading, setSelectedFile, document, documentUnlocked]);
-
-  const handleUnlock = async () => {
-    if (!password.trim()) return;
-
-    try {
-      await unlockMutation.mutateAsync(password);
-      setPassword('');
-    } catch {
-      // Keep the password so the user can correct it and retry.
-    }
-  };
 
   const handleOnDownload = (item: DocumentFile) => {
     if (item.type === 'image') {
@@ -112,36 +97,11 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
           <Skeleton height="20" />
         </Flex>
       ) : document && !documentUnlocked ? (
-        <Flex direction="column" gap="3" className={styles.container}>
-          <Text size="3" weight="bold">
-            Protected document
-          </Text>
-
+        <Flex direction="column" align="center" gap="2" className={styles.container}>
+          <LockIcon size={24} />
           <Text size="2" color="gray">
-            Enter the password to access this document.
+            Document is locked
           </Text>
-
-          <TextField.Root
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                handleUnlock();
-              }
-            }}
-          />
-
-          <Button onClick={handleUnlock} disabled={unlockMutation.isPending || !password.trim()}>
-            {unlockMutation.isPending ? 'Unlocking...' : 'Unlock'}
-          </Button>
-
-          {unlockMutation.isError ? (
-            <Text size="2" color="red">
-              {unlockMutation.error?.message ?? 'Wrong password or access denied.'}
-            </Text>
-          ) : null}
         </Flex>
       ) : (
         <div className={styles.imageList}>
