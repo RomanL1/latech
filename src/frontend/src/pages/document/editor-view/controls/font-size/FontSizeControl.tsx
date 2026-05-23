@@ -19,13 +19,13 @@ const fontSizes: FontSizeMapping[] = [
   { latexMacro: '\\tiny', friendlyName: 'Micro', fontSize: '1' },
 ];
 
-const HeadingControl = () => {
-  function handleSelected(value: string) {
-    console.log('handle option selected', value);
+const FontSizeControl = () => {
+  function handleSelected(latexMacro: string) {
+    console.log(latexMacro);
   }
 
   return (
-    <NonFocusStealingDropdown name="Headings" onOptionSelected={handleSelected}>
+    <NonFocusStealingDropdown name="Font Size" onOptionSelected={handleSelected}>
       {fontSizes.map(({ latexMacro, friendlyName, fontSize }) => (
         <NonFocusStealingDropdown.Option value={latexMacro} key={latexMacro}>
           <Text size={fontSize}>{friendlyName}</Text>
@@ -35,4 +35,4 @@ const HeadingControl = () => {
   );
 };
 
-export default HeadingControl;
+export default FontSizeControl;
