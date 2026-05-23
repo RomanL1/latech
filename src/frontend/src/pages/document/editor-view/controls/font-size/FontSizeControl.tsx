@@ -24,7 +24,7 @@ const FontSizeControl = () => {
   const { surroundSelectionOrWord } = useEditor();
 
   function handleSelected(latexMacro: string) {
-    surroundSelectionOrWord(`${latexMacro}{`, '}');
+    surroundSelectionOrWord(`{${latexMacro}{`, '}}');
   }
 
   return (
