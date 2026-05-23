@@ -176,7 +176,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       setCurrentAwarenessUser(null);
       window.removeEventListener('beforeunload', handleWindowUnload);
     };
-  }, [editor, monaco, roomId]);
+  }, [editor, monaco, roomId, triggerSave]);
 
   useEffect(() => {
     if (!yProvider) return;
