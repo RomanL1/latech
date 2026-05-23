@@ -1,4 +1,5 @@
 import { Text } from '@radix-ui/themes';
+import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
 import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
 
 interface FontSizeMapping {
@@ -20,8 +21,10 @@ const fontSizes: FontSizeMapping[] = [
 ];
 
 const FontSizeControl = () => {
+  const { surroundSelectionOrWord } = useEditor();
+
   function handleSelected(latexMacro: string) {
-    console.log(latexMacro);
+    surroundSelectionOrWord(`${latexMacro}{`, '}');
   }
 
   return (
