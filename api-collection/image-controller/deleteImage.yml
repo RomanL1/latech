@@ -15,11 +15,6 @@ http:
       type: path
   auth: inherit
 
-runtime:
-  variables:
-    - name: imageId
-      value: c688e6a4-d60a-423c-9e6d-f5bc587fe411
-
 settings:
   encodeUrl: true
   timeout: 0

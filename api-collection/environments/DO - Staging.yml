@@ -1,7 +1,7 @@
-name: DO
+name: DO - Staging
 variables:
   - name: baseUrl
-    value: https://latech.app
+    value: https://staging.latech.app
   - name: docId
     value: 064f4996-7b66-480f-bc00-00920beb52a4
   - name: imageId
