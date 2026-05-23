@@ -1,5 +1,4 @@
 import { IconButton, Separator } from '@radix-ui/themes';
-import styles from './EditorControls.module.css';
 import {
   LucideBold,
   LucideImage,
@@ -8,25 +7,41 @@ import {
   LucideListOrdered,
   LucideOmega,
   LucideSigma,
+  LucideStrikethrough,
+  LucideSubscript,
+  LucideSuperscript,
   LucideTable,
   LucideUnderline,
 } from 'lucide-react';
 import { LatexMacro, useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import styles from './EditorControls.module.css';
 import FontSizeControl from './font-size/FontSizeControl';
 
 const EditorControls = () => {
   const { toggleSurroundingMacro } = useEditor();
 
   function toggleBold() {
-    toggleSurroundingMacro(new LatexMacro('textbf', false));
+    toggleSurroundingMacro(new LatexMacro('textbf'));
   }
 
   function toggleItalic() {
-    toggleSurroundingMacro(new LatexMacro('textit', false));
+    toggleSurroundingMacro(new LatexMacro('textit'));
   }
 
   function toggleUnderline() {
-    toggleSurroundingMacro(new LatexMacro('underline', false));
+    toggleSurroundingMacro(new LatexMacro('underline'));
+  }
+
+  function toggleStrikethrough() {
+    toggleSurroundingMacro(new LatexMacro('sout'));
+  }
+
+  function toggleSuperscript() {
+    toggleSurroundingMacro(new LatexMacro('textsuperscript'));
+  }
+
+  function toggleSubscript() {
+    toggleSurroundingMacro(new LatexMacro('textsubscript'));
   }
 
   return (
@@ -43,6 +58,16 @@ const EditorControls = () => {
       <IconButton size="1" variant="ghost" onClick={() => toggleUnderline()} title="Underline">
         <LucideUnderline size={16} />
       </IconButton>
+      <IconButton size="1" variant="ghost" onClick={() => toggleStrikethrough()} title="Strikethrough">
+        <LucideStrikethrough size={16} />
+      </IconButton>
+      <IconButton size="1" variant="ghost" onClick={() => toggleSuperscript()} title="Superscript">
+        <LucideSuperscript size={16} />
+      </IconButton>
+      <IconButton size="1" variant="ghost" onClick={() => toggleSubscript()} title="Subscript">
+        <LucideSubscript size={16} />
+      </IconButton>
+
       <Separator orientation="vertical" />
 
       <IconButton size="1" variant="ghost">
