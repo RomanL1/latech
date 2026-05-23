@@ -14,8 +14,6 @@ function LatexEditor({ content }: LatexEditorProps) {
   const { isConnected, setEditor } = useEditor();
 
   const handleMount = async (editor: MonacoEditor.IStandaloneCodeEditor, monaco: Monaco) => {
-    setEditor(editor);
-
     monaco.languages.register({ id: 'latex' });
 
     const highlighter = await createHighlighter({
@@ -24,6 +22,7 @@ function LatexEditor({ content }: LatexEditorProps) {
     });
 
     shikiToMonaco(highlighter, monaco);
+    setEditor(editor);
   };
 
   return (
@@ -33,6 +32,7 @@ function LatexEditor({ content }: LatexEditorProps) {
         height="100%"
         defaultValue={content}
         language="latex"
+        theme="vitesse-dark"
         onMount={handleMount}
         options={{
           minimap: { enabled: false },
