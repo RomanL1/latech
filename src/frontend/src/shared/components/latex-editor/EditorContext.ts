@@ -24,6 +24,7 @@ export interface EditorContextValue {
   yText: Y.Text | null;
   undo: () => void;
   redo: () => void;
+  surroundSelectionOrWord: (prefix: string, suffix?: string) => void;
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);
