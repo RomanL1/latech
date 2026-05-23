@@ -1,7 +1,7 @@
-import { useMonaco } from '@monaco-editor/react';
 import { generateColor } from '@marko19907/string-to-color';
-import { editor as MonacoEditor, KeyCode, KeyMod } from 'monaco-editor';
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { useMonaco } from '@monaco-editor/react';
+import { KeyCode, KeyMod, editor as MonacoEditor, type IRange } from 'monaco-editor';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
 import { MonacoBinding } from 'y-monaco';
 import * as awarenessProtocol from 'y-protocols/awareness';
@@ -24,6 +24,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const [currentAwarenessUser, setCurrentAwarenessUser] = useState<AwarenessUser | null>(null);
   const monaco = useMonaco();
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
+  const editorControlRef = useRef({ name: 'editor-control' });
 
   const undo = useMemo(() => {
     return () => {
@@ -36,6 +37,62 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       undoManagerRef.current?.redo();
     };
   }, [undoManagerRef]);
+
+  const surroundSelectionOrWord = useCallback(
+    (prefix: string, suffix = '') => {
+      if (!editor || !yDoc || !yText) return;
+
+      const model = editor.getModel();
+      const selection = editor.getSelection();
+      if (!model || !selection) return;
+
+      let range: IRange;
+      const position = selection.getPosition();
+      const wordAtCursor = model.getWordAtPosition(position);
+
+      // Case: User has selected text
+      if (!selection.isEmpty()) {
+        range = selection;
+      }
+      // Case: User has cursor on top of a word
+      else if (wordAtCursor) {
+        range = {
+          startLineNumber: position.lineNumber,
+          startColumn: wordAtCursor.startColumn,
+          endLineNumber: position.lineNumber,
+          endColumn: wordAtCursor.endColumn,
+        };
+      }
+      // Case: User has cursor in free space
+      else {
+        range = selection;
+      }
+
+      const currentText = model.getValueInRange(range);
+      const insertedText = `${prefix}${currentText}${suffix}`;
+
+      // Position where to insert text
+      const startOffset = model.getOffsetAt({
+        lineNumber: range.startLineNumber,
+        column: range.startColumn,
+      });
+      const endOffset = model.getOffsetAt({
+        lineNumber: range.endLineNumber,
+        column: range.endColumn,
+      });
+
+      // Perform insert
+      yDoc.transact(() => {
+        yText.delete(startOffset, endOffset - startOffset);
+        yText.insert(startOffset, insertedText);
+      }, editorControlRef.current);
+
+      // Adjust cursor position
+      const cursorOffset = startOffset + prefix.length + currentText.length + (currentText ? suffix.length : 0);
+      editor.setPosition(model.getPositionAt(cursorOffset));
+    },
+    [editor, yDoc, yText],
+  );
 
   useEffect(() => {
     if (!monaco || !editor) return;
@@ -61,7 +118,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
     const binding = new MonacoBinding(text, model, new Set([editor]), provider.awareness);
     const undoManager = new Y.UndoManager(text, {
-      trackedOrigins: new Set([binding]),
+      trackedOrigins: new Set([binding, editorControlRef.current]),
     });
 
     // Expose undo manager to the outer scope for use in undo/redo functions
@@ -211,8 +268,9 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       yText,
       undo,
       redo,
+      surroundSelectionOrWord,
     }),
-    [awarenessUsers, currentAwarenessUser, editor, yDoc, yProvider, yText, undo, redo],
+    [awarenessUsers, currentAwarenessUser, editor, yDoc, yProvider, yText, undo, redo, surroundSelectionOrWord],
   );
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
