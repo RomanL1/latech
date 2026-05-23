@@ -52,6 +52,7 @@ export function useGetRenderedPDF(docId: string): UseQueryResult<Blob | null> {
   return useQuery({
     queryKey: ['pdf', docId],
     queryFn: () => getPDF(docId),
+    gcTime: 0,
   });
 }
 

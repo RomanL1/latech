@@ -8,8 +8,7 @@ import { useRef, useEffect, useState } from 'react';
 import type { Document } from '../../../features/documents/document';
 import { getPDFRenderedEventSource, type ResilientEventSource } from '../../../features/pdf-preview/api';
 import { EditorProvider } from '../../../shared/components/latex-editor/EditorProvider';
-import { useQuery } from '@tanstack/react-query';
-import { getDocument, useUnlockDocument } from '../../../features/documents/api';
+import { useGetDocument, useUnlockDocument } from '../../../features/documents/api';
 import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 
 interface EditorViewProps {
@@ -22,11 +21,7 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
   const [pdfEventSource, setPdfEventSource] = useState<ResilientEventSource | null>(null);
   const [password, setPassword] = useState('');
 
-  const { data: fetchedDocument } = useQuery({
-    queryKey: ['document', documentId],
-    queryFn: () => getDocument(documentId!),
-    enabled: !!documentId,
-  });
+  const { data: fetchedDocument } = useGetDocument(documentId ?? '');
 
   const unlockMutation = useUnlockDocument(documentId ?? '');
 

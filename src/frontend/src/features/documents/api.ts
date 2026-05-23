@@ -62,6 +62,7 @@ export function useGetDocument(documentId: string): UseQueryResult<Document> {
   return useQuery({
     queryKey: ['document', documentId],
     queryFn: () => getDocument(documentId),
+    gcTime: 0,
   });
 }
 
@@ -147,6 +148,7 @@ export function useGetImages(documentId: string, enabled = true): UseQueryResult
     queryKey: ['images', documentId],
     queryFn: () => getImages(documentId),
     enabled,
+    gcTime: 0,
   });
 }
 
