@@ -19,7 +19,7 @@ public class DocumentPasswordCache {
     @Cacheable( CacheConfig.DOCUMENT_PASSWORD_STATUS )
     public boolean isUnsecured ( UUID documentId ) {
         return documentRepository.findById( documentId )
-                .map( d -> StringUtils.hasText( d.getPassword() ) )
+                .map( d -> !StringUtils.hasText( d.getPassword() ) )
                 .orElseThrow( EntityNotFoundException::new );
     }
 }
