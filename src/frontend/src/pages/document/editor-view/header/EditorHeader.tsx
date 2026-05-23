@@ -29,10 +29,15 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const [isCompiling, setIsCompiling] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
-  const [now] = useState<number>(() => Date.now());
+  const [now, setNow] = useState<number>(() => Date.now());
   const [autoRenderEnabled, setAutoRenderEnabled] = useState<boolean>(file?.autoRenderEnabled ?? true);
   const { awarenessUsers, currentAwarenessUser } = useEditor();
   const { buttonRef } = useKeyboardSaveContext();
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!docId || !pdfEventSource) return;
