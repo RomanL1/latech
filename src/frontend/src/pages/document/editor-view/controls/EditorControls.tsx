@@ -11,6 +11,7 @@ import {
   LucideTable,
   LucideUnderline,
 } from 'lucide-react';
+import { LatexMacro, useEditor } from '../../../../shared/components/latex-editor/EditorContext';
 import { EditorControlType } from './EditorControlType';
 import FontSizeControl from './font-size/FontSizeControl';
 
@@ -19,17 +20,23 @@ interface EditorControlsProps {
 }
 
 const EditorControls = ({ onClick }: EditorControlsProps) => {
+  const { toggleSurroundingMacro } = useEditor();
+
   const handleOnClick = (controlType: EditorControlType) => {
     console.log('FISCH');
     onClick?.(controlType);
   };
+
+  function toggleBold() {
+    toggleSurroundingMacro(new LatexMacro('textbf', false));
+  }
 
   return (
     <div className={styles.container}>
       <FontSizeControl />
       <Separator orientation="vertical" />
 
-      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.BOLD)}>
+      <IconButton size="1" variant="ghost" onClick={() => toggleBold()} title="Bold">
         <LucideBold size={16} />
       </IconButton>
       <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.ITALIC)}>

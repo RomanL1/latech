@@ -24,7 +24,28 @@ export interface EditorContextValue {
   yText: Y.Text | null;
   undo: () => void;
   redo: () => void;
-  surroundSelectionOrWord: (prefix: string, suffix?: string) => void;
+  toggleSurroundingMacro: (macro: LatexMacro) => void;
+}
+
+export class LatexMacro {
+  public readonly prefix: string;
+  public readonly suffix: string;
+
+  constructor(
+    public readonly name: string,
+    public readonly isolate = false,
+  ) {
+    this.prefix = `${isolate ? '{' : ''}\\${name}{`;
+    this.suffix = `${isolate ? '}' : ''}}`;
+  }
+
+  empty(): string {
+    return this.wrap('');
+  }
+
+  wrap(content: string): string {
+    return `${this.prefix}${content}${this.suffix}`;
+  }
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);
