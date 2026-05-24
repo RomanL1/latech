@@ -13,9 +13,11 @@ import {
   LucideTable,
   LucideUnderline,
 } from 'lucide-react';
-import { LatexListStructure, LatexMacro, useEditor } from '../../../../shared/components/latex-editor/EditorContext';
 import styles from './EditorControls.module.css';
 import FontSizeControl from './font-size/FontSizeControl';
+import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import { LatexMacro } from '../../../../shared/components/latex-editor/controls/single-macro';
+import { LatexListStructure } from '../../../../shared/components/latex-editor/controls/lists';
 
 const EditorControls = () => {
   const { toggleSurroundingMacro, toggleListStructure } = useEditor();

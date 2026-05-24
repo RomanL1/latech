@@ -2,6 +2,8 @@ import { editor as MonacoEditor } from 'monaco-editor';
 import { createContext, type Dispatch, type SetStateAction, useContext } from 'react';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+import type { LatexListStructure } from './controls/lists';
+import type { LatexMacro } from './controls/single-macro';
 
 export type AwarenessUser = {
   clientId: number;
@@ -26,48 +28,6 @@ export interface EditorContextValue {
   redo: () => void;
   toggleSurroundingMacro: (macro: LatexMacro) => void;
   toggleListStructure: (listStructure: LatexListStructure) => void;
-}
-
-export type LatexListType = 'itemize' | 'enumerate';
-export class LatexListStructure {
-  public readonly beginMacro: string;
-  public readonly endMacro: string;
-
-  constructor(public readonly type: LatexListType) {
-    this.beginMacro = `\\begin{${type}}`;
-    this.endMacro = `\\end{${type}}`;
-  }
-
-  build(startingColumn: number, items: string[]): string {
-    const baseIndent = ' '.repeat(startingColumn - 1);
-
-    const beginMacro = `${this.beginMacro}\n`;
-    const itemMacros = items.map((item) => `${baseIndent}\t\\item ${item}\n`).join('');
-    const endMacro = `${baseIndent}${this.endMacro}`;
-
-    return `${beginMacro}${itemMacros}${endMacro}`;
-  }
-}
-
-export class LatexMacro {
-  public readonly prefix: string;
-  public readonly suffix: string;
-
-  constructor(
-    public readonly name: string,
-    public readonly isolate = false,
-  ) {
-    this.prefix = `${isolate ? '{' : ''}\\${name}{`;
-    this.suffix = `${isolate ? '}' : ''}}`;
-  }
-
-  empty(): string {
-    return this.wrap('');
-  }
-
-  wrap(content: string): string {
-    return `${this.prefix}${content}${this.suffix}`;
-  }
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);
