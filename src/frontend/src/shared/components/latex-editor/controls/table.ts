@@ -42,12 +42,12 @@ function getColumnLayout(columns: number): string {
 
 function getRows({ rows, columns }: TableDimensions, indentation: string) {
   const rowCells =
-    Array(rows - 1)
+    Array(columns - 1)
       .fill(' & ')
       .join('') + '\\\\';
 
   return (
-    Array.from({ length: columns })
+    Array.from({ length: rows })
       .map(() => `${indentation}\\hline\n${indentation}${rowCells}\n`)
       .join('') + `${indentation}\\hline\n`
   );
