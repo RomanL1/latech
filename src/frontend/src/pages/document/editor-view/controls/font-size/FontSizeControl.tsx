@@ -1,5 +1,6 @@
 import { Text } from '@radix-ui/themes';
-import { LatexMacro, useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
+import { LatexMacro } from '../../../../../shared/components/latex-editor/controls/single-macro';
+import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
 import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
 
 interface FontSizeMapping {
