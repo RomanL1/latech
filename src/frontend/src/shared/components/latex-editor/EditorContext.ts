@@ -28,6 +28,7 @@ export interface EditorContextValue {
   redo: () => void;
   toggleSurroundingMacro: (macro: LatexMacro) => void;
   toggleListStructure: (listStructure: LatexListStructure) => void;
+  insertImage: (fileName: string) => void;
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);

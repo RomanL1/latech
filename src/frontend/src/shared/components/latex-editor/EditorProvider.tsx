@@ -10,6 +10,7 @@ import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
 import { EditorContext, type AwarenessUser, type AwarenessUserList, type EditorContextValue } from './EditorContext';
 
+import * as imageControlActions from './controls/images';
 import * as listControlActions from './controls/lists';
 import * as singleMacroControlActions from './controls/single-macro';
 
@@ -51,6 +52,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const toggleListStructure = useCallback(
     (listStructure: listControlActions.LatexListStructure) => {
       listControlActions.toggleListStructure(listStructure, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
+
+  const insertImage = useCallback(
+    (fileName: string) => {
+      imageControlActions.insertImage(fileName, editor, yDoc, yText, editorControlRef);
     },
     [editor, yDoc, yText],
   );
@@ -231,6 +239,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       redo,
       toggleSurroundingMacro,
       toggleListStructure,
+      insertImage,
     }),
     [
       awarenessUsers,
@@ -243,6 +252,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       redo,
       toggleSurroundingMacro,
       toggleListStructure,
+      insertImage,
     ],
   );
 

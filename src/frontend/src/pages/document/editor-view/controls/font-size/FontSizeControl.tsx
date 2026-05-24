@@ -1,4 +1,4 @@
-import { Text } from '@radix-ui/themes';
+import { Button, Text } from '@radix-ui/themes';
 import { LatexMacro } from '../../../../../shared/components/latex-editor/controls/single-macro';
 import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
 import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
@@ -28,8 +28,14 @@ const FontSizeControl = () => {
     toggleSurroundingMacro(new LatexMacro(macroName, true));
   }
 
+  const trigger = (
+    <Button variant="soft" size="1">
+      Font Size
+    </Button>
+  );
+
   return (
-    <NonFocusStealingDropdown name="Font Size" onOptionSelected={handleSelected}>
+    <NonFocusStealingDropdown trigger={trigger} onOptionSelected={handleSelected}>
       {fontSizes.map(({ latexMacroName, friendlyName, fontSize }) => (
         <NonFocusStealingDropdown.Option value={latexMacroName} key={latexMacroName}>
           <Text size={fontSize}>{friendlyName}</Text>

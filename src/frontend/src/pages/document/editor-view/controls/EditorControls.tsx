@@ -1,7 +1,6 @@
 import { IconButton, Separator } from '@radix-ui/themes';
 import {
   LucideBold,
-  LucideImage,
   LucideItalic,
   LucideList,
   LucideListOrdered,
@@ -13,11 +12,12 @@ import {
   LucideTable,
   LucideUnderline,
 } from 'lucide-react';
+import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import { LatexListStructure } from '../../../../shared/components/latex-editor/controls/lists';
+import { LatexMacro } from '../../../../shared/components/latex-editor/controls/single-macro';
 import styles from './EditorControls.module.css';
 import FontSizeControl from './font-size/FontSizeControl';
-import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
-import { LatexMacro } from '../../../../shared/components/latex-editor/controls/single-macro';
-import { LatexListStructure } from '../../../../shared/components/latex-editor/controls/lists';
+import { ImageSelectControl } from './image/ImageSelectControl';
 
 const EditorControls = () => {
   const { toggleSurroundingMacro, toggleListStructure } = useEditor();
@@ -99,9 +99,8 @@ const EditorControls = () => {
       </IconButton>
 
       <Separator orientation="vertical" />
-      <IconButton size="1" variant="ghost">
-        <LucideImage size={16} />
-      </IconButton>
+
+      <ImageSelectControl />
     </div>
   );
 };

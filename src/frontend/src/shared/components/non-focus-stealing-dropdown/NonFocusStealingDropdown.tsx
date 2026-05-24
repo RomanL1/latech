@@ -1,9 +1,9 @@
 import { Button, Popover } from '@radix-ui/themes';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { Children, cloneElement, isValidElement, useState } from 'react';
 
 type NonFocusStealingDropdownProps = PropsWithChildren<{
-  name: string;
+  trigger: ReactNode;
   onOptionSelected: (value: string) => unknown;
 }>;
 
@@ -11,7 +11,7 @@ type NonFocusStealingDropdownProps = PropsWithChildren<{
  * This custom select control won't take over focus
  * when interacted with, unlike any other select/dropdown implementation
  */
-export function NonFocusStealingDropdown({ name, children, onOptionSelected }: NonFocusStealingDropdownProps) {
+export function NonFocusStealingDropdown({ trigger, children, onOptionSelected }: NonFocusStealingDropdownProps) {
   const [open, setOpen] = useState(false);
 
   function preventPopoverFocus(event: Event) {
@@ -25,11 +25,7 @@ export function NonFocusStealingDropdown({ name, children, onOptionSelected }: N
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger>
-        <Button variant="soft" size="1">
-          {name}
-        </Button>
-      </Popover.Trigger>
+      <Popover.Trigger>{trigger}</Popover.Trigger>
       <Popover.Content onOpenAutoFocus={preventPopoverFocus} onCloseAutoFocus={preventPopoverFocus}>
         {Children.map(children, (child) => {
           if (!isValidElement(child)) {
