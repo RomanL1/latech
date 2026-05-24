@@ -87,7 +87,7 @@ function isInsideListStructure(
 /** Extract the contents of \item macros inside a range */
 function extractListItemContents(listStructureContentRange: IRange, model: MonacoEditor.ITextModel): string[] {
   const content = model.getValueInRange(listStructureContentRange);
-  const itemContentRegex = /(?<=\\item(?:\{|\s+))([\s.]+?)(?=\}|(?:\s*)\\item|\n)/g;
+  const itemContentRegex = /(?<=\\item(?:\{|[^\S\r\n]+))([^\r\n}]*?)(?=\}|[^\S\r\n]*\\item|\r?\n)/g;
 
   const matches = [...content.matchAll(itemContentRegex)].map((match) => match[1]);
   return matches.map((line) => line.replace('\n', ''));
@@ -99,7 +99,7 @@ function extractSelectedLines(selection: IRange, model: MonacoEditor.ITextModel)
   const totalNumberOfLines = endLineNumber - startLineNumber + 1;
 
   const lineNumbersInRange = Array.from({ length: totalNumberOfLines }, (_, index) => startLineNumber + index);
-  return lineNumbersInRange.map((lineNumber) => model.getLineContent(lineNumber).trim() || ' ');
+  return lineNumbersInRange.map((lineNumber) => model.getLineContent(lineNumber).trim());
 }
 
 function isImmediatelySurroundedByMacro(
@@ -419,6 +419,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
         });
 
         const listContent = listStructure.build(startColumn, selectedLines);
+        const lines = listContent.split('\n');
+        const listEndPosition = {
+          lineNumber: startLineNumber + lines.length - 1,
+          column: lines[lines.length - 1].length + 1,
+        };
+
+        const lastListItemLineNumber = listEndPosition.lineNumber - 1;
 
         yDoc.transact(() => {
           // Remove selected lines
@@ -427,6 +434,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
           // Insert list structure
           yText.insert(listStartOffset, listContent);
         }, editorControlRef.current);
+
+        const cursorPosition = {
+          lineNumber: lastListItemLineNumber,
+          column: model.getLineMaxColumn(lastListItemLineNumber),
+        };
+
+        editor.setPosition(cursorPosition);
       }
     },
     [editor, yDoc, yText],
@@ -440,7 +454,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
     // Force LF line endings for Yjs synchronisation.
     model.setEOL(monaco.editor.EndOfLineSequence.LF);
-    model.getEOL();
+
     const doc = new Y.Doc();
     const text = doc.getText('latech');
     const provider = new WebsocketProvider(window.ENV.VITE_WS_HOST, roomId, doc);
