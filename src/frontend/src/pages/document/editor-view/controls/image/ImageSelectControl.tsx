@@ -1,9 +1,9 @@
 import { IconButton, Text } from '@radix-ui/themes';
 import { LucideImage } from 'lucide-react';
-import { useGetDocument, useGetImages } from '../../../../../features/documents/api';
 import { useParams } from 'react-router';
-import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
+import { useGetDocument, useGetImages } from '../../../../../features/documents/api';
 import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
+import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
 
 export function ImageSelectControl() {
   const documentId = useParams().documentId!;
@@ -24,13 +24,20 @@ export function ImageSelectControl() {
     </IconButton>
   );
 
-  return (
-    <NonFocusStealingDropdown trigger={trigger} onOptionSelected={handleSelected}>
-      {images.map(({ id, name }) => (
+  const content =
+    images.length === 0 ? (
+      <Text>No images uploaded yet</Text>
+    ) : (
+      images.map(({ id, name }) => (
         <NonFocusStealingDropdown.Option value={name} key={id}>
           <Text size="2">{name}</Text>
         </NonFocusStealingDropdown.Option>
-      ))}
+      ))
+    );
+
+  return (
+    <NonFocusStealingDropdown trigger={trigger} onOptionSelected={handleSelected}>
+      {content}
     </NonFocusStealingDropdown>
   );
 }

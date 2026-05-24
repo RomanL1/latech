@@ -9,7 +9,6 @@ import {
   LucideStrikethrough,
   LucideSubscript,
   LucideSuperscript,
-  LucideTable,
   LucideUnderline,
 } from 'lucide-react';
 import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
@@ -18,6 +17,7 @@ import { LatexMacro } from '../../../../shared/components/latex-editor/controls/
 import styles from './EditorControls.module.css';
 import FontSizeControl from './font-size/FontSizeControl';
 import { ImageSelectControl } from './image/ImageSelectControl';
+import { TableControl } from './table/TableControl';
 
 const EditorControls = () => {
   const { toggleSurroundingMacro, toggleListStructure } = useEditor();
@@ -88,9 +88,7 @@ const EditorControls = () => {
       </IconButton>
       <Separator orientation="vertical" />
 
-      <IconButton size="1" variant="ghost">
-        <LucideTable size={16} />
-      </IconButton>
+      <TableControl />
       <IconButton size="1" variant="ghost" onClick={() => toggleBulletpointList()} title="Bullet point list">
         <LucideList size={16} />
       </IconButton>

@@ -1,0 +1,27 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+  width: 2rem;
+  position: relative;
+  background: transparent;
+  outline: none;
+}
+
+.cell:after {
+  content: '';
+  position: absolute;
+  inset: 0.25rem;
+  background-color: var(--gray-11);
+  aspect-ratio: 1 / 1;
+}
+
+.cell.active:after {
+  background-color: var(--yellow-12);
+}

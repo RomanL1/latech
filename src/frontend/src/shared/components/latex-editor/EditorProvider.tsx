@@ -10,9 +10,11 @@ import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
 import { EditorContext, type AwarenessUser, type AwarenessUserList, type EditorContextValue } from './EditorContext';
 
+import * as tableControlActions from './controls/table';
 import * as imageControlActions from './controls/images';
 import * as listControlActions from './controls/lists';
 import * as singleMacroControlActions from './controls/single-macro';
+import type { TableDimensions } from './controls/table';
 
 interface EditorProviderProps {
   children: ReactNode;
@@ -59,6 +61,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const insertImage = useCallback(
     (fileName: string) => {
       imageControlActions.insertImage(fileName, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
+
+  const insertTable = useCallback(
+    (dimensions: TableDimensions) => {
+      tableControlActions.insertTable(dimensions, editor, yDoc, yText, editorControlRef);
     },
     [editor, yDoc, yText],
   );
@@ -240,6 +249,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       toggleSurroundingMacro,
       toggleListStructure,
       insertImage,
+      insertTable,
     }),
     [
       awarenessUsers,
@@ -253,6 +263,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       toggleSurroundingMacro,
       toggleListStructure,
       insertImage,
+      insertTable,
     ],
   );
 
