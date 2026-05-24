@@ -7,8 +7,6 @@ interface ResizeSeparatorProps {
 
 const ResizeSeparator = ({ onClick }: ResizeSeparatorProps) => {
   const handleClick = () => {
-    console.log('CLICK');
-    console.log(onClick);
     onClick?.();
   };
 

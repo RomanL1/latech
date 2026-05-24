@@ -36,7 +36,6 @@ const FileTreeItem = ({
       requestAnimationFrame(() => {
         textFieldRef.current?.focus();
         textFieldRef.current?.select();
-        console.log(textFieldRef.current);
       });
     }
   }, [isRenaming]);

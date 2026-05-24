@@ -12,7 +12,6 @@ const ImageDropzone = ({ onDrop }: ImageDropzoneProps) => {
   const handleOnDrop = useCallback(
     (acceptedFiles: File[]) => {
       onDrop(acceptedFiles);
-      console.log(acceptedFiles);
     },
     [onDrop],
   );
