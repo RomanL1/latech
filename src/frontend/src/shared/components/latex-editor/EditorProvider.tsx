@@ -65,8 +65,8 @@ function isInsideListStructure(
   // `findPreviousMatch` and `findNextMatch` loop to the opposite side of
   // the model. To account for false-positives, check whether list structure macros
   // are on the correct side relative to the selected range.
-  const isBeginMacroBeforeSelection = beginMacroStartOffset < selectionStartOffset;
-  const isEndMacroAfterSelection = endMacroEndOffset > selectionEndOffset;
+  const isBeginMacroBeforeSelection = beginMacroStartOffset <= selectionStartOffset;
+  const isEndMacroAfterSelection = endMacroEndOffset >= selectionEndOffset;
 
   const isWithinListStructure = isBeginMacroBeforeSelection && isEndMacroAfterSelection;
 
@@ -85,12 +85,21 @@ function isInsideListStructure(
 }
 
 /** Extract the contents of \item macros inside a range */
-function extractListItemContents(listStructureContentRange: IRange, model: MonacoEditor.ITextModel) {
+function extractListItemContents(listStructureContentRange: IRange, model: MonacoEditor.ITextModel): string[] {
   const content = model.getValueInRange(listStructureContentRange);
-  const itemContentRegex = /(?<=\\item(?:\{|\s+))(.+?)(?=\}|(?:\s*)\\item|\n)/g;
+  const itemContentRegex = /(?<=\\item(?:\{|\s+))([\s.]+?)(?=\}|(?:\s*)\\item|\n)/g;
 
   const matches = [...content.matchAll(itemContentRegex)].map((match) => match[1]);
-  return matches;
+  return matches.map((line) => line.replace('\n', ''));
+}
+
+/** Extract whole line for all lines touched by a selection */
+function extractSelectedLines(selection: IRange, model: MonacoEditor.ITextModel): string[] {
+  const { startLineNumber, endLineNumber } = selection;
+  const totalNumberOfLines = endLineNumber - startLineNumber + 1;
+
+  const lineNumbersInRange = Array.from({ length: totalNumberOfLines }, (_, index) => startLineNumber + index);
+  return lineNumbersInRange.map((lineNumber) => model.getLineContent(lineNumber).trim() || ' ');
 }
 
 function isImmediatelySurroundedByMacro(
@@ -370,20 +379,54 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
         const listStructureLength = listStructureEndOffset - listStructureStartOffset;
 
+        const indentation = ' '.repeat(listStructureRange.startColumn - 1);
+        const itemsText = itemContents
+          .map((item) => `${indentation}${item}`)
+          .join('\n')
+          .trimStart();
+
         yDoc.transact(() => {
+          // Remove list structure
           yText.delete(listStructureStartOffset, listStructureLength);
-          itemContents.forEach((itemContent, index) => {
-            const itemContentOffset = model.getOffsetAt({
-              column: listStructureRange.startColumn,
-              lineNumber: listStructureRange.startLineNumber + index,
-            });
-            yText.insert(itemContentOffset, `${itemContent}\n`);
-          });
+
+          // Insert item contents as plain text
+          yText.insert(listStructureStartOffset, itemsText);
         }, editorControlRef.current);
       }
       // Surround the selected lines with a list structure,
       // with each selected line as its own item
       else {
+        const selectedLines = extractSelectedLines(selection, model);
+
+        // Define positions where to insert list
+        const startLineNumber = selection.startLineNumber;
+        const startColumn = model.getLineFirstNonWhitespaceColumn(selection.startLineNumber) || selection.startColumn;
+
+        // Define positions of previous to delete
+        const deletionStartOffset = model.getOffsetAt({
+          lineNumber: startLineNumber,
+          column: startColumn,
+        });
+        const deletionEndOffset = model.getOffsetAt({
+          lineNumber: selection.endLineNumber,
+          column: model.getLineLastNonWhitespaceColumn(selection.endLineNumber) || selection.endColumn,
+        });
+        const deletionLength = deletionEndOffset - deletionStartOffset;
+
+        const listStartOffset = model.getOffsetAt({
+          lineNumber: startLineNumber,
+          column: startColumn,
+        });
+
+        const listContent = listStructure.build(startColumn, selectedLines);
+
+        yDoc.transact(() => {
+          // Remove selected lines
+          yText.delete(deletionStartOffset, deletionLength);
+
+          // Insert list structure
+          yText.insert(listStartOffset, listContent);
+        }, editorControlRef.current);
       }
     },
     [editor, yDoc, yText],

@@ -37,6 +37,16 @@ export class LatexListStructure {
     this.beginMacro = `\\begin{${type}}`;
     this.endMacro = `\\end{${type}}`;
   }
+
+  build(startingColumn: number, items: string[]): string {
+    const baseIndent = ' '.repeat(startingColumn - 1);
+
+    const beginMacro = `${this.beginMacro}\n`;
+    const itemMacros = items.map((item) => `${baseIndent}\t\\item ${item}\n`).join('');
+    const endMacro = `${baseIndent}${this.endMacro}`;
+
+    return `${beginMacro}${itemMacros}${endMacro}`;
+  }
 }
 
 export class LatexMacro {
