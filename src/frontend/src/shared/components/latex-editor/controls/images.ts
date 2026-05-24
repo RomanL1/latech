@@ -16,7 +16,15 @@ export function insertImage(
 
   if (!model || !position) return;
 
-  const content = `\\includegraphics{${fileName}}`;
+  const indentation = ' '.repeat(position.column - 1);
+
+  const content =
+    `\\begin{figure}[h]\n` +
+    `${indentation}\t\\centering\n` +
+    `${indentation}\t\\includegraphics{${fileName}}\n` +
+    `${indentation}\t\\caption{${fileName}}\n` +
+    `${indentation}\\end{figure}`;
+
   const imageOffset = model.getOffsetAt(position);
 
   yDoc.transact(() => {
