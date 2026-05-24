@@ -25,6 +25,18 @@ export interface EditorContextValue {
   undo: () => void;
   redo: () => void;
   toggleSurroundingMacro: (macro: LatexMacro) => void;
+  toggleListStructure: (listStructure: LatexListStructure) => void;
+}
+
+export type LatexListType = 'itemize' | 'enumerate';
+export class LatexListStructure {
+  public readonly beginMacro: string;
+  public readonly endMacro: string;
+
+  constructor(public readonly type: LatexListType) {
+    this.beginMacro = `\\begin{${type}}`;
+    this.endMacro = `\\end{${type}}`;
+  }
 }
 
 export class LatexMacro {

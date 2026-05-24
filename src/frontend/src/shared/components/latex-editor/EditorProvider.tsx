@@ -10,6 +10,7 @@ import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
 import {
   EditorContext,
+  LatexListStructure,
   LatexMacro,
   type AwarenessUser,
   type AwarenessUserList,
@@ -19,6 +20,77 @@ import {
 interface EditorProviderProps {
   children: ReactNode;
   roomId: string;
+}
+
+/** Determine whether or not a selected range is withing a list structure */
+function isInsideListStructure(
+  listStructure: LatexListStructure,
+  model: MonacoEditor.ITextModel,
+  selection: IRange,
+): [true, IRange] | [false, null] {
+  const selectionStartOffset = model.getOffsetAt({
+    column: selection.startColumn,
+    lineNumber: selection.startLineNumber,
+  });
+
+  const selectionEndOffset = model.getOffsetAt({
+    column: selection.endColumn,
+    lineNumber: selection.endLineNumber,
+  });
+
+  const selectionStartPosition = model.getPositionAt(selectionStartOffset);
+  const selectionEndPosition = model.getPositionAt(selectionEndOffset);
+
+  const beginMacro = listStructure.beginMacro;
+  const endMacro = listStructure.endMacro;
+
+  const beginMacroMatch = model.findPreviousMatch(beginMacro, selectionStartPosition, false, true, null, true);
+  const endMacroMatch = model.findNextMatch(endMacro, selectionEndPosition, false, true, null, true);
+
+  // No list structure macros found
+  if (!beginMacroMatch || !endMacroMatch) {
+    return [false, null];
+  }
+
+  const beginMacroStartOffset = model.getOffsetAt({
+    column: beginMacroMatch.range.startColumn,
+    lineNumber: beginMacroMatch.range.startLineNumber,
+  });
+
+  const endMacroEndOffset = model.getOffsetAt({
+    column: endMacroMatch.range.endColumn,
+    lineNumber: endMacroMatch.range.endLineNumber,
+  });
+
+  // `findPreviousMatch` and `findNextMatch` loop to the opposite side of
+  // the model. To account for false-positives, check whether list structure macros
+  // are on the correct side relative to the selected range.
+  const isBeginMacroBeforeSelection = beginMacroStartOffset < selectionStartOffset;
+  const isEndMacroAfterSelection = endMacroEndOffset > selectionEndOffset;
+
+  const isWithinListStructure = isBeginMacroBeforeSelection && isEndMacroAfterSelection;
+
+  if (!isWithinListStructure) {
+    return [false, null];
+  }
+
+  const listStructureRange: IRange = {
+    startColumn: beginMacroMatch.range.startColumn,
+    startLineNumber: beginMacroMatch.range.startLineNumber,
+    endColumn: endMacroMatch.range.endColumn,
+    endLineNumber: endMacroMatch.range.endLineNumber,
+  };
+
+  return [true, listStructureRange];
+}
+
+/** Extract the contents of \item macros inside a range */
+function extractListItemContents(listStructureContentRange: IRange, model: MonacoEditor.ITextModel) {
+  const content = model.getValueInRange(listStructureContentRange);
+  const itemContentRegex = /(?<=\\item(?:\{|\s+))(.+?)(?=\}|(?:\s*)\\item|\n)/g;
+
+  const matches = [...content.matchAll(itemContentRegex)].map((match) => match[1]);
+  return matches;
 }
 
 function isImmediatelySurroundedByMacro(
@@ -272,6 +344,51 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     [editor, yDoc, yText],
   );
 
+  const toggleListStructure = useCallback(
+    (listStructure: LatexListStructure) => {
+      if (!editor || !yDoc || !yText) return;
+
+      const model = editor.getModel();
+      const selection = editor.getSelection();
+      if (!model || !selection) return;
+
+      const [isWithinList, listStructureRange] = isInsideListStructure(listStructure, model, selection);
+
+      // Replace list structure with just the item contents
+      if (isWithinList) {
+        const itemContents = extractListItemContents(listStructureRange, model);
+
+        const listStructureStartOffset = model.getOffsetAt({
+          column: listStructureRange.startColumn,
+          lineNumber: listStructureRange.startLineNumber,
+        });
+
+        const listStructureEndOffset = model.getOffsetAt({
+          column: listStructureRange.endColumn,
+          lineNumber: listStructureRange.endLineNumber,
+        });
+
+        const listStructureLength = listStructureEndOffset - listStructureStartOffset;
+
+        yDoc.transact(() => {
+          yText.delete(listStructureStartOffset, listStructureLength);
+          itemContents.forEach((itemContent, index) => {
+            const itemContentOffset = model.getOffsetAt({
+              column: listStructureRange.startColumn,
+              lineNumber: listStructureRange.startLineNumber + index,
+            });
+            yText.insert(itemContentOffset, `${itemContent}\n`);
+          });
+        }, editorControlRef.current);
+      }
+      // Surround the selected lines with a list structure,
+      // with each selected line as its own item
+      else {
+      }
+    },
+    [editor, yDoc, yText],
+  );
+
   useEffect(() => {
     if (!monaco || !editor) return;
 
@@ -280,7 +397,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
     // Force LF line endings for Yjs synchronisation.
     model.setEOL(monaco.editor.EndOfLineSequence.LF);
-
+    model.getEOL();
     const doc = new Y.Doc();
     const text = doc.getText('latech');
     const provider = new WebsocketProvider(window.ENV.VITE_WS_HOST, roomId, doc);
@@ -447,8 +564,20 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       undo,
       redo,
       toggleSurroundingMacro,
+      toggleListStructure,
     }),
-    [awarenessUsers, currentAwarenessUser, editor, yDoc, yProvider, yText, undo, redo, toggleSurroundingMacro],
+    [
+      awarenessUsers,
+      currentAwarenessUser,
+      editor,
+      yDoc,
+      yProvider,
+      yText,
+      undo,
+      redo,
+      toggleSurroundingMacro,
+      toggleListStructure,
+    ],
   );
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
