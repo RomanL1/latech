@@ -13,12 +13,12 @@ import {
   LucideTable,
   LucideUnderline,
 } from 'lucide-react';
-import { LatexMacro, useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import { LatexListStructure, LatexMacro, useEditor } from '../../../../shared/components/latex-editor/EditorContext';
 import styles from './EditorControls.module.css';
 import FontSizeControl from './font-size/FontSizeControl';
 
 const EditorControls = () => {
-  const { toggleSurroundingMacro } = useEditor();
+  const { toggleSurroundingMacro, toggleListStructure } = useEditor();
 
   function toggleBold() {
     toggleSurroundingMacro(new LatexMacro('textbf'));
@@ -42,6 +42,14 @@ const EditorControls = () => {
 
   function toggleSubscript() {
     toggleSurroundingMacro(new LatexMacro('textsubscript'));
+  }
+
+  function toggleNumberedList() {
+    toggleListStructure(new LatexListStructure('enumerate'));
+  }
+
+  function toggleBulletpointList() {
+    toggleListStructure(new LatexListStructure('itemize'));
   }
 
   return (
@@ -81,10 +89,10 @@ const EditorControls = () => {
       <IconButton size="1" variant="ghost">
         <LucideTable size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost">
+      <IconButton size="1" variant="ghost" onClick={() => toggleBulletpointList()} title="Bullet point list">
         <LucideList size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost">
+      <IconButton size="1" variant="ghost" onClick={() => toggleNumberedList()} title="Numbered list">
         <LucideListOrdered size={16} />
       </IconButton>
 

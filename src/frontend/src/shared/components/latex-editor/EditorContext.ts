@@ -25,6 +25,28 @@ export interface EditorContextValue {
   undo: () => void;
   redo: () => void;
   toggleSurroundingMacro: (macro: LatexMacro) => void;
+  toggleListStructure: (listStructure: LatexListStructure) => void;
+}
+
+export type LatexListType = 'itemize' | 'enumerate';
+export class LatexListStructure {
+  public readonly beginMacro: string;
+  public readonly endMacro: string;
+
+  constructor(public readonly type: LatexListType) {
+    this.beginMacro = `\\begin{${type}}`;
+    this.endMacro = `\\end{${type}}`;
+  }
+
+  build(startingColumn: number, items: string[]): string {
+    const baseIndent = ' '.repeat(startingColumn - 1);
+
+    const beginMacro = `${this.beginMacro}\n`;
+    const itemMacros = items.map((item) => `${baseIndent}\t\\item ${item}\n`).join('');
+    const endMacro = `${baseIndent}${this.endMacro}`;
+
+    return `${beginMacro}${itemMacros}${endMacro}`;
+  }
 }
 
 export class LatexMacro {
