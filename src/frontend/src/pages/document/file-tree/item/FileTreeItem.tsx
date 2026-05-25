@@ -1,7 +1,7 @@
 import styles from './FileTreeItem.module.css';
 import { Text, TextField } from '@radix-ui/themes';
 import FileTreeItemDotMenu from './dot-menu/FileTreeItemDotMenu';
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 interface FileTreeItemProps {
   fileName: string;
@@ -15,7 +15,7 @@ interface FileTreeItemProps {
   canDownload?: boolean;
 }
 
-const FileTreeItem = ({
+const FileTreeItem = memo(({
   fileName,
   icon,
   isSelected,
@@ -33,10 +33,11 @@ const FileTreeItem = ({
 
   useEffect(() => {
     if (isRenaming) {
-      requestAnimationFrame(() => {
+      const rafId = requestAnimationFrame(() => {
         textFieldRef.current?.focus();
         textFieldRef.current?.select();
       });
+      return () => cancelAnimationFrame(rafId);
     }
   }, [isRenaming]);
 
@@ -80,9 +81,7 @@ const FileTreeItem = ({
   return (
     <div
       className={styles.container}
-      onClick={() => {
-        onClick();
-      }}
+      onClick={onClick}
       onFocus={onClick}
       onKeyUp={handleOnKeyUp}
       data-selected={isSelected}
@@ -119,6 +118,6 @@ const FileTreeItem = ({
       />
     </div>
   );
-};
+});
 
 export default FileTreeItem;

@@ -1,5 +1,6 @@
 import { DropdownMenu } from '@radix-ui/themes';
 import { LucideEllipsisVertical } from 'lucide-react';
+import { memo } from 'react';
 
 interface FileTreeItemDotMenuProps {
   className?: string;
@@ -10,7 +11,7 @@ interface FileTreeItemDotMenuProps {
   canDelete?: boolean;
 }
 
-const FileTreeItemDotMenu = ({
+const FileTreeItemDotMenu = memo(({
   className,
   onRename,
   onDownload,
@@ -24,35 +25,19 @@ const FileTreeItemDotMenu = ({
         <LucideEllipsisVertical className={className} size={16} />
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
-        <DropdownMenu.Item
-          onSelect={() => {
-            onRename?.();
-          }}
-          shortcut="Enter"
-        >
+        <DropdownMenu.Item onSelect={onRename} shortcut="Enter">
           Rename
         </DropdownMenu.Item>
-        <DropdownMenu.Item
-          onSelect={() => {
-            onDownload?.();
-          }}
-          disabled={!canDownload}
-        >
+        <DropdownMenu.Item onSelect={onDownload} disabled={!canDownload}>
           Download
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
-        <DropdownMenu.Item
-          onSelect={() => {
-            onDelete?.();
-          }}
-          color="red"
-          disabled={!canDelete}
-        >
+        <DropdownMenu.Item onSelect={onDelete} color="red" disabled={!canDelete}>
           Delete
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   );
-};
+});
 
 export default FileTreeItemDotMenu;
