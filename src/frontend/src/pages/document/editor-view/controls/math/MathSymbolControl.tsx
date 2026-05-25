@@ -13,6 +13,11 @@ export function MathSymbolControls() {
     event.preventDefault();
   }
 
+  function insertSymbol(symbol: string) {
+    insertMathSymbol(symbol);
+    setOpen(false);
+  }
+
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger>
@@ -28,7 +33,7 @@ export function MathSymbolControls() {
               size="1"
               variant="outline"
               className={styles.cell}
-              onClick={() => insertMathSymbol(latexSymbol)}
+              onClick={() => insertSymbol(latexSymbol)}
               title={altText}
               aria-label={altText}
             >
@@ -44,7 +49,7 @@ export function MathSymbolControls() {
               size="1"
               variant="outline"
               className={styles.cell}
-              onClick={() => insertMathSymbol(latexSymbol)}
+              onClick={() => insertSymbol(latexSymbol)}
               title={altText}
               aria-label={altText}
             >
@@ -60,7 +65,7 @@ export function MathSymbolControls() {
               size="1"
               variant="outline"
               className={styles.cell}
-              onClick={() => insertMathSymbol(latexSymbol)}
+              onClick={() => insertSymbol(latexSymbol)}
               title={altText}
               aria-label={altText}
             >
@@ -76,7 +81,7 @@ export function MathSymbolControls() {
               size="1"
               variant="outline"
               className={styles.cell}
-              onClick={() => insertMathSymbol(latexSymbol)}
+              onClick={() => insertSymbol(latexSymbol)}
               title={altText}
               aria-label={altText}
             >
@@ -92,7 +97,7 @@ export function MathSymbolControls() {
               size="1"
               variant="outline"
               className={styles.cell}
-              onClick={() => insertMathSymbol(latexSymbol)}
+              onClick={() => insertSymbol(latexSymbol)}
               title={altText}
               aria-label={altText}
             >
@@ -108,7 +113,7 @@ export function MathSymbolControls() {
               size="1"
               variant="outline"
               className={styles.cell}
-              onClick={() => insertMathSymbol(latexSymbol)}
+              onClick={() => insertSymbol(latexSymbol)}
               title={altText}
               aria-label={altText}
             >
