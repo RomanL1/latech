@@ -1,8 +1,4 @@
-export interface LatexSymbol {
-  symbol: string;
-  latexSymbol: string;
-  altText: string;
-}
+import type { LatexSymbol } from '../symbol';
 
 export const operators: LatexSymbol[] = [
   { symbol: '±', latexSymbol: '\\pm', altText: 'Plus or minus' },

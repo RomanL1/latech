@@ -1,7 +1,7 @@
 import { Heading, IconButton, Popover } from '@radix-ui/themes';
 import { RadicalIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
+import { useEditor } from '../../../../../../shared/components/latex-editor/EditorContext';
 import styles from './MathSymbolControl.module.css';
 import { arrows, calculusAnalysis, logic, operators, relations, setTheory } from './math-symbols';
 
