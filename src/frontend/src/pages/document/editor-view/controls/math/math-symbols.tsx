@@ -58,7 +58,7 @@ export const logic: LatexSymbol[] = [
   { symbol: '∨', latexSymbol: '\\lor', altText: 'Or' },
   { symbol: '∀', latexSymbol: '\\forall', altText: 'For all' },
   { symbol: '∃', latexSymbol: '\\exists', altText: 'Exists' },
-  { symbol: '∄', latexSymbol: '\\nexists', altText: 'Not exists' },
+  { symbol: '∄', latexSymbol: '\\not\\exists', altText: 'Not exists' },
   { symbol: '⊨', latexSymbol: '\\models', altText: 'Models / semantically entails' },
 ];
 
