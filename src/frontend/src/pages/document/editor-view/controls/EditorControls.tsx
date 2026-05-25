@@ -4,7 +4,6 @@ import {
   LucideItalic,
   LucideList,
   LucideListOrdered,
-  LucideOmega,
   LucideSigma,
   LucideStrikethrough,
   LucideSubscript,
@@ -17,6 +16,7 @@ import { LatexMacro } from '../../../../shared/components/latex-editor/controls/
 import styles from './EditorControls.module.css';
 import FontSizeControl from './font-size/FontSizeControl';
 import { ImageSelectControl } from './image/ImageSelectControl';
+import { MathSymbolControls } from './math/MathSymbolControl';
 import { TableControl } from './table/TableControl';
 
 const EditorControls = () => {
@@ -80,9 +80,7 @@ const EditorControls = () => {
 
       <Separator orientation="vertical" />
 
-      <IconButton size="1" variant="ghost">
-        <LucideOmega size={16} />
-      </IconButton>
+      <MathSymbolControls />
       <IconButton size="1" variant="ghost">
         <LucideSigma size={16} />
       </IconButton>

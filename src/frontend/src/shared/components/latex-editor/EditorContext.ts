@@ -34,6 +34,7 @@ export interface EditorContextValue {
   toggleListStructure: (listStructure: LatexListStructure) => void;
   insertImage: (fileName: string) => void;
   insertTable: (dimensions: TableDimensions) => void;
+  insertMathSymbol: (symbol: string) => void;
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);

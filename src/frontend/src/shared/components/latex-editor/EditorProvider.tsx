@@ -18,6 +18,7 @@ import {
 } from './EditorContext';
 import { useKeyboardSaveContext } from '../../../pages/document/provider/KeyboardSaveContext';
 
+import * as mathControlActions from './controls/math';
 import * as tableControlActions from './controls/table';
 import * as imageControlActions from './controls/images';
 import * as listControlActions from './controls/lists';
@@ -73,6 +74,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const insertTable = useCallback(
     (dimensions: TableDimensions) => {
       tableControlActions.insertTable(dimensions, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
+
+  const insertMathSymbol = useCallback(
+    (symbol: string) => {
+      mathControlActions.insertSymbol(symbol, editor, yDoc, yText, editorControlRef);
     },
     [editor, yDoc, yText],
   );
@@ -264,8 +272,23 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       toggleListStructure,
       insertImage,
       insertTable,
+      insertMathSymbol,
     }),
-    [editor, yDoc, yProvider, yText, undo, redo, toggleSurroundingMacro, toggleListStructure, insertImage, insertTable],
+    [
+      awarenessUsers,
+      currentAwarenessUser,
+      editor,
+      yDoc,
+      yProvider,
+      yText,
+      undo,
+      redo,
+      toggleSurroundingMacro,
+      toggleListStructure,
+      insertImage,
+      insertTable,
+      insertMathSymbol,
+    ],
   );
 
   const awarenessValue = useMemo<AwarenessContextValue>(
