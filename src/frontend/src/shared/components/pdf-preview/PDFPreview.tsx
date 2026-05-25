@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import {
   useGetRenderedPDF,
   COMPILE_FINISHED_MESSAGE_TYPE,
@@ -76,19 +76,16 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
   const { data: pdfBlob, isLoading: isPdfLoading, refetch } = useGetRenderedPDF(docId);
   const themeContext = useContext(ThemeContext);
 
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const pdfUrl = useMemo(() => {
+    if (!pdfBlob) return null;
+    return URL.createObjectURL(pdfBlob);
+  }, [pdfBlob]);
 
   useEffect(() => {
-    if (!pdfBlob) {
-      setPdfUrl(null);
-      return;
-    }
-    const url = URL.createObjectURL(pdfBlob);
-    setPdfUrl(url);
     return () => {
-      URL.revokeObjectURL(url);
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-  }, [pdfBlob]);
+  }, [pdfUrl]);
 
   useEffect(() => {
     if (!pdfEventSource) return;

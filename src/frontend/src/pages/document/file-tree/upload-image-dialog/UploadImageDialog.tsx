@@ -2,7 +2,7 @@ import { Button, Card, Dialog, IconButton, Inset, Spinner, Text } from '@radix-u
 import { LucideTrash, Upload } from 'lucide-react';
 import ImageDropzone from '../../../../shared/components/ImageDropzone/ImageDropzone';
 import styles from './UploadImageDialog.module.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router';
 import { usePostImages } from '../../../../features/documents/api';
 
@@ -12,15 +12,17 @@ interface UploadImageDialogProps {
 
 const UploadImageDialog = ({ className }: UploadImageDialogProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [fileUrls, setFileUrls] = useState<string[]>([]);
+
+  const fileUrls = useMemo(
+    () => uploadedFiles.map((file) => URL.createObjectURL(file)),
+    [uploadedFiles],
+  );
 
   useEffect(() => {
-    const urls = uploadedFiles.map((file) => URL.createObjectURL(file));
-    setFileUrls(urls);
     return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url));
+      fileUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [uploadedFiles]);
+  }, [fileUrls]);
 
   const documentId = useParams().documentId;
   const mutation = usePostImages(documentId!);
