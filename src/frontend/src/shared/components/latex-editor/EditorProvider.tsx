@@ -126,7 +126,6 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
           }
         });
       }
-
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {
