@@ -33,17 +33,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
   const editorControlRef = useRef({ name: 'editor-control' });
 
-  const undo = useMemo(() => {
-    return () => {
-      undoManagerRef.current?.undo();
-    };
-  }, [undoManagerRef]);
+  const undo = useCallback(() => {
+    undoManagerRef.current?.undo();
+  }, []);
 
-  const redo = useMemo(() => {
-    return () => {
-      undoManagerRef.current?.redo();
-    };
-  }, [undoManagerRef]);
+  const redo = useCallback(() => {
+    undoManagerRef.current?.redo();
+  }, []);
   const { triggerSave } = useKeyboardSaveContext();
 
   const toggleSurroundingMacro = useCallback(

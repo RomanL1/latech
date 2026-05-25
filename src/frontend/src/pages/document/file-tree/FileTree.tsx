@@ -44,27 +44,36 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
     setSelectedFile({ type: 'tex', file: document });
   }, [isDocumentLoading, setSelectedFile, document, documentUnlocked]);
 
-  const handleOnDownload = useCallback((item: DocumentFile) => {
-    if (item.type === 'image') {
-      downloadMutation.mutateAsync({ imageId: item.file.id, imageName: item.file.name });
-    }
-  }, [downloadMutation]);
+  const handleOnDownload = useCallback(
+    (item: DocumentFile) => {
+      if (item.type === 'image') {
+        downloadMutation.mutateAsync({ imageId: item.file.id, imageName: item.file.name });
+      }
+    },
+    [downloadMutation],
+  );
 
-  const onDelete = useCallback((item: DocumentFile) => {
-    if (item.type === 'image') {
-      deleteQuery.mutateAsync(item.file.id).then(() => {
-        setSelectedFile(undefined);
-      });
-    }
-  }, [deleteQuery, setSelectedFile]);
+  const onDelete = useCallback(
+    (item: DocumentFile) => {
+      if (item.type === 'image') {
+        deleteQuery.mutateAsync(item.file.id).then(() => {
+          setSelectedFile(undefined);
+        });
+      }
+    },
+    [deleteQuery, setSelectedFile],
+  );
 
-  const handleOnNameChange = useCallback((item: DocumentFile, newName: string) => {
-    if (item.type === 'image') {
-      renameMutation.mutateAsync({ imageId: item.file.id, newName });
-    }
+  const handleOnNameChange = useCallback(
+    (item: DocumentFile, newName: string) => {
+      if (item.type === 'image') {
+        renameMutation.mutateAsync({ imageId: item.file.id, newName });
+      }
 
-    // TODO: handle renaming for tex document as well
-  }, [renameMutation]);
+      // TODO: handle renaming for tex document as well
+    },
+    [renameMutation],
+  );
 
   const files: DocumentFile[] = useMemo(
     () => [

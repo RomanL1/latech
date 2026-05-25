@@ -29,14 +29,18 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
     if (!documentId) return;
 
     const source = getPDFRenderedEventSource(documentId);
+    let isActive = true;
 
     // Using a microtask prevents the synchronous cascading render while
     // keeping the connection cycle tightly bound to the effect.
     Promise.resolve().then(() => {
-      setPdfEventSource(source);
+      if (isActive) {
+        setPdfEventSource(source);
+      }
     });
 
     return () => {
+      isActive = false;
       source.close();
       setPdfEventSource(null);
     };

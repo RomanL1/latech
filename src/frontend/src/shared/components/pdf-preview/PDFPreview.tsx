@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useContext, useEffect, useState, useCallback, useRef } from 'react';
 import {
   useGetRenderedPDF,
   COMPILE_FINISHED_MESSAGE_TYPE,
@@ -76,18 +76,19 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
   const { data: pdfBlob, isLoading: isPdfLoading, refetch } = useGetRenderedPDF(docId);
   const themeContext = useContext(ThemeContext);
 
-  const pdfUrl = useMemo(() => {
-    if (!pdfBlob) return null;
-    return URL.createObjectURL(pdfBlob);
-  }, [pdfBlob]);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!pdfBlob) {
+      setPdfUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(pdfBlob);
+    setPdfUrl(url);
     return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
+      URL.revokeObjectURL(url);
     };
-  }, [pdfUrl]);
+  }, [pdfBlob]);
 
   useEffect(() => {
     if (!pdfEventSource) return;
@@ -132,7 +133,7 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pdfEventSource.removeEventListener('error', onError as any);
     };
-  }, [docId, refetch, fetchHistory, pdfEventSource]);
+  }, [refetch, fetchHistory, pdfEventSource]);
 
   return (
     <Flex direction="column" height="100%" gap="3">
