@@ -55,6 +55,14 @@ export function DocumentPage() {
     nav('/');
   };
 
+  const handleFilePanelResize = () => {
+    if (leftPanelRef.current?.isCollapsed()) {
+      setSelectedTab('');
+    } else if (!selectedTab) {
+      setSelectedTab('file');
+    }
+  };
+
   return (
     <Tabs.Root
       defaultValue="file"
@@ -71,7 +79,14 @@ export function DocumentPage() {
       </Tabs.List>
 
       <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
-        <Panel id="navigation" collapsible minSize="20%" defaultSize="25%" panelRef={leftPanelRef}>
+        <Panel
+          id="navigation"
+          collapsible
+          minSize="20%"
+          defaultSize="25%"
+          panelRef={leftPanelRef}
+          onResize={handleFilePanelResize}
+        >
           <Tabs.Content value="file" className={styles.tabsContent}>
             <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
           </Tabs.Content>
