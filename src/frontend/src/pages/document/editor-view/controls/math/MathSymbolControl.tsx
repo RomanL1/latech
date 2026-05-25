@@ -1,5 +1,5 @@
-import { IconButton, Popover } from '@radix-ui/themes';
-import { LucideSigma } from 'lucide-react';
+import { Heading, IconButton, Popover } from '@radix-ui/themes';
+import { RadicalIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
 import styles from './MathSymbolControl.module.css';
@@ -22,10 +22,11 @@ export function MathSymbolControls() {
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger>
         <IconButton size="1" variant="ghost" title="Math symbols">
-          <LucideSigma size={16} />
+          <RadicalIcon size={16} />
         </IconButton>
       </Popover.Trigger>
       <Popover.Content align="center" onOpenAutoFocus={preventPopoverFocus} onCloseAutoFocus={preventPopoverFocus}>
+        <Heading>Mathematical Symbols</Heading>
         <span>Basic operators</span>
         <div className={styles.grid}>
           {operators.map(({ symbol, latexSymbol, altText }) => (
