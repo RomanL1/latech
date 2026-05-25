@@ -159,13 +159,40 @@ function isInsideListStructure(
     lineNumber: endMacroMatch.range.endLineNumber,
   });
 
+  // Potential intercepting macros (e.g end macros between begin macro and selection)
+  const precedingEndMacroMatch = model.findPreviousMatch(endMacro, selectionStartPosition, false, true, null, true);
+  const succeedingBeginMacroMatch = model.findNextMatch(beginMacro, selectionEndPosition, false, true, null, true);
+
+  const precedingEndMacroEndOffset = precedingEndMacroMatch
+    ? model.getOffsetAt({
+        column: precedingEndMacroMatch.range.endColumn,
+        lineNumber: precedingEndMacroMatch.range.endLineNumber,
+      })
+    : -1;
+
+  const succeedingBeginMacroStartOffset = succeedingBeginMacroMatch
+    ? model.getOffsetAt({
+        column: succeedingBeginMacroMatch.range.startColumn,
+        lineNumber: succeedingBeginMacroMatch.range.startLineNumber,
+      })
+    : Infinity;
+
   // `findPreviousMatch` and `findNextMatch` loop to the opposite side of
   // the model. To account for false-positives, check whether list structure macros
-  // are on the correct side relative to the selected range.
+  // are on the correct side relative to the selected range, without being intercepte
+  // by other macros between selection and start/end macros
+  const isBeginMacroInterceptedBeforeSelection =
+    precedingEndMacroEndOffset < selectionStartOffset && beginMacroStartOffset < precedingEndMacroEndOffset;
   const isBeginMacroBeforeSelection = beginMacroStartOffset <= selectionStartOffset;
+
+  const isEndMacroInterceptedAfterSelection =
+    succeedingBeginMacroStartOffset > selectionEndOffset && endMacroEndOffset > succeedingBeginMacroStartOffset;
   const isEndMacroAfterSelection = endMacroEndOffset >= selectionEndOffset;
 
-  const isWithinListStructure = isBeginMacroBeforeSelection && isEndMacroAfterSelection;
+  const isValidBeginMacro = !isBeginMacroInterceptedBeforeSelection && isBeginMacroBeforeSelection;
+  const isValidEndMacro = !isEndMacroInterceptedAfterSelection && isEndMacroAfterSelection;
+
+  const isWithinListStructure = isValidBeginMacro && isValidEndMacro;
 
   if (!isWithinListStructure) {
     return [false, null];
