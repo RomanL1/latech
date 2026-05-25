@@ -4,7 +4,7 @@ import {
   LucideItalic,
   LucideList,
   LucideListOrdered,
-  LucideSigma,
+  LucideOmega,
   LucideStrikethrough,
   LucideSubscript,
   LucideSuperscript,
@@ -80,10 +80,10 @@ const EditorControls = () => {
 
       <Separator orientation="vertical" />
 
-      <MathSymbolControls />
       <IconButton size="1" variant="ghost">
-        <LucideSigma size={16} />
+        <LucideOmega size={16} />
       </IconButton>
+      <MathSymbolControls />
       <Separator orientation="vertical" />
 
       <TableControl />
