@@ -1,14 +1,14 @@
 services:
 
-  frontend:
-    build: ./src/frontend
-    container_name: frontend
-    ports:
-      - "5173:80"
-    environment:
-      - VITE_API_HOST=http://localhost:5001/api
-      - WEBSOCKET_SERVER_URL=http://localhost:3000
-    restart: always
+  # frontend:
+  #   build: ./src/frontend
+  #   container_name: frontend
+  #   ports:
+  #     - "5173:80"
+  #   environment:
+  #     - VITE_API_HOST=http://localhost:5001/api
+  #     - WEBSOCKET_SERVER_URL=http://localhost:3000
+  #   restart: always
     
   rabbitmq:
     image: rabbitmq:4.0-management
@@ -80,7 +80,7 @@ services:
       - 'SEAWEEDFS_ACCESS_KEY=changeme'
       - 'SEAWEEDFS_SECRET_KEY=changeme'
       - 'SEAWEEDFS_HOST=seaweedfs'
-      - HOST_SIDE_WORK_DIR_PATH=/mnt/compileRAMTempFS # for mac change to /tmp/compileRAMTempFS
+      - HOST_SIDE_WORK_DIR_PATH=/tmp/compileRAMTempFS # for mac change to /tmp/compileRAMTempFS
     depends_on:
       - rabbitmq
       - seaweedfs
@@ -131,4 +131,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /mnt/compileRAMTempFS # for mac change to /tmp/compileRAMTempFS
+      device: /tmp/compileRAMTempFS # for mac change to /tmp/compileRAMTempFS

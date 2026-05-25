@@ -8,6 +8,7 @@ import {
   useDownloadImage,
   useGetDocument,
   useGetImages,
+  useRenameDocument,
   useRenameImage,
 } from '../../../features/documents/api';
 import { useParams } from 'react-router';
@@ -31,7 +32,8 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
 
   const deleteQuery = useDeleteImage(documentId);
   const downloadMutation = useDownloadImage(documentId);
-  const renameMutation = useRenameImage(documentId);
+  const renameImageMutation = useRenameImage(documentId);
+  const renameDocumentMutation = useRenameDocument(documentId);
 
   useEffect(() => {
     if (isDocumentLoading || !document) return;
@@ -60,10 +62,16 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
 
   const handleOnNameChange = (item: DocumentFile, newName: string) => {
     if (item.type === 'image') {
-      renameMutation.mutateAsync({ imageId: item.file.id, newName });
+      renameImageMutation.mutateAsync({ imageId: item.file.id, newName });
+      return;
     }
 
-    // TODO: handle renaming for tex document as well
+    if (item.type === 'tex') {
+      renameDocumentMutation.mutateAsync({ newName });
+      return;
+    }
+
+    console.log('Unknown file type for renaming:', item.type);
   };
 
   const files: DocumentFile[] = useMemo(
