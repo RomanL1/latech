@@ -97,6 +97,10 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     });
 
     const binding = new MonacoBinding(text, model, new Set([editor]), provider.awareness);
+    // MonacoBinding's setValue('') call may reset the model EOL to the platform default (CRLF
+    // on Windows). Re-apply LF immediately while the model is still empty so no onDidChangeContent
+    // fires and _monacoChangeHandler cannot push CRLF-offset events into Y.Text.
+    model.setEOL(monaco.editor.EndOfLineSequence.LF);
     const undoManager = new Y.UndoManager(text, {
       trackedOrigins: new Set([binding, editorControlRef.current]),
     });
@@ -112,13 +116,16 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
         const freshText = fresh.content?.replace(/\r\n/g, '\n') ?? '';
         if (freshText) text.insert(0, freshText);
       } else if (current.includes('\r\n')) {
+        // Delete \r chars individually to preserve Yjs relative positions (cursor awareness).
+        // A full delete+insert resets all connected clients' cursors to the top.
         doc.transact(() => {
-          text.delete(0, current.length);
-          text.insert(0, current.replace(/\r\n/g, '\n'));
+          let offset = 0;
+          for (const match of current.matchAll(/\r(?=\n)/g)) {
+            text.delete(match.index! - offset, 1);
+            offset++;
+          }
         });
       }
-
-      model.setEOL(monaco.editor.EndOfLineSequence.LF);
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {
