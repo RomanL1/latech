@@ -8,12 +8,13 @@ import { FileBracesCornerIcon, LucideFile, LucideSettings } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
 import type { Document, DocumentImage } from '../../features/documents/document';
 import EditorView from './editor-view/EditorView';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import KeyboardSaveProvider from './provider/KeyboardSaveProvider';
 
 export type DocumentFile = { type: 'image'; file: DocumentImage } | { type: 'tex'; file: Document };
 
 export function DocumentPage() {
+  const { documentId } = useParams<{ documentId: string }>();
   const [selectedFile, setSelectedFile] = useState<DocumentFile | undefined>();
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: 'document-page-layout',
@@ -75,7 +76,7 @@ export function DocumentPage() {
         </Tabs.List>
 
         <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
-          <Panel id="navigation" collapsible minSize="20%" panelRef={leftPanelRef}>
+          <Panel id="navigation" collapsible minSize="20%" defaultSize="25%" panelRef={leftPanelRef}>
             <Tabs.Content value="file" className={styles.tabsContent}>
               <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
             </Tabs.Content>
@@ -85,11 +86,11 @@ export function DocumentPage() {
             </Tabs.Content>
           </Panel>
           <ResizeSeparator onClick={handleSeparatorClick} />
-          <Panel id="main" minSize="20%">
+          <Panel id="main" minSize="20%" defaultSize="75%">
             {selectedFile && selectedFile.type === 'image' ? (
               <ImagePreview selectedFile={selectedFile.file} />
-            ) : selectedFile && selectedFile.type === 'tex' ? (
-              <EditorView documentId={selectedFile.file.id} file={selectedFile?.file} />
+            ) : documentId ? (
+              <EditorView documentId={documentId} file={selectedFile?.type === 'tex' ? selectedFile.file : undefined} />
             ) : null}
           </Panel>
         </Group>

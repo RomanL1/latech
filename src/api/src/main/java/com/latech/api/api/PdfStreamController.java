@@ -1,13 +1,16 @@
 package com.latech.api.api;
 
+import com.latech.api.business.DocumentAuthService;
 import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.repository.DocumentRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,18 +29,22 @@ import java.util.UUID;
 public class PdfStreamController {
     private final PDFStreamTopicService pdfStreamTopicService;
     private final DocumentRepository documentRepository;
+    private final DocumentAuthService documentAuthService;
 
-    @Nullable
     @GetMapping( "/{docId}/stream-updates" )
-    public SseEmitter streamUpdates ( @PathVariable String docId ) {
+    public ResponseEntity<SseEmitter> streamUpdates ( @PathVariable String docId, HttpServletRequest request ) {
         if ( ObjectUtils.isEmpty( docId ) ) {
-            return null;
+            return ResponseEntity.badRequest().build();
         }
 
         UUID id = UUID.fromString( docId );
         Optional<Document> _document = documentRepository.findById( id );
-        if ( ObjectUtils.isEmpty( _document ) ) {
-            return null;
+        if ( _document.isEmpty() ) {
+            return ResponseEntity.status( HttpStatus.NOT_FOUND ).build();
+        }
+
+        if ( !documentAuthService.hasAccess( id, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
         var document = _document.get();
@@ -48,6 +55,7 @@ public class PdfStreamController {
         pdfStreamTopicService.notifyTimestamps( id.toString(), new DocumentTimestampsDto( document.getLastChange(),
                                                                                           document.getLastCompile() ) );
         pdfStreamTopicService.notifyAutoRenderSetting( id.toString(), document.isAutoRenderEnabled() );
-        return emitter;
+
+        return ResponseEntity.ok( emitter );
     }
 }

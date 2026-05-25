@@ -1,7 +1,7 @@
-import { useMonaco } from '@monaco-editor/react';
 import { generateColor } from '@marko19907/string-to-color';
-import { editor as MonacoEditor, KeyCode, KeyMod } from 'monaco-editor';
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { useMonaco } from '@monaco-editor/react';
+import { KeyCode, KeyMod, editor as MonacoEditor } from 'monaco-editor';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
 import { MonacoBinding } from 'y-monaco';
 import * as awarenessProtocol from 'y-protocols/awareness';
@@ -10,6 +10,12 @@ import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
 import { EditorContext, type AwarenessUser, type AwarenessUserList, type EditorContextValue } from './EditorContext';
 import { useKeyboardSaveContext } from '../../../pages/document/provider/KeyboardSaveContext';
+
+import * as tableControlActions from './controls/table';
+import * as imageControlActions from './controls/images';
+import * as listControlActions from './controls/lists';
+import * as singleMacroControlActions from './controls/single-macro';
+import type { TableDimensions } from './controls/table';
 
 interface EditorProviderProps {
   children: ReactNode;
@@ -25,6 +31,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const [currentAwarenessUser, setCurrentAwarenessUser] = useState<AwarenessUser | null>(null);
   const monaco = useMonaco();
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
+  const editorControlRef = useRef({ name: 'editor-control' });
 
   const undo = useMemo(() => {
     return () => {
@@ -38,6 +45,34 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     };
   }, [undoManagerRef]);
   const { triggerSave } = useKeyboardSaveContext();
+
+  const toggleSurroundingMacro = useCallback(
+    (macro: singleMacroControlActions.LatexMacro) => {
+      singleMacroControlActions.toggleSurroundingMacro(macro, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
+
+  const toggleListStructure = useCallback(
+    (listStructure: listControlActions.LatexListStructure) => {
+      listControlActions.toggleListStructure(listStructure, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
+
+  const insertImage = useCallback(
+    (fileName: string) => {
+      imageControlActions.insertImage(fileName, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
+
+  const insertTable = useCallback(
+    (dimensions: TableDimensions) => {
+      tableControlActions.insertTable(dimensions, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
 
   useEffect(() => {
     if (!monaco || !editor) return;
@@ -63,7 +98,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
     const binding = new MonacoBinding(text, model, new Set([editor]), provider.awareness);
     const undoManager = new Y.UndoManager(text, {
-      trackedOrigins: new Set([binding]),
+      trackedOrigins: new Set([binding, editorControlRef.current]),
     });
 
     // Expose undo manager to the outer scope for use in undo/redo functions
@@ -217,8 +252,25 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       yText,
       undo,
       redo,
+      toggleSurroundingMacro,
+      toggleListStructure,
+      insertImage,
+      insertTable,
     }),
-    [awarenessUsers, currentAwarenessUser, editor, yDoc, yProvider, yText, undo, redo],
+    [
+      awarenessUsers,
+      currentAwarenessUser,
+      editor,
+      yDoc,
+      yProvider,
+      yText,
+      undo,
+      redo,
+      toggleSurroundingMacro,
+      toggleListStructure,
+      insertImage,
+      insertTable,
+    ],
   );
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;

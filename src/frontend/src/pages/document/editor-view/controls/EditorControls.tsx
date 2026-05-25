@@ -1,43 +1,83 @@
 import { IconButton, Separator } from '@radix-ui/themes';
-import styles from './EditorControls.module.css';
 import {
   LucideBold,
-  LucideImage,
   LucideItalic,
   LucideList,
   LucideListOrdered,
   LucideOmega,
   LucideSigma,
-  LucideTable,
+  LucideStrikethrough,
+  LucideSubscript,
+  LucideSuperscript,
   LucideUnderline,
 } from 'lucide-react';
-import { EditorControlType } from './EditorControlType';
-import HeadingControl from './heading-control/HeadingControl';
+import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import { LatexListStructure } from '../../../../shared/components/latex-editor/controls/lists';
+import { LatexMacro } from '../../../../shared/components/latex-editor/controls/single-macro';
+import styles from './EditorControls.module.css';
+import FontSizeControl from './font-size/FontSizeControl';
+import { ImageSelectControl } from './image/ImageSelectControl';
+import { TableControl } from './table/TableControl';
 
-interface EditorControlsProps {
-  onClick?: (controlType: EditorControlType) => void;
-}
+const EditorControls = () => {
+  const { toggleSurroundingMacro, toggleListStructure } = useEditor();
 
-const EditorControls = ({ onClick }: EditorControlsProps) => {
-  const handleOnClick = (controlType: EditorControlType) => {
-    console.log('FISCH');
-    onClick?.(controlType);
-  };
+  function toggleBold() {
+    toggleSurroundingMacro(new LatexMacro('textbf'));
+  }
+
+  function toggleItalic() {
+    toggleSurroundingMacro(new LatexMacro('textit'));
+  }
+
+  function toggleUnderline() {
+    toggleSurroundingMacro(new LatexMacro('underline'));
+  }
+
+  function toggleStrikethrough() {
+    toggleSurroundingMacro(new LatexMacro('sout'));
+  }
+
+  function toggleSuperscript() {
+    toggleSurroundingMacro(new LatexMacro('textsuperscript'));
+  }
+
+  function toggleSubscript() {
+    toggleSurroundingMacro(new LatexMacro('textsubscript'));
+  }
+
+  function toggleNumberedList() {
+    toggleListStructure(new LatexListStructure('enumerate'));
+  }
+
+  function toggleBulletpointList() {
+    toggleListStructure(new LatexListStructure('itemize'));
+  }
 
   return (
     <div className={styles.container}>
-      <HeadingControl />
+      <FontSizeControl />
       <Separator orientation="vertical" />
 
-      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.BOLD)}>
+      <IconButton size="1" variant="ghost" onClick={() => toggleBold()} title="Bold">
         <LucideBold size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.ITALIC)}>
+      <IconButton size="1" variant="ghost" onClick={() => toggleItalic()} title="Italic">
         <LucideItalic size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost" onClick={() => handleOnClick(EditorControlType.UNDERLINE)}>
+      <IconButton size="1" variant="ghost" onClick={() => toggleUnderline()} title="Underline">
         <LucideUnderline size={16} />
       </IconButton>
+      <IconButton size="1" variant="ghost" onClick={() => toggleStrikethrough()} title="Strikethrough">
+        <LucideStrikethrough size={16} />
+      </IconButton>
+      <IconButton size="1" variant="ghost" onClick={() => toggleSuperscript()} title="Superscript">
+        <LucideSuperscript size={16} />
+      </IconButton>
+      <IconButton size="1" variant="ghost" onClick={() => toggleSubscript()} title="Subscript">
+        <LucideSubscript size={16} />
+      </IconButton>
+
       <Separator orientation="vertical" />
 
       <IconButton size="1" variant="ghost">
@@ -48,20 +88,17 @@ const EditorControls = ({ onClick }: EditorControlsProps) => {
       </IconButton>
       <Separator orientation="vertical" />
 
-      <IconButton size="1" variant="ghost">
-        <LucideTable size={16} />
-      </IconButton>
-      <IconButton size="1" variant="ghost">
+      <TableControl />
+      <IconButton size="1" variant="ghost" onClick={() => toggleBulletpointList()} title="Bullet point list">
         <LucideList size={16} />
       </IconButton>
-      <IconButton size="1" variant="ghost">
+      <IconButton size="1" variant="ghost" onClick={() => toggleNumberedList()} title="Numbered list">
         <LucideListOrdered size={16} />
       </IconButton>
 
       <Separator orientation="vertical" />
-      <IconButton size="1" variant="ghost">
-        <LucideImage size={16} />
-      </IconButton>
+
+      <ImageSelectControl />
     </div>
   );
 };

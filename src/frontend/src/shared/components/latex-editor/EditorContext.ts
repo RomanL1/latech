@@ -2,6 +2,9 @@ import { editor as MonacoEditor } from 'monaco-editor';
 import { createContext, type Dispatch, type SetStateAction, useContext } from 'react';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+import type { LatexListStructure } from './controls/lists';
+import type { LatexMacro } from './controls/single-macro';
+import type { TableDimensions } from './controls/table';
 
 export type AwarenessUser = {
   clientId: number;
@@ -24,6 +27,10 @@ export interface EditorContextValue {
   yText: Y.Text | null;
   undo: () => void;
   redo: () => void;
+  toggleSurroundingMacro: (macro: LatexMacro) => void;
+  toggleListStructure: (listStructure: LatexListStructure) => void;
+  insertImage: (fileName: string) => void;
+  insertTable: (dimensions: TableDimensions) => void;
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null);

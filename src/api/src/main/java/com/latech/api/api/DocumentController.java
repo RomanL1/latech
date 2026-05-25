@@ -9,11 +9,13 @@ import com.latech.api.business.ThumbnailService;
 import com.latech.api.model.api.DocumentCreateRequestDto;
 import com.latech.api.model.api.DocumentCreateResponseDto;
 import com.latech.api.model.api.DocumentDto;
-import com.latech.api.model.api.DocumentSecuredRequestDto;
+import com.latech.api.business.*;
+import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.db.Document;
 import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
 import com.latech.api.repository.TemplateRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,9 +24,11 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Limit;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -51,6 +55,7 @@ public class DocumentController {
     private final DocumentService documentService;
     private final PDFStreamTopicService pdfStreamTopicService;
     private final ThumbnailService thumbnailService;
+    private final DocumentAuthService documentAuthService;
 
     @Value( "${seaweedfs.bucket}" )
     private String bucket;
@@ -86,7 +91,7 @@ public class DocumentController {
 
         Document document = Document.builder()
                 .name( documentCreateRequestDto.name() )
-                .password( documentCreateRequestDto.password() )
+                .password( documentAuthService.hashDocumentPassword( documentCreateRequestDto.password() ) )
                 .content( template.getContent() )
                 .build();
 
@@ -99,63 +104,63 @@ public class DocumentController {
     }
 
     @GetMapping( "/{docId}" )
-    public ResponseEntity<DocumentDto> getDocumentContent ( @PathVariable String docId ) {
-        if ( ObjectUtils.isEmpty( docId ) ) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<DocumentDto> getDocumentContent (
+            @PathVariable String docId,
+            HttpServletRequest request ) {
 
-        if ( !documentRepository.existsById( UUID.fromString( docId ) ) ) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Document document = documentRepository.findById( UUID.fromString( docId ) ).orElseThrow();
-
-        DocumentDto response;
-        if ( !ObjectUtils.isEmpty( document.getPassword() ) ) {
-            response = DocumentDto.builder().id( document.getId().toString() ).secured( true ).build();
-        } else {
-            response = getDocumentDto( document, false );
-        }
-        return ResponseEntity.ok( response );
-    }
-
-    @PostMapping( "secured/{docId}" )
-    public ResponseEntity<DocumentDto> getDocumentSecuredContent ( @PathVariable String docId,
-            @RequestBody DocumentSecuredRequestDto documentSecuredRequestDto ) {
-        if ( ObjectUtils.isEmpty( docId ) || ObjectUtils.isEmpty( documentSecuredRequestDto ) || ObjectUtils.isEmpty(
-                documentSecuredRequestDto.getPassword() ) ) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        if ( !documentRepository.existsById( UUID.fromString( docId ) ) ) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Optional<Document> document = documentRepository.findByIdAndPassword( UUID.fromString( docId ),
-                                                                              documentSecuredRequestDto.getPassword() );
-
-        if ( document.isEmpty() ) {
-            return ResponseEntity.notFound().build();
-        }
-
-        var response = getDocumentDto( document.get(), true );
-        return ResponseEntity.ok( response );
-    }
-
-    @PostMapping( "/{docId}/render" )
-    public ResponseEntity<Void> initiateDocumentRender ( @PathVariable String docId ) {
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().build();
         }
 
         UUID documentId = UUID.fromString( docId );
-        if ( !documentRepository.existsById( documentId ) ) {
+
+        Optional<Document> documentOpt = documentRepository.findById( documentId );
+
+        if ( documentOpt.isEmpty() ) {
             return ResponseEntity.notFound().build();
         }
 
-        Document document = documentRepository.findById( documentId ).orElseThrow();
+        Document document = documentOpt.get();
 
-        //if there have been no changes since last compile
+        boolean secured = StringUtils.hasText( document.getPassword() );
+
+        if ( secured && !documentAuthService.hasAccess( documentId, request ) ) {
+            return ResponseEntity.ok(
+                    DocumentDto.builder()
+                            .id( document.getId().toString() )
+                            .secured( true )
+                            .build()
+            );
+        }
+
+        return ResponseEntity.ok( getDocumentDto( document, secured ) );
+    }
+
+
+    @PostMapping( "/{docId}/render" )
+    public ResponseEntity<Void> initiateDocumentRender (
+            @PathVariable String docId,
+            HttpServletRequest request ) {
+
+        if ( ObjectUtils.isEmpty( docId ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+
+        Optional<Document> documentOpt = documentRepository.findById( documentId );
+
+        if ( documentOpt.isEmpty() ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if ( !documentAuthService.hasAccess( documentId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
+        }
+
+        Document document = documentOpt.get();
+
+        // if there have been no changes since last compile
         if ( document.getLastCompile() != null &&
                 document.getLastChange() != null &&
                 document.getPdfPath() != null &&
@@ -164,13 +169,13 @@ public class DocumentController {
             return ResponseEntity.accepted().build();
         }
 
-        //if we already queued a document for compilation
+        // if we already queued a document for compilation
         if ( !this.ongoingCompileTracker.tryStartJob( documentId ) ) {
             log.info( "Compilation already queued for docId: " + documentId );
             return ResponseEntity.accepted().build();
         }
 
-        //if a previous request was unable to be compiled 3 times, and there have been no changes since.
+        // if a previous request was unable to be compiled 3 times, and there have been no changes since
         if ( document.getCompileAbandonedAt() != null &&
                 document.getCompileAbandonedAt().isAfter( document.getLastChange() ) ) {
             log.info( "unprocessable Content: no changes since last 3 tries of compilation." );
@@ -183,12 +188,26 @@ public class DocumentController {
     }
 
     @GetMapping( "/{docId}/render" )
-    public ResponseEntity<Resource> getRenderedDocument ( @PathVariable String docId ) {
+    public ResponseEntity<Resource> getRenderedDocument (
+            @PathVariable String docId,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().build();
         }
 
+        UUID documentId = UUID.fromString( docId );
+
+        if ( !documentRepository.existsById( documentId ) ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if ( !documentAuthService.hasAccess( documentId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
+        }
+
         String pdfKey = docId + ".pdf";
+
         try {
             ResponseInputStream<GetObjectResponse> s3Stream = s3Client.getObject(
                     b -> b.bucket( this.bucket ).key( pdfKey )
@@ -228,31 +247,59 @@ public class DocumentController {
     }
 
     @GetMapping( "/{docId}/history" )
-    public ResponseEntity<List<RenderHistory>> getRenderHistory ( @PathVariable String docId ) {
+    public ResponseEntity<List<RenderHistory>> getRenderHistory (
+            @PathVariable String docId,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().build();
         }
 
         UUID documentId = UUID.fromString( docId );
+
         if ( !documentRepository.existsById( documentId ) ) {
             return ResponseEntity.notFound().build();
         }
+
+        if ( !documentAuthService.hasAccess( documentId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
+        }
+
         List<RenderHistory> history =
-                renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc( documentId, Limit.of( 50 ) );
+                renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc(
+                        documentId,
+                        Limit.of( 50 )
+                );
+
         return ResponseEntity.ok( history );
     }
 
     @GetMapping( "/{docId}/timestamps" )
-    public ResponseEntity<DocumentTimestampsDto> getTimestamps ( @PathVariable String docId ) {
+    public ResponseEntity<DocumentTimestampsDto> getTimestamps (
+            @PathVariable String docId,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().build();
         }
 
         UUID documentId = UUID.fromString( docId );
-        return documentRepository.findById( documentId )
-                .map( doc -> ResponseEntity.ok(
-                        new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() ) ) )
-                .orElseGet( () -> ResponseEntity.notFound().build() );
+
+        Optional<Document> documentOpt = documentRepository.findById( documentId );
+
+        if ( documentOpt.isEmpty() ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if ( !documentAuthService.hasAccess( documentId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
+        }
+
+        Document doc = documentOpt.get();
+
+        return ResponseEntity.ok(
+                new DocumentTimestampsDto( doc.getLastChange(), doc.getLastCompile() )
+        );
     }
 
     @GetMapping( "/{docId}/thumbnail" )

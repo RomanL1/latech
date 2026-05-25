@@ -1,12 +1,15 @@
 package com.latech.api.api;
 
+import com.latech.api.business.DocumentAuthService;
 import com.latech.api.business.DocumentImageService;
 import com.latech.api.business.ImageService;
 import com.latech.api.model.api.DocumentImageDto;
 import com.latech.api.model.api.DocumentImageUpdateRequestDto;
 import com.latech.api.model.db.DocumentImage;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -25,18 +28,30 @@ import java.util.stream.Collectors;
 public class ImageController {
     private final ImageService imageService;
     private final DocumentImageService documentImageService;
+    private final DocumentAuthService documentAuthService;
 
-    public ImageController ( ImageService imageService, DocumentImageService documentImageService ) {
+    public ImageController (
+            ImageService imageService,
+            DocumentImageService documentImageService,
+            DocumentAuthService documentAuthService
+    ) {
         this.imageService = imageService;
         this.documentImageService = documentImageService;
+        this.documentAuthService = documentAuthService;
     }
 
     @PostMapping( value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
     public ResponseEntity<?> uploadImage (
-            @PathVariable String docId,
-            @RequestParam( "files" ) MultipartFile[] files ) {
+            @PathVariable UUID docId,
+            @RequestParam( "files" ) MultipartFile[] files,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().body( "Document ID is empty" );
+        }
+
+        if ( !documentAuthService.hasAccess( docId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).body( "Unauthorized" );
         }
 
         if ( files == null || files.length == 0 ) {
@@ -54,7 +69,9 @@ public class ImageController {
 
         if ( invalidFile.isPresent() ) {
             return ResponseEntity.badRequest().body(
-                    "Only PNG and JPEG images are allowed. Invalid file: " + invalidFile.get().getOriginalFilename() );
+                    "Only PNG and JPEG images are allowed. Invalid file: " +
+                            invalidFile.get().getOriginalFilename()
+            );
         }
 
         List<DocumentImage> entities = new ArrayList<>();
@@ -62,9 +79,10 @@ public class ImageController {
         try {
             for (MultipartFile file : files) {
                 entities.add( this.imageService.uploadImage(
-                        UUID.fromString( docId ),
+                         docId ,
                         file.getOriginalFilename(),
-                        file ) );
+                        file
+                ) );
             }
         } catch ( FileAlreadyExistsException e ) {
             log.error( "Exception while renaming - filename already exists. ", e );
@@ -87,7 +105,11 @@ public class ImageController {
     }
 
     @GetMapping( value = "{imageId}" )
-    public ResponseEntity<byte[]> getImageBlob ( @PathVariable UUID docId, @PathVariable UUID imageId ) {
+    public ResponseEntity<byte[]> getImageBlob (
+            @PathVariable UUID docId,
+            @PathVariable UUID imageId,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().body( null );
         }
@@ -96,8 +118,14 @@ public class ImageController {
             return ResponseEntity.badRequest().body( null );
         }
 
+        if ( !documentAuthService.hasAccess( docId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).body( null );
+        }
+
         Optional<DocumentImage> documentImage = documentImageService.getPictureFromDocumentAndImageId(
-                docId, imageId );
+                docId,
+                imageId
+        );
 
         if ( documentImage.isEmpty() ) {
             return ResponseEntity.notFound().build();
@@ -114,7 +142,7 @@ public class ImageController {
         return ResponseEntity.ok()
                 .contentType( mediaType )
                 .contentLength( imageBytes.length )
-                .cacheControl( CacheControl.maxAge( 1, TimeUnit.HOURS ).cachePublic() )
+                .cacheControl( CacheControl.maxAge( 1, TimeUnit.HOURS ).cachePrivate() )
                 .body( imageBytes );
     }
 
@@ -122,13 +150,19 @@ public class ImageController {
     public ResponseEntity<?> updateImage (
             @PathVariable UUID docId,
             @PathVariable UUID imageId,
-            @RequestBody DocumentImageUpdateRequestDto file ) {
+            @RequestBody DocumentImageUpdateRequestDto file ,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().body( null );
         }
 
         if ( ObjectUtils.isEmpty( imageId ) ) {
             return ResponseEntity.badRequest().body( null );
+        }
+
+        if ( !documentAuthService.hasAccess( docId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
         if ( this.documentImageService.pictureExistsWithDocumentIdAndImageName( docId, file.getName() ) ) {
@@ -148,9 +182,16 @@ public class ImageController {
     }
 
     @GetMapping
-    public ResponseEntity<List<DocumentImageDto>> getImages ( @PathVariable UUID docId ) {
+    public ResponseEntity<List<DocumentImageDto>> getImages (
+            @PathVariable UUID docId,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().body( null );
+        }
+
+        if ( !documentAuthService.hasAccess( docId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
         List<DocumentImage> pictures = documentImageService.getPicturesForDocument( docId );
@@ -172,12 +213,21 @@ public class ImageController {
     }
 
     @DeleteMapping( value = "{imageId}" )
-    public ResponseEntity<?> deleteImage ( @PathVariable UUID docId, @PathVariable UUID imageId ) {
+    public ResponseEntity<?> deleteImage (
+            @PathVariable UUID docId,
+            @PathVariable UUID imageId,
+            HttpServletRequest request ) {
+
         if ( ObjectUtils.isEmpty( docId ) ) {
             return ResponseEntity.badRequest().body( "Document ID is empty" );
         }
+
         if ( ObjectUtils.isEmpty( imageId ) ) {
             return ResponseEntity.badRequest().body( "Image ID is empty" );
+        }
+
+        if ( !documentAuthService.hasAccess( docId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
         boolean deleted = false;

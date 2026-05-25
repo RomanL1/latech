@@ -1,81 +1,109 @@
+# Socket Server
 
-# y-websocket-server :tophat:
-> Simple backend for [y-websocket](https://github.com/yjs/y-websocket)
+Yjs WebSocket backend for LaTeCH. This service accepts collaboration
+connections, authorizes them through the API, and can send document updates
+back to the API.
 
-The Websocket Provider is a solid choice if you want a central source that
-handles authentication and authorization. Websockets also send header
-information and cookies, so you can use existing authentication mechanisms with
-this server.
+## Local start
 
-## Quick Start
+```powershell
+npm install
+$env:HOST="localhost"
+$env:PORT="3000"
+$env:API_INTERNAL_URL="http://localhost:5001"
+$env:INTERNAL_AUTH_SECRET="changeme"
+npm start
+```
 
-### Install dependencies
+Local start with callbacks:
+
+```powershell
+$env:HOST="localhost"
+$env:PORT="3000"
+$env:API_INTERNAL_URL="http://localhost:5001"
+$env:INTERNAL_AUTH_SECRET="changeme"
+$env:CALLBACK_URL="http://localhost:5001/api/document/callback"
+$env:CALLBACK_OBJECT_NAME="latech"
+npm start
+```
+
+## Docker / Compose
+
+Current repo defaults:
+
+- Dockerfile sets `HOST=0.0.0.0`, `PORT=3000`, `API_INTERNAL_URL=http://api:5001`
+- `compose.yml` sets `API_INTERNAL_URL=http://api:5001`
+- `compose.yml` sets `INTERNAL_AUTH_SECRET=changeme`
+- `compose.yml` enables callbacks with `CALLBACK_URL=http://api:5001/api/document/callback`
+
+In Compose, `http://api:5001` works because `api` is the service name on the
+Docker network.
+
+Build manually:
 
 ```sh
-npm i @y/websocket-server
+docker build -t latech-socket-server .
+docker run -p 3000:3000 \
+  -e API_INTERNAL_URL=http://host.docker.internal:5001 \
+  -e INTERNAL_AUTH_SECRET=changeme \
+  latech-socket-server
 ```
 
-### Start a y-websocket server
-
-This repository implements a basic server that you can adopt to your specific use-case. [(source code)](./src/)
-
-Start a y-websocket server:
+If you also want callbacks outside Compose:
 
 ```sh
-HOST=localhost PORT=1234 npx y-websocket
+docker run -p 3000:3000 \
+  -e API_INTERNAL_URL=http://host.docker.internal:5001 \
+  -e INTERNAL_AUTH_SECRET=changeme \
+  -e CALLBACK_URL=http://host.docker.internal:5001/api/document/callback \
+  -e CALLBACK_OBJECT_NAME=latech \
+  latech-socket-server
 ```
 
-### Client Code:
+## Environment variables
 
-```js
-import * as Y from 'yjs'
-import { WebsocketProvider } from 'y-websocket'
+| Variable | Required | Default | Description |
+|---|---:|---|---|
+| `HOST` | No | `localhost` | Bind host |
+| `PORT` | No | `3000` | Bind port |
+| `API_INTERNAL_URL` | No | `http://localhost:5001` | API base URL used for WebSocket authorization |
+| `INTERNAL_AUTH_SECRET` | Yes | empty | Shared secret used for WebSocket auth and callbacks |
+| `CALLBACK_URL` | No | none | API endpoint for document persistence callbacks |
+| `CALLBACK_OBJECT_NAME` | Yes, if callback is enabled | none | Yjs text object to persist |
+| `CALLBACK_TIMEOUT` | No | `5000` | Callback timeout in ms |
+| `CALLBACK_DEBOUNCE_WAIT` | No | `2000` | Debounce wait in ms |
+| `CALLBACK_DEBOUNCE_MAXWAIT` | No | `10000` | Max debounce wait in ms |
 
-const doc = new Y.Doc()
-const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc)
+## Authorization flow
 
-wsProvider.on('status', event => {
-  console.log(event.status) // logs "connected" or "disconnected"
-})
+Before accepting a WebSocket upgrade, the server calls:
+
+```txt
+POST /internal/document/{documentId}/authorize-ws
 ```
 
-## Websocket Server
+It forwards the request cookies together with `X-Internal-Secret`. If the API
+does not return `200`, the connection is rejected.
 
-Start a y-websocket server:
+The API uses the same secret via:
 
-```sh
-HOST=localhost PORT=1234 npx y-websocket
+```properties
+latech.internal.auth-secret=${INTERNAL_AUTH_SECRET:d1994d751e106da55475cc5aadfb3e742b2c849bdb961b420a934e094108965f}
 ```
 
-Since npm symlinks the `y-websocket` executable from your local `./node_modules/.bin` folder, you can simply run npx. The `PORT` environment variable already defaults to 1234, and `HOST` defaults to `localhost`.
+## Callback payload
 
-### Websocket Server with Persistence
+If callbacks are enabled, the server sends:
 
-Persist document updates in a LevelDB database.
-
-See [LevelDB Persistence](https://github.com/yjs/y-leveldb) for more info.
-
-```sh
-HOST=localhost PORT=1234 YPERSISTENCE=./dbDir npx y-websocket
+```json
+{
+  "room": "DOCUMENT_ID",
+  "data": "..."
+}
 ```
 
-### Websocket Server with HTTP callback
-
-Send a debounced callback to an HTTP server (`POST`) on document update. Note that this implementation doesn't implement a retry logic in case the `CALLBACK_URL` does not work.
-
-Can take the following ENV variables:
-
-* `CALLBACK_URL` : Callback server URL
-* `CALLBACK_DEBOUNCE_WAIT` : Debounce time between callbacks (in ms). Defaults to 2000 ms
-* `CALLBACK_DEBOUNCE_MAXWAIT` : Maximum time to wait before callback. Defaults to 10 seconds
-* `CALLBACK_TIMEOUT` : Timeout for the HTTP call. Defaults to 5 seconds
-* `CALLBACK_OBJECTS` : JSON of shared objects to get data (`'{"SHARED_OBJECT_NAME":"SHARED_OBJECT_TYPE}'`)
-
-```sh
-CALLBACK_URL=http://localhost:3000/ CALLBACK_OBJECTS='{"prosemirror":"XmlFragment"}' npm start
-```
-This sends a debounced callback to `localhost:3000` 2 seconds after receiving an update (default `DEBOUNCE_WAIT`) with the data of an XmlFragment named `"prosemirror"` in the body.
+The request includes `X-Internal-Secret`.
 
 ## License
 
-[The MIT License](./LICENSE) © Kevin Jahns
+[The MIT License](./LICENSE) Copyright Kevin Jahns
