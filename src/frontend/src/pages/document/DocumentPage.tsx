@@ -68,19 +68,12 @@ export function DocumentPage() {
         <Tabs.Trigger value="file">
           <LucideFile />
         </Tabs.Trigger>
-        <Tabs.Trigger value="settings">
-          <LucideSettings />
-        </Tabs.Trigger>
       </Tabs.List>
 
       <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
         <Panel id="navigation" collapsible minSize="20%" defaultSize="25%" panelRef={leftPanelRef}>
           <Tabs.Content value="file" className={styles.tabsContent}>
             <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
-          </Tabs.Content>
-          <Tabs.Content value="settings" className={styles.tabsContent}>
-            <LucideSettings />
-            Settings content
           </Tabs.Content>
         </Panel>
         <ResizeSeparator onClick={handleSeparatorClick} />
