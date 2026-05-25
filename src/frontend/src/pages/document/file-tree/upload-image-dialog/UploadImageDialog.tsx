@@ -13,10 +13,7 @@ interface UploadImageDialogProps {
 const UploadImageDialog = ({ className }: UploadImageDialogProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  const fileUrls = useMemo(
-    () => uploadedFiles.map((file) => URL.createObjectURL(file)),
-    [uploadedFiles],
-  );
+  const fileUrls = useMemo(() => uploadedFiles.map((file) => URL.createObjectURL(file)), [uploadedFiles]);
 
   useEffect(() => {
     return () => {
