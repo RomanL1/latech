@@ -9,6 +9,7 @@ import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
 import { EditorContext, type AwarenessUser, type AwarenessUserList, type EditorContextValue } from './EditorContext';
+import { useKeyboardSaveContext } from '../../../pages/document/provider/KeyboardSaveContext';
 
 import * as tableControlActions from './controls/table';
 import * as imageControlActions from './controls/images';
@@ -43,6 +44,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       undoManagerRef.current?.redo();
     };
   }, [undoManagerRef]);
+  const { triggerSave } = useKeyboardSaveContext();
 
   const toggleSurroundingMacro = useCallback(
     (macro: singleMacroControlActions.LatexMacro) => {
@@ -127,6 +129,10 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       undoManager.redo();
     });
 
+    editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => {
+      triggerSave();
+    });
+
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyC, () => {
       editor.trigger('keyboard', 'editor.action.clipboardCopyAction', null);
     });
@@ -205,7 +211,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       setCurrentAwarenessUser(null);
       window.removeEventListener('beforeunload', handleWindowUnload);
     };
-  }, [editor, monaco, roomId]);
+  }, [editor, monaco, roomId, triggerSave]);
 
   useEffect(() => {
     if (!yProvider) return;

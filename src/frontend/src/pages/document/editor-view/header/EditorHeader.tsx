@@ -16,6 +16,7 @@ import {
 } from '../../../../features/pdf-preview/api';
 import CurrentEditors from './current-editors/CurrentEditors';
 import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import { useKeyboardSaveContext } from '../../provider/KeyboardSaveContext';
 import EditorNavigationButtons from './navigation-buttons/EditorNavigationButtons';
 
 interface EditorHeaderProps {
@@ -31,6 +32,7 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const [now, setNow] = useState<number>(() => Date.now());
   const [autoRenderEnabled, setAutoRenderEnabled] = useState<boolean>(file?.autoRenderEnabled ?? true);
   const { awarenessUsers, currentAwarenessUser } = useEditor();
+  const { buttonRef } = useKeyboardSaveContext();
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 60000);
@@ -136,7 +138,7 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
         Auto-render
       </Text>
       <Separator orientation="vertical" />
-      <Button disabled={isCompiling} onClick={handleOnCompileClick} size="2">
+      <Button ref={buttonRef} disabled={isCompiling} onClick={handleOnCompileClick} size="2">
         <Spinner loading={isCompiling} />
         {!isCompiling && <LucidePlay size="19" />}
         {buttonText}
