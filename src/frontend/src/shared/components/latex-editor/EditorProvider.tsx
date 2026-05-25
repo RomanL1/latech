@@ -8,7 +8,14 @@ import * as awarenessProtocol from 'y-protocols/awareness';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
-import { EditorContext, type AwarenessUser, type AwarenessUserList, type EditorContextValue } from './EditorContext';
+import {
+  AwarenessContext,
+  EditorContext,
+  type AwarenessContextValue,
+  type AwarenessUser,
+  type AwarenessUserList,
+  type EditorContextValue,
+} from './EditorContext';
 import { useKeyboardSaveContext } from '../../../pages/document/provider/KeyboardSaveContext';
 
 import * as tableControlActions from './controls/table';
@@ -33,17 +40,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
   const editorControlRef = useRef({ name: 'editor-control' });
 
-  const undo = useMemo(() => {
-    return () => {
-      undoManagerRef.current?.undo();
-    };
-  }, [undoManagerRef]);
+  const undo = useCallback(() => {
+    undoManagerRef.current?.undo();
+  }, []);
 
-  const redo = useMemo(() => {
-    return () => {
-      undoManagerRef.current?.redo();
-    };
-  }, [undoManagerRef]);
+  const redo = useCallback(() => {
+    undoManagerRef.current?.redo();
+  }, []);
   const { triggerSave } = useKeyboardSaveContext();
 
   const toggleSurroundingMacro = useCallback(
@@ -247,10 +250,8 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     };
   }, [yProvider]);
 
-  const value = useMemo<EditorContextValue>(
+  const editorValue = useMemo<EditorContextValue>(
     () => ({
-      awarenessUsers,
-      currentAwarenessUser,
       editor,
       isConnected: Boolean(yProvider),
       setEditor,
@@ -264,21 +265,17 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       insertImage,
       insertTable,
     }),
-    [
-      awarenessUsers,
-      currentAwarenessUser,
-      editor,
-      yDoc,
-      yProvider,
-      yText,
-      undo,
-      redo,
-      toggleSurroundingMacro,
-      toggleListStructure,
-      insertImage,
-      insertTable,
-    ],
+    [editor, yDoc, yProvider, yText, undo, redo, toggleSurroundingMacro, toggleListStructure, insertImage, insertTable],
   );
 
-  return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
+  const awarenessValue = useMemo<AwarenessContextValue>(
+    () => ({ awarenessUsers, currentAwarenessUser }),
+    [awarenessUsers, currentAwarenessUser],
+  );
+
+  return (
+    <EditorContext.Provider value={editorValue}>
+      <AwarenessContext.Provider value={awarenessValue}>{children}</AwarenessContext.Provider>
+    </EditorContext.Provider>
+  );
 }

@@ -83,9 +83,7 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
 
   useEffect(() => {
     return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
   }, [pdfUrl]);
 
@@ -132,7 +130,7 @@ const PDFPreview = ({ docId, pdfEventSource }: PDFPreviewProps) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pdfEventSource.removeEventListener('error', onError as any);
     };
-  }, [docId, refetch, fetchHistory, pdfEventSource]);
+  }, [refetch, fetchHistory, pdfEventSource]);
 
   return (
     <Flex direction="column" height="100%" gap="3">

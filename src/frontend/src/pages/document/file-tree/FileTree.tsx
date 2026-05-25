@@ -12,7 +12,7 @@ import {
 } from '../../../features/documents/api';
 import { useParams } from 'react-router';
 import type { DocumentFile } from '../DocumentPage';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 interface FileTreeProps {
   setSelectedFile: (file: DocumentFile | undefined) => void;
@@ -44,27 +44,36 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
     setSelectedFile({ type: 'tex', file: document });
   }, [isDocumentLoading, setSelectedFile, document, documentUnlocked]);
 
-  const handleOnDownload = (item: DocumentFile) => {
-    if (item.type === 'image') {
-      downloadMutation.mutateAsync({ imageId: item.file.id, imageName: item.file.name });
-    }
-  };
+  const handleOnDownload = useCallback(
+    (item: DocumentFile) => {
+      if (item.type === 'image') {
+        downloadMutation.mutateAsync({ imageId: item.file.id, imageName: item.file.name });
+      }
+    },
+    [downloadMutation],
+  );
 
-  const onDelete = (item: DocumentFile) => {
-    if (item.type === 'image') {
-      deleteQuery.mutateAsync(item.file.id).then(() => {
-        setSelectedFile(undefined);
-      });
-    }
-  };
+  const onDelete = useCallback(
+    (item: DocumentFile) => {
+      if (item.type === 'image') {
+        deleteQuery.mutateAsync(item.file.id).then(() => {
+          setSelectedFile(undefined);
+        });
+      }
+    },
+    [deleteQuery, setSelectedFile],
+  );
 
-  const handleOnNameChange = (item: DocumentFile, newName: string) => {
-    if (item.type === 'image') {
-      renameMutation.mutateAsync({ imageId: item.file.id, newName });
-    }
+  const handleOnNameChange = useCallback(
+    (item: DocumentFile, newName: string) => {
+      if (item.type === 'image') {
+        renameMutation.mutateAsync({ imageId: item.file.id, newName });
+      }
 
-    // TODO: handle renaming for tex document as well
-  };
+      // TODO: handle renaming for tex document as well
+    },
+    [renameMutation],
+  );
 
   const files: DocumentFile[] = useMemo(
     () => [
