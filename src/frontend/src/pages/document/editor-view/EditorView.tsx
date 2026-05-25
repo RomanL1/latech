@@ -9,6 +9,7 @@ import type { Document } from '../../../features/documents/document';
 import { getPDFRenderedEventSource, type ResilientEventSource } from '../../../features/pdf-preview/api';
 import { EditorProvider } from '../../../shared/components/latex-editor/EditorProvider';
 import { useGetDocument, useUnlockDocument } from '../../../features/documents/api';
+import { storeDocument } from '../../../features/documents/store';
 import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 
 interface EditorViewProps {
@@ -24,6 +25,15 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
   const { data: fetchedDocument } = useGetDocument(documentId ?? '');
 
   const unlockMutation = useUnlockDocument(documentId ?? '');
+
+  useEffect(() => {
+    if (!fetchedDocument || !documentId) return;
+    storeDocument({
+      documentId,
+      name: fetchedDocument.name ?? documentId,
+      lastEdited: new Date(),
+    });
+  }, [fetchedDocument, documentId]);
 
   useEffect(() => {
     if (!documentId) return;
