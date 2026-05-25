@@ -15,7 +15,7 @@ import {
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
 import CurrentEditors from './current-editors/CurrentEditors';
-import { useEditor } from '../../../../shared/components/latex-editor/EditorContext';
+import { useAwareness } from '../../../../shared/components/latex-editor/EditorContext';
 import { useKeyboardSaveContext } from '../../provider/KeyboardSaveContext';
 import EditorNavigationButtons from './navigation-buttons/EditorNavigationButtons';
 
@@ -31,7 +31,7 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
   const [autoRenderEnabled, setAutoRenderEnabled] = useState<boolean>(file?.autoRenderEnabled ?? true);
-  const { awarenessUsers, currentAwarenessUser } = useEditor();
+  const { awarenessUsers, currentAwarenessUser } = useAwareness();
   const { buttonRef } = useKeyboardSaveContext();
 
   useEffect(() => {

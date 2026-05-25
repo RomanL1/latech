@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { useEditor } from '../EditorContext';
+import { useAwareness } from '../EditorContext';
 
 const Cursors = () => {
-  const { awarenessUsers } = useEditor();
+  const { awarenessUsers } = useAwareness();
   const styleSheet = useMemo(() => {
     let cursorStyles = '';
 
