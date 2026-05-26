@@ -1,6 +1,7 @@
 import { Button, Popover } from '@radix-ui/themes';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Children, cloneElement, isValidElement, useState } from 'react';
+import styles from './NonFocusStealingDropdown.module.css';
 
 type NonFocusStealingDropdownProps = PropsWithChildren<{
   trigger: ReactNode;
@@ -26,7 +27,11 @@ export function NonFocusStealingDropdown({ trigger, children, onOptionSelected }
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger>{trigger}</Popover.Trigger>
-      <Popover.Content onOpenAutoFocus={preventPopoverFocus} onCloseAutoFocus={preventPopoverFocus}>
+      <Popover.Content
+        className={styles.popoverContent}
+        onOpenAutoFocus={preventPopoverFocus}
+        onCloseAutoFocus={preventPopoverFocus}
+      >
         {Children.map(children, (child) => {
           if (!isValidElement(child)) {
             return child;

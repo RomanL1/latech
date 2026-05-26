@@ -1,4 +1,4 @@
-import { IconButton, Text } from '@radix-ui/themes';
+import { IconButton, Separator, Text } from '@radix-ui/themes';
 import { LucideImage } from 'lucide-react';
 import { useParams } from 'react-router';
 import { useGetDocument, useGetImages } from '../../../../../features/documents/api';
@@ -28,11 +28,17 @@ export function ImageSelectControl() {
     images.length === 0 ? (
       <Text>No images uploaded yet</Text>
     ) : (
-      images.map(({ id, name }) => (
-        <NonFocusStealingDropdown.Option value={name} key={id}>
-          <Text size="2">{name}</Text>
-        </NonFocusStealingDropdown.Option>
-      ))
+      <>
+        <span>Images</span>
+        {images.map(({ id, name }, index) => (
+          <>
+            {index !== 0 && <Separator size="4" />}
+            <NonFocusStealingDropdown.Option value={name} key={id}>
+              <Text size="2">{name}</Text>
+            </NonFocusStealingDropdown.Option>
+          </>
+        ))}
+      </>
     );
 
   return (
