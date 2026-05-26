@@ -1,22 +1,22 @@
-import { LucideFileCodeCorner, LucidePlay } from 'lucide-react';
-import styles from './EditorHeader.module.css';
 import { Button, Separator, Spinner, Switch, Text } from '@radix-ui/themes';
-import { useState, useEffect } from 'react';
-import EditorControls from '../controls/EditorControls';
+import { ForwardIcon, LucideFileCodeCorner, LucidePlay } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { Document } from '../../../../features/documents/document';
 import {
-  requestPDFRender,
-  setAutoRender,
+  AUTO_RENDER_SETTING_MESSAGE_TYPE,
   COMPILE_FINISHED_MESSAGE_TYPE,
   DOCUMENT_TIMESTAMPS_MESSAGE_TYPE,
-  AUTO_RENDER_SETTING_MESSAGE_TYPE,
-  type PDFReadyMessageDto,
+  requestPDFRender,
+  setAutoRender,
   type AutoRenderSettingDto,
+  type PDFReadyMessageDto,
   type ResilientEventSource,
 } from '../../../../features/pdf-preview/api';
-import CurrentEditors from './current-editors/CurrentEditors';
 import { useAwareness } from '../../../../shared/components/latex-editor/EditorContext';
 import { useKeyboardSaveContext } from '../../provider/KeyboardSaveContext';
+import EditorControls from '../controls/EditorControls';
+import CurrentEditors from './current-editors/CurrentEditors';
+import styles from './EditorHeader.module.css';
 import EditorNavigationButtons from './navigation-buttons/EditorNavigationButtons';
 
 interface EditorHeaderProps {
@@ -27,6 +27,7 @@ interface EditorHeaderProps {
 const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   const docId = file?.id;
   const [isCompiling, setIsCompiling] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
@@ -80,6 +81,18 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
       console.error('Failed to request render', e);
       setIsCompiling(false);
     }
+  };
+
+  const handleOnShareClick = () => {
+    if (linkCopied) {
+      return;
+    }
+
+    navigator.clipboard.writeText(window.location.href);
+    setLinkCopied(true);
+    setTimeout(() => {
+      setLinkCopied(false);
+    }, 2_000);
   };
 
   const handleAutoRenderToggle = async (checked: boolean) => {
@@ -138,6 +151,10 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
         Auto-render
       </Text>
       <Separator orientation="vertical" />
+      <Button variant="outline" size="2" onClick={handleOnShareClick}>
+        {linkCopied || <ForwardIcon />}
+        <span>{linkCopied ? 'Link copied!' : 'Share'}</span>
+      </Button>
       <Button ref={buttonRef} disabled={isCompiling} onClick={handleOnCompileClick} size="2">
         <Spinner loading={isCompiling} />
         {!isCompiling && <LucidePlay size="19" />}
