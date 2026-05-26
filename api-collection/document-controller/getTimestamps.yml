@@ -1,13 +1,13 @@
 info:
-  name: getDocumentContent
+  name: getTimestamps
   type: http
-  seq: 3
+  seq: 8
   tags:
     - document-controller
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/document/:docId"
+  url: "{{baseUrl}}/api/document/:docId/timestamps"
   params:
     - name: docId
       value: "{{docId}}"
@@ -24,7 +24,7 @@ examples:
   - name: 200 Response
     description: OK
     request:
-      url: "{{baseUrl}}/api/document/:docId"
+      url: "{{baseUrl}}/api/document/:docId/timestamps"
       method: GET
       params:
         - name: docId
@@ -40,8 +40,6 @@ examples:
         type: text
         data: |-
           {
-            "id": "",
-            "name": "",
-            "secured": false,
-            "content": ""
+            "lastChange": "",
+            "lastCompile": ""
           }

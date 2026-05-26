@@ -1,17 +1,23 @@
 info:
-  name: getDocumentHistory
+  name: setAutoRender
   type: http
-  seq: 6
+  seq: 7
   tags:
     - document-controller
 
 http:
-  method: GET
-  url: "{{baseUrl}}/api/document/:docId/history"
+  method: PATCH
+  url: "{{baseUrl}}/api/document/:docId/auto-render"
   params:
     - name: docId
       value: "{{docId}}"
       type: path
+  body:
+    type: json
+    data: |-
+      {
+        "autoRenderEnabled": true
+      }
   auth: inherit
 
 settings:

@@ -1,11 +1,13 @@
 info:
-  name: thumbnail
+  name: logoutDocument
   type: http
-  seq: 5
+  seq: 3
+  tags:
+    - document-auth-controller
 
 http:
-  method: GET
-  url: "{{baseUrl}}/api/document/:docId/thumbnail"
+  method: POST
+  url: "{{baseUrl}}/api/document/:docId/logout"
   params:
     - name: docId
       value: "{{docId}}"

@@ -1,0 +1,24 @@
+info:
+  name: authorizeWebSocket
+  type: http
+  seq: 1
+  tags:
+    - internal-document-auth-controller
+
+http:
+  method: POST
+  url: "{{baseUrl}}/internal/document/:docId/authorize-ws"
+  params:
+    - name: docId
+      value: "{{docId}}"
+      type: path
+  headers:
+    - name: X-Internal-Secret
+      value: ""
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
