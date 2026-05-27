@@ -47,6 +47,15 @@ public class DocumentCallbackController {
             return ResponseEntity.notFound().build();
         }
 
+        String data = documentCallbackDto.getData();
+        String stripped = ObjectUtils.isEmpty( data ) ? "" : data.replaceAll( "\\s+", " " ).strip();
+
+        if ( ObjectUtils.isEmpty( stripped ) ) {
+            log.warn( "Callback data is empty for Room: {}, ignoring callback sending 400 bad request",
+                      documentCallbackDto.getRoom() );
+            return ResponseEntity.badRequest().build();
+        }
+
         // possible scenario when connection in frontend is initialized and document gets initially loaded into socket server room
         // sends callback after 2 seconds regardless if something changed or not
         // this if prevents that one unnecessary db write
