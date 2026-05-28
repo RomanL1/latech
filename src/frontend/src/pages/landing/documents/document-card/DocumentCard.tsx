@@ -1,5 +1,5 @@
-import { Card, Inset } from '@radix-ui/themes';
-import { FileTextIcon } from 'lucide-react';
+import { Card, IconButton, Inset } from '@radix-ui/themes';
+import { FileTextIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { getThumbnailUrl } from '../../../../features/documents/api';
 import type { DocumentMetadata } from '../../../../features/documents/document';
@@ -7,15 +7,30 @@ import styles from './DocumentCard.module.css';
 
 export interface DocumentCardProps {
   document: DocumentMetadata;
+  onRemove?: (documentId: string) => void;
 }
 
-export function DocumentCard({ document }: DocumentCardProps) {
+export function DocumentCard({ document, onRemove }: DocumentCardProps) {
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
   const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
   const thumbnailUrl = getThumbnailUrl(document.documentId);
 
+  function removeDocument(event: React.MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    onRemove?.(document.documentId);
+  }
+
   return (
     <Card className={styles.card}>
+      <IconButton
+        type="button"
+        variant="ghost"
+        className={styles.removeButton}
+        onClick={(event) => removeDocument(event)}
+      >
+        <XIcon />
+      </IconButton>
       <Inset className={styles.image} clip="padding-box" side="top">
         {!thumbnailFailed && (
           <img

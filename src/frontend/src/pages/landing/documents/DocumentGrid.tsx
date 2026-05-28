@@ -6,9 +6,10 @@ import { DocumentCard } from './document-card/DocumentCard';
 
 export interface DocumentGridProps {
   documents: DocumentMetadata[];
+  onRemoveDocument?: (documentId: string) => void;
 }
 
-export function DocumentGrid({ documents }: DocumentGridProps) {
+export function DocumentGrid({ documents, onRemoveDocument }: DocumentGridProps) {
   const orderedDocuments = orderByLastEditedDescending(documents);
 
   return (
@@ -16,12 +17,12 @@ export function DocumentGrid({ documents }: DocumentGridProps) {
       <Link to="/create" className={styles.link} data-testid="createDocumentButton" role="button">
         <CreateDocumentButton />
       </Link>
-      <DocumentGridItems documents={orderedDocuments} />
+      <DocumentGridItems documents={orderedDocuments} onRemoveDocument={onRemoveDocument} />
     </ul>
   );
 }
 
-function DocumentGridItems({ documents }: DocumentGridProps) {
+function DocumentGridItems({ documents, onRemoveDocument }: DocumentGridProps) {
   return documents.map((document) => (
     <Link
       role="listitem"
@@ -30,7 +31,7 @@ function DocumentGridItems({ documents }: DocumentGridProps) {
       className={`${styles.gridItem} ${styles.link}`}
       data-testid={`document-${document.documentId}`}
     >
-      <DocumentCard document={document} />
+      <DocumentCard document={document} onRemove={onRemoveDocument} />
     </Link>
   ));
 }
