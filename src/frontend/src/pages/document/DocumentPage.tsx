@@ -81,7 +81,14 @@ export function DocumentPage() {
         </Tabs.List>
 
         <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
-          <Panel id="navigation" collapsible minSize="20%" defaultSize="25%" panelRef={leftPanelRef} onResize={handleFilePanelResize}>
+          <Panel
+            id="navigation"
+            collapsible
+            minSize="20%"
+            defaultSize="25%"
+            panelRef={leftPanelRef}
+            onResize={handleFilePanelResize}
+          >
             <Tabs.Content value="file" className={styles.tabsContent}>
               <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
             </Tabs.Content>
