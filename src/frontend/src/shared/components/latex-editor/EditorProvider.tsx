@@ -275,8 +275,6 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       insertMathSymbol,
     }),
     [
-      awarenessUsers,
-      currentAwarenessUser,
       editor,
       yDoc,
       yProvider,

@@ -1,7 +1,7 @@
 import styles from './FileTreeItem.module.css';
 import { Text, TextField } from '@radix-ui/themes';
 import FileTreeItemDotMenu from './dot-menu/FileTreeItemDotMenu';
-import { memo, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface FileTreeItemProps {
   fileName: string;
@@ -15,111 +15,111 @@ interface FileTreeItemProps {
   canDownload?: boolean;
 }
 
-const FileTreeItem = memo(
-  ({
-    fileName,
-    icon,
-    isSelected,
-    onClick,
-    onDelete,
-    onNameChange: onRename,
-    onDownload,
-    canDelete,
-    canDownload,
-  }: FileTreeItemProps) => {
-    const [isRenaming, setIsRenaming] = useState(false);
-    const textFieldRef = useRef<HTMLInputElement>(null);
-    const [textFieldValue, setTextFieldValue] = useState(fileName);
-    const fileTreeItemRef = useRef<HTMLDivElement>(null);
+const FileTreeItem = ({
+  fileName,
+  icon,
+  isSelected,
+  onClick,
+  onDelete,
+  onNameChange: onRename,
+  onDownload,
+  canDelete,
+  canDownload,
+}: FileTreeItemProps) => {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const textFieldRef = useRef<HTMLInputElement>(null);
+  const [textFieldValue, setTextFieldValue] = useState(fileName);
+  const fileTreeItemRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-      if (isRenaming) {
-        const rafId = requestAnimationFrame(() => {
-          textFieldRef.current?.focus();
-          textFieldRef.current?.select();
-        });
-        return () => cancelAnimationFrame(rafId);
-      }
-    }, [isRenaming]);
+  useEffect(() => {
+    if (!isRenaming) return;
 
-    useEffect(() => {
-      if (isSelected && !isRenaming) {
-        fileTreeItemRef.current?.focus();
-      }
-    }, [isSelected, isRenaming]);
+    // Wait for the next event loop tick to focus the text field. Because somehow menuItem gets focused after clicking it again.
+    const timeoutId = setTimeout(() => {
+      textFieldRef.current?.focus();
+    }, 0);
 
-    const handleOnRename = () => {
-      setIsRenaming(true);
+    return () => {
+      clearTimeout(timeoutId);
     };
+  }, [isRenaming]);
 
-    const handleOnDownload = () => {
-      onDownload();
-    };
+  useEffect(() => {
+    if (isSelected && !isRenaming) {
+      fileTreeItemRef.current?.focus();
+    }
+  }, [isSelected, isRenaming]);
 
-    const handleOnDelete = () => {
-      onDelete();
-    };
+  const handleOnRename = () => {
+    setIsRenaming(true);
+  };
 
-    const handleOnKeyUp = (e: React.KeyboardEvent) => {
-      if (e.key !== 'Enter') return;
+  const handleOnDownload = () => {
+    onDownload();
+  };
 
-      if (isRenaming) {
-        onRename(textFieldValue);
-      }
+  const handleOnDelete = () => {
+    onDelete();
+  };
 
-      setIsRenaming(!isRenaming);
-    };
+  const handleOnKeyUp = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Enter') return;
 
-    const handleOnBlur = () => {
-      setIsRenaming(false);
+    if (isRenaming) {
       onRename(textFieldValue);
-    };
+    }
 
-    const handleOnNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setTextFieldValue(e.target.value);
-    };
+    setIsRenaming(!isRenaming);
+  };
 
-    return (
-      <div
-        className={styles.container}
-        onClick={onClick}
-        onFocus={onClick}
-        onKeyUp={handleOnKeyUp}
-        data-selected={isSelected}
-        tabIndex={0}
-        ref={fileTreeItemRef}
-      >
-        {icon && <div className={styles.icon}>{icon}</div>}
-        {isRenaming ? (
-          <TextField.Root
-            className={styles.textField}
-            size="1"
-            value={textFieldValue}
-            onChange={handleOnNameChange}
-            onBlur={handleOnBlur}
-            ref={textFieldRef}
-            onKeyUp={(e) => {
-              e.stopPropagation();
-              handleOnKeyUp(e);
-            }}
-            autoFocus
-          />
-        ) : (
-          <Text size="1" wrap="nowrap" truncate>
-            {fileName}
-          </Text>
-        )}
-        <FileTreeItemDotMenu
-          className={styles.dotMenu}
-          onRename={handleOnRename}
-          onDownload={handleOnDownload}
-          onDelete={handleOnDelete}
-          canDelete={canDelete}
-          canDownload={canDownload}
+  const handleOnBlur = () => {
+    setIsRenaming(false);
+    onRename(textFieldValue);
+  };
+
+  const handleOnNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTextFieldValue(e.target.value);
+  };
+
+  return (
+    <div
+      className={styles.container}
+      onClick={onClick}
+      onFocus={onClick}
+      onKeyUp={handleOnKeyUp}
+      data-selected={isSelected}
+      tabIndex={0}
+      ref={fileTreeItemRef}
+    >
+      {icon && <div className={styles.icon}>{icon}</div>}
+      {isRenaming ? (
+        <TextField.Root
+          className={styles.textField}
+          size="1"
+          value={textFieldValue}
+          onChange={handleOnNameChange}
+          onBlur={handleOnBlur}
+          ref={textFieldRef}
+          onKeyUp={(e) => {
+            e.stopPropagation();
+            handleOnKeyUp(e);
+          }}
         />
-      </div>
-    );
-  },
-);
+      ) : (
+        <Text size="1" wrap="nowrap" truncate>
+          {fileName}
+        </Text>
+      )}
+      <FileTreeItemDotMenu
+        className={styles.dotMenu}
+        onRename={handleOnRename}
+        onDownload={handleOnDownload}
+        onDelete={handleOnDelete}
+        canDelete={canDelete}
+        canDownload={canDownload}
+      />
+    </div>
+  );
+};
 
 export default FileTreeItem;

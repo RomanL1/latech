@@ -192,6 +192,31 @@ export function useRenameImage(documentId: string): UseMutationResult<void, Erro
   });
 }
 
+async function renameDocument(documentId: string, newName: string): Promise<void> {
+  return apiFetch(`${documentUrl}/${documentId}/rename`, {
+    method: 'POST',
+    body: JSON.stringify({ name: newName }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(async (response) => {
+    if (!response.ok) {
+      throw await readError(response, 'Failed to rename document');
+    }
+  });
+}
+
+export function useRenameDocument(documentId: string): UseMutationResult<void, Error, { newName: string }> {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { newName: string }>({
+    mutationFn: ({ newName }) => renameDocument(documentId, newName),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+    },
+  });
+}
+
 interface DownloadImageDto {
   imageId: string;
   imageName: string;

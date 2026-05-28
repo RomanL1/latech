@@ -8,6 +8,7 @@ import com.latech.api.model.api.*;
 import com.latech.api.business.ThumbnailService;
 import com.latech.api.model.api.DocumentCreateRequestDto;
 import com.latech.api.model.api.DocumentCreateResponseDto;
+import com.latech.api.model.api.DocumentRenameRequestDto;
 import com.latech.api.model.api.DocumentDto;
 import com.latech.api.business.*;
 import com.latech.api.model.api.DocumentTimestampsDto;
@@ -101,6 +102,31 @@ public class DocumentController {
 
         URI location = uriBuilder.path( "/api/document/{id}" ).buildAndExpand( saved.getId() ).toUri();
         return ResponseEntity.created( location ).body( response );
+    }
+
+    @PostMapping( "/{docId}/rename" )
+    public ResponseEntity<Void> renameDocument (
+            @PathVariable String docId,
+            @RequestBody DocumentRenameRequestDto documentRenameRequestDto ) {
+
+        if ( ObjectUtils.isEmpty( docId ) || ObjectUtils.isEmpty( documentRenameRequestDto.name() ) ) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID documentId = UUID.fromString( docId );
+
+        Optional<Document> documentOpt = documentRepository.findById( documentId );
+
+        if ( documentOpt.isEmpty() ) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Document document = documentOpt.get();
+
+        document.setName( documentRenameRequestDto.name() );
+        documentRepository.save( document );
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping( "/{docId}" )

@@ -4,7 +4,7 @@ import ImagePreview from './image-preview/ImagePreview';
 import styles from './DocumentPage.module.css';
 import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
 import { Tabs } from '@radix-ui/themes';
-import { FileBracesCornerIcon, LucideFile, LucideSettings } from 'lucide-react';
+import { FileBracesCornerIcon, LucideFile } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
 import type { Document, DocumentImage } from '../../features/documents/document';
 import EditorView from './editor-view/EditorView';
@@ -56,6 +56,14 @@ export function DocumentPage() {
     nav('/');
   };
 
+  const handleFilePanelResize = () => {
+    if (leftPanelRef.current?.isCollapsed()) {
+      setSelectedTab('');
+    } else if (!selectedTab) {
+      setSelectedTab('file');
+    }
+  };
+
   return (
     <KeyboardSaveProvider>
       <Tabs.Root
@@ -70,19 +78,19 @@ export function DocumentPage() {
           <Tabs.Trigger value="file">
             <LucideFile />
           </Tabs.Trigger>
-          <Tabs.Trigger value="settings">
-            <LucideSettings />
-          </Tabs.Trigger>
         </Tabs.List>
 
         <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
-          <Panel id="navigation" collapsible minSize="20%" defaultSize="25%" panelRef={leftPanelRef}>
+          <Panel
+            id="navigation"
+            collapsible
+            minSize="20%"
+            defaultSize="25%"
+            panelRef={leftPanelRef}
+            onResize={handleFilePanelResize}
+          >
             <Tabs.Content value="file" className={styles.tabsContent}>
               <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
-            </Tabs.Content>
-            <Tabs.Content value="settings" className={styles.tabsContent}>
-              <LucideSettings />
-              Settings content
             </Tabs.Content>
           </Panel>
           <ResizeSeparator onClick={handleSeparatorClick} />
