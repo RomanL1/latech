@@ -1,5 +1,5 @@
-import { Card, Inset } from '@radix-ui/themes';
-import { FileTextIcon } from 'lucide-react';
+import { Card, IconButton, Inset } from '@radix-ui/themes';
+import { FileTextIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { getThumbnailUrl } from '../../../../features/documents/api';
 import type { DocumentMetadata } from '../../../../features/documents/document';
@@ -16,6 +16,9 @@ export function DocumentCard({ document }: DocumentCardProps) {
 
   return (
     <Card className={styles.card}>
+      <IconButton variant="ghost" className={styles.removeButton}>
+        <XIcon />
+      </IconButton>
       <Inset className={styles.image} clip="padding-box" side="top">
         {!thumbnailFailed && (
           <img

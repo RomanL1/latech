@@ -51,3 +51,9 @@
 .thumbnailLoaded {
   display: block;
 }
+
+.removeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}

@@ -12,6 +12,11 @@ export function getLocalDocuments(): DocumentMetadata[] {
   }));
 }
 
+export function updateDocuments(documents: DocumentMetadata[]) {
+  const documentsJson = JSON.stringify(documents);
+  localStorage.setItem(STORAGE_KEY, documentsJson);
+}
+
 export function storeDocument(document: DocumentMetadata) {
   const localDocuments = getLocalDocuments();
   const index = localDocuments.findIndex((item) => item.documentId === document.documentId);
@@ -22,6 +27,16 @@ export function storeDocument(document: DocumentMetadata) {
     localDocuments[index] = document;
   }
 
-  const documentsJson = JSON.stringify(localDocuments);
-  localStorage.setItem(STORAGE_KEY, documentsJson);
+  updateDocuments(localDocuments);
+}
+
+export function removeDocument(documentId: string): boolean {
+  const localDocuments = getLocalDocuments();
+  const newDocuments = localDocuments.filter((item) => item.documentId !== documentId);
+
+  const wasRemoved = localDocuments.length > newDocuments.length;
+
+  updateDocuments(newDocuments);
+
+  return wasRemoved;
 }
