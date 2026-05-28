@@ -32,12 +32,16 @@ const FileTreeItem = ({
   const fileTreeItemRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isRenaming) {
-      requestAnimationFrame(() => {
-        textFieldRef.current?.focus();
-        textFieldRef.current?.select();
-      });
-    }
+    if (!isRenaming) return;
+
+    // Wait for the next event loop tick to focus the text field. Because somehow menuItem gets focused after clicking it again.
+    const timeoutId = setTimeout(() => {
+      textFieldRef.current?.focus();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [isRenaming]);
 
   useEffect(() => {
@@ -102,7 +106,6 @@ const FileTreeItem = ({
             e.stopPropagation();
             handleOnKeyUp(e);
           }}
-          autoFocus
         />
       ) : (
         <Text size="1" wrap="nowrap" truncate>
