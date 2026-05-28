@@ -1,17 +1,7 @@
 package com.latech.api.api;
 
-import com.latech.api.business.DocumentService;
-import com.latech.api.business.OngoingCompileTracker;
-import com.latech.api.business.PDFStreamTopicService;
-import com.latech.api.business.PdfRenderedNotifier;
-import com.latech.api.model.api.*;
-import com.latech.api.business.ThumbnailService;
-import com.latech.api.model.api.DocumentCreateRequestDto;
-import com.latech.api.model.api.DocumentCreateResponseDto;
-import com.latech.api.model.api.DocumentRenameRequestDto;
-import com.latech.api.model.api.DocumentDto;
 import com.latech.api.business.*;
-import com.latech.api.model.api.DocumentTimestampsDto;
+import com.latech.api.model.api.*;
 import com.latech.api.model.db.Document;
 import com.latech.api.model.db.RenderHistory;
 import com.latech.api.repository.DocumentRepository;
@@ -107,7 +97,7 @@ public class DocumentController {
     @PostMapping( "/{docId}/rename" )
     public ResponseEntity<Void> renameDocument (
             @PathVariable String docId,
-            @RequestBody DocumentRenameRequestDto documentRenameRequestDto ) {
+            @RequestBody DocumentRenameRequestDto documentRenameRequestDto, HttpServletRequest request ) {
 
         if ( ObjectUtils.isEmpty( docId ) || ObjectUtils.isEmpty( documentRenameRequestDto.name() ) ) {
             return ResponseEntity.badRequest().build();
@@ -119,6 +109,10 @@ public class DocumentController {
 
         if ( documentOpt.isEmpty() ) {
             return ResponseEntity.notFound().build();
+        }
+
+        if ( !documentAuthService.hasAccess( documentId, request ) ) {
+            return ResponseEntity.status( HttpStatus.UNAUTHORIZED ).build();
         }
 
         Document document = documentOpt.get();
