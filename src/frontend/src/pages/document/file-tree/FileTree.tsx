@@ -76,8 +76,6 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
       renameDocumentMutation.mutateAsync({ newName });
       return;
     }
-
-    console.log('Unknown file type for renaming:', item.type);
   };
 
   const files: DocumentFile[] = useMemo(
