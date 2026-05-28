@@ -14,8 +14,6 @@ const CALLBACK_DEBOUNCE_WAIT = parseInt(process.env.CALLBACK_DEBOUNCE_WAIT || '2
 const CALLBACK_DEBOUNCE_MAXWAIT = parseInt(process.env.CALLBACK_DEBOUNCE_MAXWAIT || '10000')
 const DOC_GRACE_PERIOD_MS = parseInt(process.env.DOC_GRACE_PERIOD_MS || '30000')
 
-const debouncer = eventloop.createDebouncer(CALLBACK_DEBOUNCE_WAIT, CALLBACK_DEBOUNCE_MAXWAIT)
-
 const wsReadyStateConnecting = 0
 const wsReadyStateOpen = 1
 const wsReadyStateClosing = 2 // eslint-disable-line
@@ -125,6 +123,7 @@ export class WSSharedDoc extends Y.Doc {
 
     if (isCallbackSet) {
       console.log("Setting up callback handler for doc:", name)
+      const debouncer = eventloop.createDebouncer(CALLBACK_DEBOUNCE_WAIT, CALLBACK_DEBOUNCE_MAXWAIT)
       this.on('update', (_update, _origin, doc) => {
         debouncer(() => callbackHandler(/** @type {WSSharedDoc} */ (doc)))
       })

@@ -1,7 +1,7 @@
 info:
   name: getDocumentContent
   type: http
-  seq: 4
+  seq: 3
   tags:
     - document-controller
 

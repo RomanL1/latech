@@ -8,8 +8,17 @@ import * as awarenessProtocol from 'y-protocols/awareness';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 import { getDocument } from '../../../features/documents/api';
-import { EditorContext, type AwarenessUser, type AwarenessUserList, type EditorContextValue } from './EditorContext';
+import {
+  AwarenessContext,
+  EditorContext,
+  type AwarenessContextValue,
+  type AwarenessUser,
+  type AwarenessUserList,
+  type EditorContextValue,
+} from './EditorContext';
+import { useKeyboardSaveContext } from '../../../pages/document/provider/KeyboardSaveContext';
 
+import * as mathControlActions from './controls/math';
 import * as tableControlActions from './controls/table';
 import * as imageControlActions from './controls/images';
 import * as listControlActions from './controls/lists';
@@ -32,17 +41,14 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
   const editorControlRef = useRef({ name: 'editor-control' });
 
-  const undo = useMemo(() => {
-    return () => {
-      undoManagerRef.current?.undo();
-    };
-  }, [undoManagerRef]);
+  const undo = useCallback(() => {
+    undoManagerRef.current?.undo();
+  }, []);
 
-  const redo = useMemo(() => {
-    return () => {
-      undoManagerRef.current?.redo();
-    };
-  }, [undoManagerRef]);
+  const redo = useCallback(() => {
+    undoManagerRef.current?.redo();
+  }, []);
+  const { triggerSave } = useKeyboardSaveContext();
 
   const toggleSurroundingMacro = useCallback(
     (macro: singleMacroControlActions.LatexMacro) => {
@@ -72,6 +78,13 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     [editor, yDoc, yText],
   );
 
+  const insertMathSymbol = useCallback(
+    (symbol: string) => {
+      mathControlActions.insertSymbol(symbol, editor, yDoc, yText, editorControlRef);
+    },
+    [editor, yDoc, yText],
+  );
+
   useEffect(() => {
     if (!monaco || !editor) return;
 
@@ -95,6 +108,10 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     });
 
     const binding = new MonacoBinding(text, model, new Set([editor]), provider.awareness);
+    // MonacoBinding's setValue('') call may reset the model EOL to the platform default (CRLF
+    // on Windows). Re-apply LF immediately while the model is still empty so no onDidChangeContent
+    // fires and _monacoChangeHandler cannot push CRLF-offset events into Y.Text.
+    model.setEOL(monaco.editor.EndOfLineSequence.LF);
     const undoManager = new Y.UndoManager(text, {
       trackedOrigins: new Set([binding, editorControlRef.current]),
     });
@@ -110,13 +127,16 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
         const freshText = fresh.content?.replace(/\r\n/g, '\n') ?? '';
         if (freshText) text.insert(0, freshText);
       } else if (current.includes('\r\n')) {
+        // Delete \r chars individually to preserve Yjs relative positions (cursor awareness).
+        // A full delete+insert resets all connected clients' cursors to the top.
         doc.transact(() => {
-          text.delete(0, current.length);
-          text.insert(0, current.replace(/\r\n/g, '\n'));
+          let offset = 0;
+          for (const match of current.matchAll(/\r(?=\n)/g)) {
+            text.delete(match.index! - offset, 1);
+            offset++;
+          }
         });
       }
-
-      model.setEOL(monaco.editor.EndOfLineSequence.LF);
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyZ, () => {
@@ -125,6 +145,10 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyY, () => {
       undoManager.redo();
+    });
+
+    editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => {
+      triggerSave();
     });
 
     editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyC, () => {
@@ -205,7 +229,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       setCurrentAwarenessUser(null);
       window.removeEventListener('beforeunload', handleWindowUnload);
     };
-  }, [editor, monaco, roomId]);
+  }, [editor, monaco, roomId, triggerSave]);
 
   useEffect(() => {
     if (!yProvider) return;
@@ -234,10 +258,8 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
     };
   }, [yProvider]);
 
-  const value = useMemo<EditorContextValue>(
+  const editorValue = useMemo<EditorContextValue>(
     () => ({
-      awarenessUsers,
-      currentAwarenessUser,
       editor,
       isConnected: Boolean(yProvider),
       setEditor,
@@ -250,6 +272,7 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       toggleListStructure,
       insertImage,
       insertTable,
+      insertMathSymbol,
     }),
     [
       awarenessUsers,
@@ -264,8 +287,18 @@ export function EditorProvider({ children, roomId }: EditorProviderProps) {
       toggleListStructure,
       insertImage,
       insertTable,
+      insertMathSymbol,
     ],
   );
 
-  return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
+  const awarenessValue = useMemo<AwarenessContextValue>(
+    () => ({ awarenessUsers, currentAwarenessUser }),
+    [awarenessUsers, currentAwarenessUser],
+  );
+
+  return (
+    <EditorContext.Provider value={editorValue}>
+      <AwarenessContext.Provider value={awarenessValue}>{children}</AwarenessContext.Provider>
+    </EditorContext.Provider>
+  );
 }

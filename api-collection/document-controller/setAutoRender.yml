@@ -1,0 +1,27 @@
+info:
+  name: setAutoRender
+  type: http
+  seq: 7
+  tags:
+    - document-controller
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/document/:docId/auto-render"
+  params:
+    - name: docId
+      value: "{{docId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "autoRenderEnabled": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

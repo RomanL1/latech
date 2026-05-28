@@ -294,7 +294,7 @@ public class DocumentController {
         List<RenderHistory> history =
                 renderHistoryRepository.findByDocumentIdOrderByRenderedAtDesc(
                         documentId,
-                        Limit.of( 50 )
+                        Limit.of( 10 )
                 );
 
         return ResponseEntity.ok( history );

@@ -1,7 +1,7 @@
 import styles from './FileTreeItem.module.css';
 import { Text, TextField } from '@radix-ui/themes';
 import FileTreeItemDotMenu from './dot-menu/FileTreeItemDotMenu';
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 interface FileTreeItemProps {
   fileName: string;
@@ -15,21 +15,22 @@ interface FileTreeItemProps {
   canDownload?: boolean;
 }
 
-const FileTreeItem = ({
-  fileName,
-  icon,
-  isSelected,
-  onClick,
-  onDelete,
-  onNameChange: onRename,
-  onDownload,
-  canDelete,
-  canDownload,
-}: FileTreeItemProps) => {
-  const [isRenaming, setIsRenaming] = useState(false);
-  const textFieldRef = useRef<HTMLInputElement>(null);
-  const [textFieldValue, setTextFieldValue] = useState(fileName);
-  const fileTreeItemRef = useRef<HTMLDivElement>(null);
+const FileTreeItem = memo(
+  ({
+    fileName,
+    icon,
+    isSelected,
+    onClick,
+    onDelete,
+    onNameChange: onRename,
+    onDownload,
+    canDelete,
+    canDownload,
+  }: FileTreeItemProps) => {
+    const [isRenaming, setIsRenaming] = useState(false);
+    const textFieldRef = useRef<HTMLInputElement>(null);
+    const [textFieldValue, setTextFieldValue] = useState(fileName);
+    const fileTreeItemRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isRenaming) return;
@@ -44,49 +45,47 @@ const FileTreeItem = ({
     };
   }, [isRenaming]);
 
-  useEffect(() => {
-    if (isSelected && !isRenaming) {
-      fileTreeItemRef.current?.focus();
-    }
-  }, [isSelected, isRenaming]);
+    useEffect(() => {
+      if (isSelected && !isRenaming) {
+        fileTreeItemRef.current?.focus();
+      }
+    }, [isSelected, isRenaming]);
 
-  const handleOnRename = () => {
-    setIsRenaming(true);
-  };
+    const handleOnRename = () => {
+      setIsRenaming(true);
+    };
 
-  const handleOnDownload = () => {
-    onDownload();
-  };
+    const handleOnDownload = () => {
+      onDownload();
+    };
 
-  const handleOnDelete = () => {
-    onDelete();
-  };
+    const handleOnDelete = () => {
+      onDelete();
+    };
 
-  const handleOnKeyUp = (e: React.KeyboardEvent) => {
-    if (e.key !== 'Enter') return;
+    const handleOnKeyUp = (e: React.KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
 
-    if (isRenaming) {
+      if (isRenaming) {
+        onRename(textFieldValue);
+      }
+
+      setIsRenaming(!isRenaming);
+    };
+
+    const handleOnBlur = () => {
+      setIsRenaming(false);
       onRename(textFieldValue);
-    }
+    };
 
-    setIsRenaming(!isRenaming);
-  };
-
-  const handleOnBlur = () => {
-    setIsRenaming(false);
-    onRename(textFieldValue);
-  };
-
-  const handleOnNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTextFieldValue(e.target.value);
-  };
+    const handleOnNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTextFieldValue(e.target.value);
+    };
 
   return (
     <div
       className={styles.container}
-      onClick={() => {
-        onClick();
-      }}
+      onClick={onClick}
       onFocus={onClick}
       onKeyUp={handleOnKeyUp}
       data-selected={isSelected}

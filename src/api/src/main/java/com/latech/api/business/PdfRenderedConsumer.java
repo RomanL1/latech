@@ -12,6 +12,8 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
+import jakarta.transaction.Transactional;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -28,6 +30,7 @@ public class PdfRenderedConsumer {
     private final OngoingCompileTracker ongoingCompileTracker;
     private final ThumbnailService thumbnailService;
 
+    @Transactional
     @RabbitListener( queues = PDF_RENDERED )
     public void handlePdfRendered ( byte[] payloadBytes, Channel channel, @Header( AmqpHeaders.DELIVERY_TAG ) long tag ) throws Exception {
         try {
@@ -50,6 +53,7 @@ public class PdfRenderedConsumer {
                     .renderedAt( compiledAtTimestamp )
                     .build();
             renderHistoryRepository.save( history );
+            renderHistoryRepository.deleteOldEntriesForDocument( document.getId() );
 
             if ( payload.getStatus() == PdfMetadata.Status.ERROR_WHILE_RENDERING ) {
                 log.warn(

@@ -3,6 +3,6 @@ variables:
   - name: baseUrl
     value: https://latech.app
   - name: docId
-    value: 064f4996-7b66-480f-bc00-00920beb52a4
+    value: 063d7c39-0045-493e-b685-5ae26f8662d1
   - name: imageId
     value: e0e82895-9c70-46f0-9c88-92f3dba542f4

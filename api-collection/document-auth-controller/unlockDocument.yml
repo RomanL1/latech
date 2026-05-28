@@ -1,0 +1,27 @@
+info:
+  name: unlockDocument
+  type: http
+  seq: 2
+  tags:
+    - document-auth-controller
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/document/:docId/unlock"
+  params:
+    - name: docId
+      value: "{{docId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "password": ""
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,21 @@
+info:
+  name: logoutDocument
+  type: http
+  seq: 3
+  tags:
+    - document-auth-controller
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/document/:docId/logout"
+  params:
+    - name: docId
+      value: "{{docId}}"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,5 +1,6 @@
 package com.latech.api.model.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class RenderHistory {
     @GeneratedValue
     private UUID id;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn( name = "document_id", nullable = false )
     private Document document;
