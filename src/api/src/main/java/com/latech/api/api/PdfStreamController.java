@@ -1,10 +1,10 @@
 package com.latech.api.api;
 
 import com.latech.api.business.DocumentAuthService;
+import com.latech.api.business.DocumentCache;
 import com.latech.api.business.PDFStreamTopicService;
 import com.latech.api.model.api.DocumentTimestampsDto;
 import com.latech.api.model.db.Document;
-import com.latech.api.repository.DocumentRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @NullMarked
 public class PdfStreamController {
     private final PDFStreamTopicService pdfStreamTopicService;
-    private final DocumentRepository documentRepository;
+    private final DocumentCache documentCache;
     private final DocumentAuthService documentAuthService;
 
     @GetMapping( "/{docId}/stream-updates" )
@@ -38,7 +38,7 @@ public class PdfStreamController {
         }
 
         UUID id = UUID.fromString( docId );
-        Optional<Document> _document = documentRepository.findById( id );
+        Optional<Document> _document = documentCache.findById( id );
         if ( _document.isEmpty() ) {
             return ResponseEntity.status( HttpStatus.NOT_FOUND ).build();
         }

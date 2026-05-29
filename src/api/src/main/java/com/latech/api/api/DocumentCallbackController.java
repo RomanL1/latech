@@ -1,5 +1,6 @@
 package com.latech.api.api;
 
+import com.latech.api.business.DocumentCache;
 import com.latech.api.business.DocumentService;
 import com.latech.api.business.InternalSecretValidatorService;
 import com.latech.api.business.PDFStreamTopicService;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class DocumentCallbackController {
     private static final String INTERNAL_SECRET_HEADER = "X-Internal-Secret";
     private final DocumentRepository documentRepository;
+    private final DocumentCache documentCache;
     private final PDFStreamTopicService pdfStreamTopicService;
     private final DocumentService documentService;
     private final InternalSecretValidatorService internalSecretValidatorService;
@@ -72,6 +74,7 @@ public class DocumentCallbackController {
         document.setLastChange( Instant.now() );
 
         documentRepository.save( document );
+        documentCache.evict( docId );
 
         pdfStreamTopicService.notifyTimestamps( docId.toString(), new DocumentTimestampsDto( document.getLastChange(),
                                                                                              document.getLastCompile() ) );
