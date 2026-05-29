@@ -4,7 +4,7 @@ import ImagePreview from './image-preview/ImagePreview';
 import styles from './DocumentPage.module.css';
 import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
 import { Tabs } from '@radix-ui/themes';
-import { FileBracesCornerIcon, LucideFile } from 'lucide-react';
+import { FileBracesCornerIcon, HomeIcon, LucideFile } from 'lucide-react';
 import FileTree from './file-tree/FileTree';
 import type { Document, DocumentImage } from '../../features/documents/document';
 import EditorView from './editor-view/EditorView';
@@ -22,6 +22,7 @@ export function DocumentPage() {
   });
   const leftPanelRef = useRef<PanelImperativeHandle | null>(null);
   const nav = useNavigate();
+  const [isHoveringHome, setIsHoveringHome] = useState(false);
 
   const handleSeparatorClick = () => {
     const panel = leftPanelRef.current;
@@ -74,7 +75,19 @@ export function DocumentPage() {
         className={styles.tabsRoot}
       >
         <Tabs.List className={styles.tabsList}>
-          <FileBracesCornerIcon className={styles.homeIcon} onClick={handleHomeClick} size={30} />
+          <div
+            className={styles.homeIconContainer}
+            onMouseEnter={() => setIsHoveringHome(true)}
+            onMouseLeave={() => setIsHoveringHome(false)}
+            onClick={handleHomeClick}
+          >
+            <HomeIcon size={30} className={`${styles.homeIcon} ${isHoveringHome ? styles.visible : styles.hidden}`} />
+
+            <FileBracesCornerIcon
+              size={30}
+              className={`${styles.homeIcon} ${isHoveringHome ? styles.hidden : styles.visible}`}
+            />
+          </div>
           <Tabs.Trigger value="file">
             <LucideFile />
           </Tabs.Trigger>
