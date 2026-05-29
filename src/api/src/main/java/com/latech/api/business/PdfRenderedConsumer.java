@@ -26,6 +26,7 @@ public class PdfRenderedConsumer {
 
     private final PdfRenderedNotifier pdfRenderedNotifier;
     private final DocumentRepository documentRepository;
+    private final DocumentCache documentCache;
     private final RenderHistoryRepository renderHistoryRepository;
     private final OngoingCompileTracker ongoingCompileTracker;
     private final ThumbnailService thumbnailService;
@@ -68,6 +69,7 @@ public class PdfRenderedConsumer {
             document.setLastCompile( compiledAtTimestamp );
             document.setCompileAbandonedAt( null );
             this.documentRepository.save( document );
+            this.documentCache.evict( document.getId() );
             this.ongoingCompileTracker.jobFinished( document.getId() );
             this.pdfRenderedNotifier.publish( payload.getDocumentId(), payload.getFilePath(), true,
                                               payload.getLogMessage(), document.getLastChange() );

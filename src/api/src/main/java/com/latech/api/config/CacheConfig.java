@@ -15,6 +15,7 @@ public class CacheConfig {
 
     public static final String DOCUMENT_PASSWORD_STATUS = "documentPasswordStatus";
     public static final String DOCUMENT_SESSION_STATUS = "documentSessionStatus";
+    public static final String DOCUMENT = "document";
 
     @Bean
     public CacheManager cacheManager() {
@@ -33,8 +34,16 @@ public class CacheConfig {
                         .build()
         );
 
+        CaffeineCache documentCache = new CaffeineCache(
+                DOCUMENT,
+                Caffeine.newBuilder()
+                        .maximumSize(10_000)
+                        .expireAfterWrite(Duration.ofMinutes(2))
+                        .build()
+        );
+
         SimpleCacheManager manager = new SimpleCacheManager();
-        manager.setCaches(List.of(documentPasswordCache, documentSessionCache));
+        manager.setCaches(List.of(documentPasswordCache, documentSessionCache, documentCache));
         return manager;
     }
 }

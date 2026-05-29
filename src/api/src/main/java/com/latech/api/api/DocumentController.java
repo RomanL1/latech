@@ -38,6 +38,7 @@ import java.util.UUID;
 @RequestMapping( "api/document" )
 public class DocumentController {
     private final DocumentRepository documentRepository;
+    private final DocumentCache documentCache;
     private final TemplateRepository templateRepository;
     private final com.latech.api.repository.RenderHistoryRepository renderHistoryRepository;
     private final S3Client s3Client;
@@ -119,6 +120,7 @@ public class DocumentController {
 
         document.setName( documentRenameRequestDto.name() );
         documentRepository.save( document );
+        documentCache.evict( documentId );
 
         return ResponseEntity.ok().build();
     }
@@ -218,7 +220,7 @@ public class DocumentController {
 
         UUID documentId = UUID.fromString( docId );
 
-        if ( !documentRepository.existsById( documentId ) ) {
+        if ( documentCache.findById( documentId ).isEmpty() ) {
             return ResponseEntity.notFound().build();
         }
 
@@ -261,6 +263,7 @@ public class DocumentController {
 
         document.setAutoRenderEnabled( dto.autoRenderEnabled() );
         documentRepository.save( document );
+        documentCache.evict( documentId );
         pdfStreamTopicService.notifyAutoRenderSetting( documentId.toString(), dto.autoRenderEnabled() );
 
         return ResponseEntity.ok().build();
@@ -277,7 +280,7 @@ public class DocumentController {
 
         UUID documentId = UUID.fromString( docId );
 
-        if ( !documentRepository.existsById( documentId ) ) {
+        if ( documentCache.findById( documentId ).isEmpty() ) {
             return ResponseEntity.notFound().build();
         }
 

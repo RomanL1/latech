@@ -22,6 +22,7 @@ public class DocumentExchangeDlqListener {
     private final OngoingCompileTracker ongoingCompileTracker;
     private final PdfRenderedNotifier pdfRenderedNotifier;
     private final DocumentRepository documentRepository;
+    private final DocumentCache documentCache;
 
     @RabbitListener( queues = RabbitMQConfig.DOCUMENT_EXCHANGE_DLQ )
     public void handleDeadLetter ( Message message ) {
@@ -49,6 +50,7 @@ public class DocumentExchangeDlqListener {
         Document document = this.documentRepository.findById( documentId ).orElseThrow();
         document.setCompileAbandonedAt( Instant.now() );
         this.documentRepository.save( document );
+        this.documentCache.evict( documentId );
         this.pdfRenderedNotifier.publish( record.getDocumentId(), "", false, "Error while compiling pdf", document.getLastChange() );
     }
 }

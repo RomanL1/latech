@@ -39,6 +39,7 @@ services:
       - 'SEAWEEDFS_BUCKET=latech'
       - 'SEAWEEDFS_ACCESS_KEY=${SEAWEEDFS_ACCESS_KEY}'
       - 'SEAWEEDFS_SECRET_KEY=${SEAWEEDFS_SECRET_KEY}'
+      - 'JAVA_TOOL_OPTIONS=-Djdk.virtualThreadScheduler.parallelism=2'
     depends_on:
       - rabbitmq
       - seaweedfs
