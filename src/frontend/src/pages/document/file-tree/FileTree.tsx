@@ -1,50 +1,31 @@
 import { Flex, IconButton, Skeleton, Text } from '@radix-ui/themes';
-import { FileCodeCorner, LucideFileImage, LucideX, LockIcon } from 'lucide-react';
+import { FileCodeCorner, LucideFileImage, LucideX } from 'lucide-react';
 import styles from './FileTree.module.css';
 import FileTreeItem from './item/FileTreeItem';
 import UploadImageDialog from './upload-image-dialog/UploadImageDialog';
 import {
   useDeleteImage,
   useDownloadImage,
-  useGetDocument,
-  useGetImages,
   useRenameDocument,
   useRenameImage,
 } from '../../../features/documents/api';
-import { useParams } from 'react-router';
-import type { DocumentFile } from '../DocumentPage';
-import { useCallback, useEffect, useMemo } from 'react';
+import type { DocumentFile } from '../document-view/DocumentView';
+import { useCallback } from 'react';
 
 interface FileTreeProps {
   setSelectedFile: (file: DocumentFile | undefined) => void;
+  files: DocumentFile[];
   selectedFile: DocumentFile | undefined;
+  documentId: string;
+  isLoading: boolean;
   onClose?: () => void;
 }
 
-const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => {
-  const documentId = useParams().documentId!;
-
-  const { data: document, isLoading: isDocumentLoading } = useGetDocument(documentId);
-
-  const documentUnlocked = !!document && (!document.secured || document.content != null);
-
-  const { data: images = [], isLoading: isImageLoading } = useGetImages(documentId, documentUnlocked);
-
+const FileTree = ({ selectedFile, setSelectedFile, files, documentId, isLoading, onClose }: FileTreeProps) => {
   const deleteQuery = useDeleteImage(documentId);
   const downloadMutation = useDownloadImage(documentId);
   const renameImageMutation = useRenameImage(documentId);
   const renameDocumentMutation = useRenameDocument(documentId);
-
-  useEffect(() => {
-    if (isDocumentLoading || !document) return;
-
-    if (!documentUnlocked) {
-      setSelectedFile(undefined);
-      return;
-    }
-
-    setSelectedFile({ type: 'tex', file: document });
-  }, [isDocumentLoading, setSelectedFile, document, documentUnlocked]);
 
   const handleOnDownload = useCallback(
     (item: DocumentFile) => {
@@ -78,25 +59,13 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
     }
   };
 
-  const files: DocumentFile[] = useMemo(
-    () => [
-      ...(documentUnlocked && document ? [{ type: 'tex', file: document } as const] : []),
-      ...images.map((img) => ({ type: 'image', file: img }) as const),
-    ],
-    [documentUnlocked, document, images],
-  );
-
-  const isLoading = isDocumentLoading || (documentUnlocked && isImageLoading);
-
   return (
     <Flex direction="column" gap="5">
       <div className={styles.header}>
         <Text size="5" wrap="nowrap">
           File Tree
         </Text>
-
-        {documentUnlocked ? <UploadImageDialog className={styles.headerButton} /> : null}
-
+        <UploadImageDialog className={styles.headerButton} />
         <IconButton className={styles.headerButton} onClick={onClose}>
           <LucideX size={16} />
         </IconButton>
@@ -107,13 +76,6 @@ const FileTree = ({ selectedFile, setSelectedFile, onClose }: FileTreeProps) => 
           <Skeleton height="20" />
           <Skeleton height="20" />
           <Skeleton height="20" />
-        </Flex>
-      ) : document && !documentUnlocked ? (
-        <Flex direction="column" align="center" gap="2" className={styles.container}>
-          <LockIcon size={24} />
-          <Text size="2" color="gray">
-            Document is locked
-          </Text>
         </Flex>
       ) : (
         <div className={styles.imageList}>

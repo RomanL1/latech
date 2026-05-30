@@ -8,9 +8,8 @@ import { useRef, useEffect, useState } from 'react';
 import type { Document } from '../../../features/documents/document';
 import { getPDFRenderedEventSource, type ResilientEventSource } from '../../../features/pdf-preview/api';
 import { EditorProvider } from '../../../shared/components/latex-editor/EditorProvider';
-import { useGetDocument, useUnlockDocument } from '../../../features/documents/api';
+import { useGetDocument } from '../../../features/documents/api';
 import { storeDocument } from '../../../features/documents/store';
-import { Button, Flex, Text, TextField } from '@radix-ui/themes';
 
 interface EditorViewProps {
   file: Document | undefined;
@@ -20,11 +19,7 @@ interface EditorViewProps {
 const EditorView = ({ file, documentId }: EditorViewProps) => {
   const rightPanelRef = useRef<PanelImperativeHandle | null>(null);
   const [pdfEventSource, setPdfEventSource] = useState<ResilientEventSource | null>(null);
-  const [password, setPassword] = useState('');
-
   const { data: fetchedDocument } = useGetDocument(documentId ?? '');
-
-  const unlockMutation = useUnlockDocument(documentId ?? '');
 
   useEffect(() => {
     if (!fetchedDocument || !documentId) return;
@@ -67,54 +62,8 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
     }
   };
 
-  const handleUnlock = async () => {
-    if (!password.trim()) return;
-    try {
-      await unlockMutation.mutateAsync(password);
-      setPassword('');
-    } catch {
-      // keep password so user can correct and retry
-    }
-  };
-
   if (!documentId) {
     return <div className={styles.container}>No file selected</div>;
-  }
-
-  const isLocked = !!fetchedDocument && fetchedDocument.secured && fetchedDocument.content == null;
-
-  if (isLocked) {
-    return (
-      <div className={styles.container} style={{ justifyContent: 'center', alignItems: 'center' }}>
-        <Flex direction="column" gap="3" style={{ width: '300px' }}>
-          <Text size="3" weight="bold">
-            Protected document
-          </Text>
-          <Text size="2" color="gray">
-            Enter the password to access this document.
-          </Text>
-          <TextField.Root
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                handleUnlock();
-              }
-            }}
-          />
-          <Button onClick={handleUnlock} disabled={unlockMutation.isPending || !password.trim()}>
-            {unlockMutation.isPending ? 'Unlocking...' : 'Unlock'}
-          </Button>
-          {unlockMutation.isError ? (
-            <Text size="2" color="red">
-              {unlockMutation.error?.message ?? 'Wrong password or access denied.'}
-            </Text>
-          ) : null}
-        </Flex>
-      </div>
-    );
   }
 
   return (

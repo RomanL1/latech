@@ -58,11 +58,12 @@ export async function getDocument(documentId: string): Promise<Document> {
   });
 }
 
-export function useGetDocument(documentId: string): UseQueryResult<Document> {
+export function useGetDocument(documentId?: string): UseQueryResult<Document> {
   return useQuery({
     queryKey: ['document', documentId],
-    queryFn: () => getDocument(documentId),
+    queryFn: () => getDocument(documentId!),
     gcTime: 0,
+    enabled: !!documentId,
   });
 }
 
@@ -87,7 +88,6 @@ export function useUnlockDocument(documentId: string): UseMutationResult<void, E
     mutationFn: (password) => unlockDocument(documentId, password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['document', documentId] });
-      queryClient.invalidateQueries({ queryKey: ['images', documentId] });
     },
   });
 }
@@ -143,11 +143,10 @@ export function useDeleteImage(documentId: string): UseMutationResult<void, Erro
   });
 }
 
-export function useGetImages(documentId: string, enabled = true): UseQueryResult<DocumentImage[]> {
+export function useGetImages(documentId: string): UseQueryResult<DocumentImage[]> {
   return useQuery({
     queryKey: ['images', documentId],
-    queryFn: () => getImages(documentId),
-    enabled,
+    queryFn: () => getImages(documentId!),
     gcTime: 0,
   });
 }

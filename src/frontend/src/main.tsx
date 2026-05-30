@@ -6,8 +6,8 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import './main.css';
 import { PageLayout } from './PageLayout';
 import { CreateDocumentPage } from './pages/create/CreateDocumentPage';
-import { DocumentPage } from './pages/document/DocumentPage';
 import { LandingPage } from './pages/landing/LandingPage';
+import DocumentPage from './pages/document/DocumentPage';
 
 const queryClient = new QueryClient();
 
