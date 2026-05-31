@@ -22,7 +22,7 @@ export function DocumentView({ document }: DocumentViewProps) {
 
   const documentId = document.id;
   const { data: images = [], isLoading: isImageLoading } = useGetImages(documentId);
-  const [selectedFile, setSelectedFile] = useState<DocumentFile | undefined>();
+  const [selectedFile, setSelectedFile] = useState<DocumentFile>({ type: 'tex', file: document });
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: 'document-page-layout',
     storage: localStorage,
@@ -33,7 +33,7 @@ export function DocumentView({ document }: DocumentViewProps) {
 
   const files: DocumentFile[] = useMemo(
     () => [
-      ...(document ? [{ type: 'tex', file: document } as const] : []),
+      ...([{ type: 'tex', file: document } as const]),
       ...images.map((img) => ({ type: 'image', file: img }) as const),
     ],
     [document, images],
@@ -118,7 +118,7 @@ export function DocumentView({ document }: DocumentViewProps) {
             onResize={handleFilePanelResize}
           >
             <Tabs.Content value="file" className={styles.tabsContent}>
-              <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} files={files} documentId={documentId!} isLoading={isImageLoading} onClose={handleCloseFileTree} />
+              <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} files={files} document={document} isLoading={isImageLoading} onClose={handleCloseFileTree} />
             </Tabs.Content>
           </Panel>
           <ResizeSeparator onClick={handleSeparatorClick} />
@@ -126,7 +126,7 @@ export function DocumentView({ document }: DocumentViewProps) {
             {selectedFile && selectedFile.type === 'image' ? (
               <ImagePreview selectedFile={selectedFile.file} />
             ) : documentId ? (
-              <EditorView documentId={documentId} file={selectedFile?.type === 'tex' ? selectedFile.file : undefined} />
+              <EditorView documentId={documentId} document={document} />
             ) : null}
           </Panel>
         </Group>

@@ -11,17 +11,20 @@ import {
 } from '../../../features/documents/api';
 import type { DocumentFile } from '../document-view/DocumentView';
 import { useCallback } from 'react';
+import type { Document } from '../../../features/documents/document';
 
 interface FileTreeProps {
-  setSelectedFile: (file: DocumentFile | undefined) => void;
+  setSelectedFile: (file: DocumentFile) => void;
   files: DocumentFile[];
   selectedFile: DocumentFile | undefined;
-  documentId: string;
+  document: Document;
   isLoading: boolean;
   onClose?: () => void;
+  onDelete?: (file: DocumentFile) => void;
 }
 
-const FileTree = ({ selectedFile, setSelectedFile, files, documentId, isLoading, onClose }: FileTreeProps) => {
+const FileTree = ({ selectedFile, setSelectedFile, files, document, isLoading, onClose }: FileTreeProps) => {
+  const documentId = document.id;
   const deleteQuery = useDeleteImage(documentId);
   const downloadMutation = useDownloadImage(documentId);
   const renameImageMutation = useRenameImage(documentId);
@@ -40,11 +43,11 @@ const FileTree = ({ selectedFile, setSelectedFile, files, documentId, isLoading,
     (item: DocumentFile) => {
       if (item.type === 'image') {
         deleteQuery.mutateAsync(item.file.id).then(() => {
-          setSelectedFile(undefined);
+          setSelectedFile({ type: 'tex', file: document });
         });
       }
     },
-    [deleteQuery, setSelectedFile],
+    [deleteQuery, setSelectedFile, document],
   );
 
   const handleOnNameChange = (item: DocumentFile, newName: string) => {

@@ -5,30 +5,27 @@ import styles from './EditorView.module.css';
 import ResizeSeparator from '../../../shared/components/separator/ResizeSeparator';
 import EditorHeader from './header/EditorHeader';
 import { useRef, useEffect, useState } from 'react';
-import type { Document } from '../../../features/documents/document';
 import { getPDFRenderedEventSource, type ResilientEventSource } from '../../../features/pdf-preview/api';
 import { EditorProvider } from '../../../shared/components/latex-editor/EditorProvider';
-import { useGetDocument } from '../../../features/documents/api';
 import { storeDocument } from '../../../features/documents/store';
+import type { Document } from '../../../features/documents/document';
 
 interface EditorViewProps {
-  file: Document | undefined;
-  documentId: string | undefined;
+  document: Document;
 }
 
-const EditorView = ({ file, documentId }: EditorViewProps) => {
+const EditorView = ({ document }: EditorViewProps) => {
   const rightPanelRef = useRef<PanelImperativeHandle | null>(null);
   const [pdfEventSource, setPdfEventSource] = useState<ResilientEventSource | null>(null);
-  const { data: fetchedDocument } = useGetDocument(documentId ?? '');
+  const documentId = document.id;
 
   useEffect(() => {
-    if (!fetchedDocument || !documentId) return;
     storeDocument({
-      documentId,
-      name: fetchedDocument.name ?? documentId,
+      documentId: document.id,
+      name: document.name ?? document.id,
       lastEdited: new Date(),
     });
-  }, [fetchedDocument, documentId]);
+  }, [document]);
 
   useEffect(() => {
     if (!documentId) return;
@@ -69,11 +66,11 @@ const EditorView = ({ file, documentId }: EditorViewProps) => {
   return (
     <EditorProvider roomId={documentId}>
       <div className={styles.container}>
-        <EditorHeader file={file} pdfEventSource={pdfEventSource} />
+        <EditorHeader document={document} pdfEventSource={pdfEventSource} />
         <Group className={styles.panelGroup}>
           <Panel minSize={'20%'} defaultSize="50%" className={styles.panel}>
             <div style={{ height: '100%' }} onKeyDown={(e) => e.stopPropagation()}>
-              <LatexEditor content={file?.content ?? ''} />
+              <LatexEditor content={document.content ?? ''} />
             </div>
           </Panel>
           <ResizeSeparator onClick={handleSeparatorClick} />
