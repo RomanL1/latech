@@ -19,7 +19,6 @@ interface DocumentViewProps {
 }
 
 export function DocumentView({ document }: DocumentViewProps) {
-
   const documentId = document.id;
   const { data: images = [], isLoading: isImageLoading } = useGetImages(documentId);
   const [selectedFile, setSelectedFile] = useState<DocumentFile>({ type: 'tex', file: document });
@@ -33,7 +32,7 @@ export function DocumentView({ document }: DocumentViewProps) {
 
   const files: DocumentFile[] = useMemo(
     () => [
-      ...([{ type: 'tex', file: document } as const]),
+      ...[{ type: 'tex', file: document } as const],
       ...images.map((img) => ({ type: 'image', file: img }) as const),
     ],
     [document, images],
@@ -118,7 +117,14 @@ export function DocumentView({ document }: DocumentViewProps) {
             onResize={handleFilePanelResize}
           >
             <Tabs.Content value="file" className={styles.tabsContent}>
-              <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} files={files} document={document} isLoading={isImageLoading} onClose={handleCloseFileTree} />
+              <FileTree
+                selectedFile={selectedFile}
+                setSelectedFile={setSelectedFile}
+                files={files}
+                document={document}
+                isLoading={isImageLoading}
+                onClose={handleCloseFileTree}
+              />
             </Tabs.Content>
           </Panel>
           <ResizeSeparator onClick={handleSeparatorClick} />
@@ -126,7 +132,7 @@ export function DocumentView({ document }: DocumentViewProps) {
             {selectedFile && selectedFile.type === 'image' ? (
               <ImagePreview selectedFile={selectedFile.file} />
             ) : documentId ? (
-              <EditorView documentId={documentId} document={document} />
+              <EditorView document={document} />
             ) : null}
           </Panel>
         </Group>

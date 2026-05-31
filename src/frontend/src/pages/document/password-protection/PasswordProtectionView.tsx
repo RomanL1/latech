@@ -48,7 +48,7 @@ const PasswordProtectionView = ({ documentId }: PasswordProtectionViewProps) => 
         >
           <TextField.Slot>
             <LockIcon size={18} />
-          </TextField.Slot> 
+          </TextField.Slot>
         </TextField.Root>
         <Button onClick={handleUnlock} disabled={unlockMutation.isPending || !password.trim()} ref={buttonRef}>
           {unlockMutation.isPending ? 'Unlocking...' : 'Unlock'}

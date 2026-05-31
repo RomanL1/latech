@@ -3,12 +3,7 @@ import { FileCodeCorner, LucideFileImage, LucideX } from 'lucide-react';
 import styles from './FileTree.module.css';
 import FileTreeItem from './item/FileTreeItem';
 import UploadImageDialog from './upload-image-dialog/UploadImageDialog';
-import {
-  useDeleteImage,
-  useDownloadImage,
-  useRenameDocument,
-  useRenameImage,
-} from '../../../features/documents/api';
+import { useDeleteImage, useDownloadImage, useRenameDocument, useRenameImage } from '../../../features/documents/api';
 import type { DocumentFile } from '../document-view/DocumentView';
 import { useCallback } from 'react';
 import type { Document } from '../../../features/documents/document';
