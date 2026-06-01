@@ -20,18 +20,18 @@ import styles from './EditorHeader.module.css';
 import EditorNavigationButtons from './navigation-buttons/EditorNavigationButtons';
 
 interface EditorHeaderProps {
-  file: Document | undefined;
+  document: Document;
   pdfEventSource: ResilientEventSource | null;
 }
 
-const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
-  const docId = file?.id;
+const EditorHeader = ({ document, pdfEventSource }: EditorHeaderProps) => {
+  const docId = document.id;
   const [isCompiling, setIsCompiling] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [lastRenderedAt, setLastRenderedAt] = useState<string | null>(null);
   const [lastChangedAt, setLastChangedAt] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
-  const [autoRenderEnabled, setAutoRenderEnabled] = useState<boolean>(file?.autoRenderEnabled ?? true);
+  const [autoRenderEnabled, setAutoRenderEnabled] = useState<boolean>(document.autoRenderEnabled ?? true);
   const { awarenessUsers, currentAwarenessUser } = useAwareness();
   const { buttonRef } = useKeyboardSaveContext();
 
@@ -126,7 +126,7 @@ const EditorHeader = ({ file, pdfEventSource }: EditorHeaderProps) => {
   return (
     <div className={styles.container} onMouseDown={preventFocusLoss} role="toolbar">
       <LucideFileCodeCorner size={20} />
-      <Text size="2">{file?.name}</Text>
+      <Text size="2">{document.name}</Text>
       <Separator orientation="vertical" />
       <EditorNavigationButtons />
       <Separator orientation="vertical" />

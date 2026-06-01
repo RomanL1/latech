@@ -1,108 +1,22 @@
-import { Group, Panel, useDefaultLayout, useGroupRef, type PanelImperativeHandle } from 'react-resizable-panels';
-import { useRef, useState } from 'react';
-import ImagePreview from './image-preview/ImagePreview';
-import styles from './DocumentPage.module.css';
-import ResizeSeparator from '../../shared/components/separator/ResizeSeparator';
-import { Tabs } from '@radix-ui/themes';
-import { FileBracesCornerIcon, LucideFile } from 'lucide-react';
-import FileTree from './file-tree/FileTree';
-import type { Document, DocumentImage } from '../../features/documents/document';
-import EditorView from './editor-view/EditorView';
-import { useNavigate, useParams } from 'react-router';
-import KeyboardSaveProvider from './provider/KeyboardSaveProvider';
+import { useParams } from 'react-router';
+import { useGetDocument } from '../../features/documents/api';
+import { DocumentView } from './document-view/DocumentView';
+import PasswordProtectionView from './password-protection/PasswordProtectionView';
 
-export type DocumentFile = { type: 'image'; file: DocumentImage } | { type: 'tex'; file: Document };
-
-export function DocumentPage() {
+const DocumentPage = () => {
   const { documentId } = useParams<{ documentId: string }>();
-  const [selectedFile, setSelectedFile] = useState<DocumentFile | undefined>();
-  const { defaultLayout, onLayoutChanged } = useDefaultLayout({
-    id: 'document-page-layout',
-    storage: localStorage,
-  });
-  const leftPanelRef = useRef<PanelImperativeHandle | null>(null);
-  const nav = useNavigate();
+  const { data: document } = useGetDocument(documentId);
+  const documentLocked = document && document.secured && document.content === null;
 
-  const handleSeparatorClick = () => {
-    const panel = leftPanelRef.current;
-    if (!panel) return;
+  if (documentLocked) {
+    return <PasswordProtectionView documentId={documentId} />;
+  }
 
-    if (panel.isCollapsed()) {
-      panel.expand();
-    } else {
-      panel.collapse();
-    }
-  };
+  if (!document) {
+    return <div>Document not found</div>;
+  }
 
-  const [selectedTab, setSelectedTab] = useState('file');
-  const groupRef = useGroupRef();
+  return <DocumentView document={document} />;
+};
 
-  const handleCloseFileTree = () => {
-    setSelectedTab('');
-    groupRef.current?.setLayout({ navigation: 0, main: 100 });
-  };
-
-  const handleTabChange = (tab: string) => {
-    setSelectedTab(tab);
-
-    // Reset layout when switching tabs
-    const layout = groupRef.current?.getLayout();
-    if (layout?.navigation === 0) {
-      groupRef.current?.setLayout({ navigation: 30, main: 70 });
-    }
-  };
-
-  const handleHomeClick = () => {
-    nav('/');
-  };
-
-  const handleFilePanelResize = () => {
-    if (leftPanelRef.current?.isCollapsed()) {
-      setSelectedTab('');
-    } else if (!selectedTab) {
-      setSelectedTab('file');
-    }
-  };
-
-  return (
-    <KeyboardSaveProvider>
-      <Tabs.Root
-        defaultValue="file"
-        orientation="vertical"
-        value={selectedTab}
-        onValueChange={handleTabChange}
-        className={styles.tabsRoot}
-      >
-        <Tabs.List className={styles.tabsList}>
-          <FileBracesCornerIcon className={styles.homeIcon} onClick={handleHomeClick} size={30} />
-          <Tabs.Trigger value="file">
-            <LucideFile />
-          </Tabs.Trigger>
-        </Tabs.List>
-
-        <Group defaultLayout={defaultLayout} onLayoutChange={onLayoutChanged} groupRef={groupRef}>
-          <Panel
-            id="navigation"
-            collapsible
-            minSize="20%"
-            defaultSize="25%"
-            panelRef={leftPanelRef}
-            onResize={handleFilePanelResize}
-          >
-            <Tabs.Content value="file" className={styles.tabsContent}>
-              <FileTree selectedFile={selectedFile} setSelectedFile={setSelectedFile} onClose={handleCloseFileTree} />
-            </Tabs.Content>
-          </Panel>
-          <ResizeSeparator onClick={handleSeparatorClick} />
-          <Panel id="main" minSize="20%" defaultSize="75%">
-            {selectedFile && selectedFile.type === 'image' ? (
-              <ImagePreview selectedFile={selectedFile.file} />
-            ) : documentId ? (
-              <EditorView documentId={documentId} file={selectedFile?.type === 'tex' ? selectedFile.file : undefined} />
-            ) : null}
-          </Panel>
-        </Group>
-      </Tabs.Root>
-    </KeyboardSaveProvider>
-  );
-}
+export default DocumentPage;

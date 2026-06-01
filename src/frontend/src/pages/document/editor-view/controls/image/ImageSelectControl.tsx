@@ -1,16 +1,13 @@
 import { IconButton, Separator, Text } from '@radix-ui/themes';
 import { LucideImage } from 'lucide-react';
 import { useParams } from 'react-router';
-import { useGetDocument, useGetImages } from '../../../../../features/documents/api';
+import { useGetImages } from '../../../../../features/documents/api';
 import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
 import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
 
 export function ImageSelectControl() {
   const documentId = useParams().documentId!;
-  const { data: document } = useGetDocument(documentId);
-
-  const documentUnlocked = !!document && (!document.secured || document.content != null);
-  const { data: images = [] } = useGetImages(documentId, documentUnlocked);
+  const { data: images = [] } = useGetImages(documentId);
 
   const { insertImage } = useEditor();
 
