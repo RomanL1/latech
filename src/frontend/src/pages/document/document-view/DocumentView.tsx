@@ -63,7 +63,7 @@ export function DocumentView({ document }: DocumentViewProps) {
     // Reset layout when switching tabs
     const layout = groupRef.current?.getLayout();
     if (layout?.navigation === 0) {
-      groupRef.current?.setLayout({ navigation: 30, main: 70 });
+      groupRef.current?.setLayout({ navigation: 20, main: 80 });
     }
   };
 
@@ -112,7 +112,7 @@ export function DocumentView({ document }: DocumentViewProps) {
             id="navigation"
             collapsible
             minSize="20%"
-            defaultSize="25%"
+            defaultSize="20%"
             panelRef={leftPanelRef}
             onResize={handleFilePanelResize}
           >
@@ -128,7 +128,7 @@ export function DocumentView({ document }: DocumentViewProps) {
             </Tabs.Content>
           </Panel>
           <ResizeSeparator onClick={handleSeparatorClick} />
-          <Panel id="main" minSize="20%" defaultSize="75%">
+          <Panel id="main" minSize="20%" defaultSize="80%">
             {selectedFile && selectedFile.type === 'image' ? (
               <ImagePreview selectedFile={selectedFile.file} />
             ) : documentId ? (
