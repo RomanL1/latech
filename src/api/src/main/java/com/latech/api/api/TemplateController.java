@@ -6,6 +6,7 @@ import com.latech.api.model.db.Template;
 import com.latech.api.repository.TemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ public class TemplateController {
 
     @GetMapping
     public ResponseEntity<List<TemplateDto>> listAllTemplates () {
-        List<Template> all = templateRepository.findAll();
+        List<Template> all = templateRepository.findAll(Sort.by("ordinal"));
 
         List<TemplateDto> templateDtos = new ArrayList<>();
         for (Template template : all) {

@@ -61,6 +61,7 @@ public class TemplateSeedService {
         Template template = existingTemplate.orElseGet( Template::new );
         template.setName( definition.name() );
         template.setDescription( definition.description() );
+        template.setOrdinal( definition.ordinal() );
         template.setContent( content );
 
         templateRepository.save( template );
@@ -73,6 +74,6 @@ public class TemplateSeedService {
         return templateResource.getContentAsString( StandardCharsets.UTF_8 );
     }
 
-    private record TemplateSeedDefinition(String name, String description, String file) {
+    private record TemplateSeedDefinition(String name, String description, String file, int ordinal) {
     }
 }
