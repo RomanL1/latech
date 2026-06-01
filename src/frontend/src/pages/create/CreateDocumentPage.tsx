@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { saveTemplate } from '../../features/documents/api';
@@ -24,9 +24,9 @@ export function CreateDocumentPage() {
     request.then(({ documentId }) => navigate(`/document/${documentId}`)).catch();
   }
 
-  function handleTemplateSelect(template: DocumentTemplate) {
+  const handleTemplateSelect = useCallback((template: DocumentTemplate) => {
     setSelectedTemplate(template);
-  }
+  }, []);
 
   return (
     <FormProvider {...form}>
@@ -35,7 +35,7 @@ export function CreateDocumentPage() {
           <CreateDocumentSidebar selectedTemplate={selectedTemplate} onSubmit={() => handleSubmit()} />
         </div>
         <div className={styles.templates}>
-          <TemplateSelection onTemplateSelected={(template) => handleTemplateSelect(template)} />
+          <TemplateSelection onTemplateSelected={handleTemplateSelect} />
         </div>
       </form>
     </FormProvider>

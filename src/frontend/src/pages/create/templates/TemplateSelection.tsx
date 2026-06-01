@@ -22,7 +22,7 @@ export function TemplateSelection({ onTemplateSelected }: TemplateSelectionProps
   useEffect(() => {
     if (selectedTemplate) {
       onTemplateSelected(selectedTemplate);
-      form.setValue('templateId', selectedTemplate.templateId);
+      form.setValue('templateId', selectedTemplate.templateId, { shouldValidate: true });
     }
   }, [selectedTemplate, onTemplateSelected, form]);
 

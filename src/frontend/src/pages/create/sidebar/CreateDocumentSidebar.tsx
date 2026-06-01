@@ -1,5 +1,6 @@
 import { Button } from '@radix-ui/themes';
 import { FilePlusCornerIcon } from 'lucide-react';
+import { useFormState } from 'react-hook-form';
 import type { DocumentTemplate } from '../../../features/templates/template';
 import { useDocumentCreationFormContext } from '../form';
 import styles from './CreateDocumentSidebar.module.css';
@@ -13,7 +14,8 @@ interface CreateDocumentSidebarProps {
 }
 
 export function CreateDocumentSidebar({ selectedTemplate, onSubmit }: CreateDocumentSidebarProps) {
-  const form = useDocumentCreationFormContext();
+  const { control } = useDocumentCreationFormContext();
+  const { isValid } = useFormState({ control });
 
   return (
     <div className={styles.container}>
@@ -25,13 +27,7 @@ export function CreateDocumentSidebar({ selectedTemplate, onSubmit }: CreateDocu
       <SelectedTemplate template={selectedTemplate} />
 
       <div className={styles.actions}>
-        <Button
-          size="3"
-          type="button"
-          className={styles.createButton}
-          onClick={onSubmit}
-          disabled={!form.formState.isValid}
-        >
+        <Button size="3" type="button" className={styles.createButton} onClick={onSubmit} disabled={!isValid}>
           <FilePlusCornerIcon />
           Create document
         </Button>

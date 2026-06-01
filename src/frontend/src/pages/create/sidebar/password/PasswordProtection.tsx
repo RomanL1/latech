@@ -24,11 +24,8 @@ export function PasswordProtection() {
   function setPasswordProtectionCheckbox(checked: boolean) {
     setUsePasswordProtection(checked);
 
-    if (checked) {
-      form.setValue('password', '');
-    } else {
-      form.resetField('password');
-    }
+    const value = checked ? '' : null;
+    form.setValue('password', value, { shouldValidate: true });
   }
 
   return (
