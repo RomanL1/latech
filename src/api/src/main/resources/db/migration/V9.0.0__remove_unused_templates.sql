@@ -1,0 +1,1 @@
+DELETE FROM template WHERE name = 'Real';
