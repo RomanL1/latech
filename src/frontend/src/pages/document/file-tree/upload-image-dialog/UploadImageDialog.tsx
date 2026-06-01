@@ -55,6 +55,7 @@ const UploadImageDialog = ({ className }: UploadImageDialogProps) => {
       </Dialog.Trigger>
       <Dialog.Content className={styles.dialogContent} onInteractOutside={(event) => event.preventDefault()}>
         <Dialog.Title>Upload Image</Dialog.Title>
+        <Dialog.Description />
         <ImageDropzone onDrop={handleOnFileDrop} />
 
         {uploadedFiles.length > 0 && (
