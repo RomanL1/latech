@@ -4,6 +4,8 @@ import { useParams } from 'react-router';
 import { useGetImages } from '../../../../../features/documents/api';
 import { useEditor } from '../../../../../shared/components/latex-editor/EditorContext';
 import { NonFocusStealingDropdown } from '../../../../../shared/components/non-focus-stealing-dropdown/NonFocusStealingDropdown';
+import { Fragment } from 'react';
+import type { DocumentImage } from '../../../../../features/documents/document';
 
 export function ImageSelectControl() {
   const documentId = useParams().documentId!;
@@ -12,6 +14,7 @@ export function ImageSelectControl() {
   const { insertImage } = useEditor();
 
   function handleSelected(fileName: string) {
+    console.log(fileName);
     insertImage(fileName);
   }
 
@@ -21,26 +24,33 @@ export function ImageSelectControl() {
     </IconButton>
   );
 
-  const content =
-    images.length === 0 ? (
-      <Text>No images uploaded yet</Text>
-    ) : (
-      <>
-        <span>Images</span>
-        {images.map(({ id, name }, index) => (
-          <>
-            {index !== 0 && <Separator size="4" />}
-            <NonFocusStealingDropdown.Option value={name} key={id}>
-              <Text size="2">{name}</Text>
-            </NonFocusStealingDropdown.Option>
-          </>
-        ))}
-      </>
-    );
-
   return (
     <NonFocusStealingDropdown trigger={trigger} onOptionSelected={handleSelected}>
-      {content}
+      <ImageSelectOptions images={images} />
     </NonFocusStealingDropdown>
+  );
+}
+
+interface ImageSelectOptionsProps {
+  images: DocumentImage[];
+}
+
+function ImageSelectOptions({ images }: ImageSelectOptionsProps) {
+  if (images.length === 0) {
+    return <Text>No images uploaded yet</Text>;
+  }
+
+  return (
+    <>
+      <span>Images</span>
+      {images.map(({ id, name }, index) => (
+        <Fragment key={id}>
+          {index !== 0 && <Separator size="4" />}
+          <NonFocusStealingDropdown.Option value={name}>
+            <Text size="2">{name}</Text>
+          </NonFocusStealingDropdown.Option>
+        </Fragment>
+      ))}
+    </>
   );
 }
