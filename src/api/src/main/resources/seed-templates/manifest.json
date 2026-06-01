@@ -2,26 +2,31 @@
   {
     "name": "Blank Document",
     "description": "Minimal LaTeX document",
-    "file": "blank.tex"
+    "file": "blank.tex",
+    "ordinal": 1
   },
   {
     "name": "Essay",
     "description": "Academic essay format",
-    "file": "essay.tex"
+    "file": "essay.tex",
+    "ordinal": 2
   },
   {
     "name": "Formal letter",
     "description": "Professional letter template",
-    "file": "formal-letter.tex"
+    "file": "formal-letter.tex",
+    "ordinal": 3
   },
   {
     "name": "Meeting notes",
     "description": "Organized template for catching meeting notes",
-    "file": "meeting-notes.tex"
+    "file": "meeting-notes.tex",
+    "ordinal": 4
   },
   {
     "name": "Resume/CV",
     "description": "Clean, professional layout to showcase your skills",
-    "file": "resume.tex"
+    "file": "resume.tex",
+    "ordinal": 5
   }
 ]

@@ -25,4 +25,7 @@ public class Template {
 
     @Column( columnDefinition = "TEXT" )
     private String content;
+
+    @Column
+    private int ordinal;
 }
